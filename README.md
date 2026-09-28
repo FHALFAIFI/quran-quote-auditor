@@ -124,6 +124,15 @@ npx vercel deploy --prod
 python scripts/e2e_check.py https://<your-app>.vercel.app   # samples + error cases
 ```
 
+**If Vercel reports the deployment as "Blocked"** (the commit author email isn't linked to
+the Vercel account), the live demo was deployed from a clean export of the committed tree,
+with no `.git` metadata and no `.env`:
+
+```bash
+E=$(mktemp -d); git archive HEAD | tar -x -C "$E"; mkdir "$E/.vercel"; cp .vercel/project.json "$E/.vercel/"
+(cd "$E" && npx vercel deploy --prod --yes)
+```
+
 ## Runtime API key (Gemini)
 
 Your Claude subscription is only for building the app. The deployed app uses its own

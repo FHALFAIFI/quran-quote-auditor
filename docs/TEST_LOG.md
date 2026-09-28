@@ -75,3 +75,13 @@ scripted runs above (7 findings, 3 needing review).
 See `EVALUATION.md`: 25/28 gold quotations detected, 0 false "matched" wording or
 references, and 0 findings on 5 non-Quran negatives. The three misses are short unmarked quotes
 that need AI extraction.
+
+### Deployment of the AI-status banner (2026-09-28)
+
+- Vercel blocked CLI deployments of commits `07a777a` and later: the commit author (a GitHub
+  no-reply address) could not be matched to the Vercel account, even after the owner connected GitHub.
+- With the owner's approval, the app was deployed from a `git archive` export of the commit
+  (identical files, no `.git`, no `.env`). Commit `2860743` is live.
+- Verified on the live URL with a page load only (no audit, so no Gemini call). The banner reads
+  «الاستخراج بالذكاء الاصطناعي مُعَدّ — Google Gemini (gemini-3.8-flash). لم يُستدعَ بعدُ على هذا الخادم…».
+  `/api/health` shows `ai_last_call.outcome = "never_called"`. There were no console errors and no POST requests.
