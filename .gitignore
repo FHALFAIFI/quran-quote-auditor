@@ -1,0 +1,33 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.key
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local caches (the Quran text is fetched live from Quranpedia and never committed)
+quran-auditor-cache/
+*.cache.json
+
+# Deployment / editors / OS
+.vercel/
+.idea/
+.vscode/
+.DS_Store
+
+# Organizer materials (not ours to republish)
+guide.pdf
+reference.pdf
+template.pptx
+
+# Vercel CLI link data and pulled env files (contain tokens)
+.vercel
+.env.local

@@ -1,0 +1,17 @@
+# The Vercel CLI uploads by this file, not .gitignore — keep secrets and local files out.
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.git/
+tests/
+scripts/
+docs/
+guide.pdf
+reference.pdf
+template.pptx
+*.pdf
+*.pptx

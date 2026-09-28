@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مدقق الاقتباسات القرآنية</title>
+  <meta name="description" content="أداة تتحقق من ألفاظ الاقتباسات القرآنية وإحالاتها في المقالات العربية بمقارنتها بنص مصحف حفص من قرآنبيديا.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312183F'/%3E%3Cpath d='M9 17l4 4 10-10' stroke='%232EF2C2' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="34" height="34"><rect width="32" height="32" rx="9" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6150EA"/><stop offset="1" stop-color="#2EF2C2"/></linearGradient></defs><path d="M9 17l4 4 10-10" stroke="#12183F" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <div>
+          <h1>مدقق الاقتباسات القرآنية</h1>
+          <p class="tagline">تحقّق من ألفاظ الآيات المقتبسة وإحالاتها في مقالك، مقارنةً بنص مصحف حفص.</p>
+        </div>
+      </div>
+      <span class="track-chip">المسار الرابع · أدوات المعرفة والتحقق</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="mode-banner" class="banner" hidden></div>
+
+    <section class="card input-card" aria-labelledby="input-title">
+      <div class="card-head">
+        <h2 id="input-title">نص المقال</h2>
+        <div class="samples">
+          <label for="sample-select">مثال جاهز:</label>
+          <select id="sample-select">
+            <option value="">— اختر —</option>
+            <option value="sample-1">مقال عن العلم</option>
+            <option value="sample-2">مقال عن الصبر (أخطاء شائعة)</option>
+            <option value="sample-3">مقال بلا أقواس</option>
+          </select>
+        </div>
+      </div>
+      <textarea id="article" rows="11" dir="rtl" spellcheck="false" placeholder="الصق هنا مقالًا عربيًا قصيرًا يتضمن آيات قرآنية…"></textarea>
+      <div class="input-foot">
+        <span id="char-count" class="muted">0 حرف</span>
+        <div class="actions">
+          <button id="clear-btn" type="button" class="btn ghost">مسح</button>
+          <button id="audit-btn" type="button" class="btn primary">دقّق الاقتباسات</button>
+        </div>
+      </div>
+      <p class="scope-note">
+        نطاق الأداة: الاقتباسات القرآنية وإحالاتها فقط. لا تصحّح الأداة لغة المقال، ولا تفسّر الآيات، ولا تُصدر أحكامًا شرعية.
+        النتائج مساعدة للمحرر وتحتاج إلى مراجعة بشرية، وخاصة ما عُلِّم «يحتاج مراجعة».
+      </p>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <section id="results" hidden>
+      <div id="notices"></div>
+      <div id="summary" class="summary"></div>
+
+      <div class="results-grid">
+        <section class="card article-card" aria-labelledby="article-title">
+          <h2 id="article-title">المقال مع مواضع الاقتباس</h2>
+          <div id="article-view" class="article-view" dir="rtl"></div>
+        </section>
+        <section class="findings-col" aria-labelledby="findings-title">
+          <div class="findings-head">
+            <h2 id="findings-title">قائمة المراجعة</h2>
+            <label class="filter"><input type="checkbox" id="only-review"> أظهر ما يحتاج مراجعة فقط</label>
+          </div>
+          <ol id="findings" class="findings"></ol>
+        </section>
+      </div>
+    </section>
+
+    <section class="card legend" aria-labelledby="legend-title">
+      <h2 id="legend-title">دليل الحالات</h2>
+      <div class="legend-grid">
+        <div><span class="chip ok">مطابق</span> وُجد النص في المصدر في موضع محدد. يُبيَّن مستوى المطابقة: <b>حرفية</b>، أو <b>بتجاهل التشكيل</b>، أو <b>بعد توحيد الرسم</b> (مثل كتابة الهمزات).</div>
+        <div><span class="chip diff">اختلاف</span> اختلاف في التشكيل أو رسم الحروف عن نص المصحف، أو لم يوجد النص بحروفه فاقترحت الأداة أقرب موضع (مقترح غير مؤكد).</div>
+        <div><span class="chip warn">غير محسوم</span> عبارة قصيرة، أو واردة في أكثر من موضع، أو غير موجودة، أو المصدر غير متاح.</div>
+        <div><span class="chip ok">إحالة مطابقة</span> <span class="chip muted-chip">بلا إحالة</span> <span class="chip bad">إحالة خاطئة</span> <span class="chip warn">إحالة غير محسومة</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>
+        مصدر النص القرآني: <a href="https://quranpedia.net" target="_blank" rel="noopener">الموسوعة القرآنية — Quranpedia</a>،
+        مصحف حفص عن عاصم عبر <a href="https://api.quranpedia.net/" target="_blank" rel="noopener">واجهة Quranpedia البرمجية</a>.
+        لا يُستخدم الذكاء الاصطناعي مصدرًا لنص القرآن ولا حكَمًا على صحته؛ دوره اقتراح مواضع الاقتباس فقط.
+      </p>
+      <p class="muted">
+        الخصوصية: لا تُخزَّن المقالات ولا تُسجَّل. عند تفعيل الذكاء الاصطناعي يُرسل نص المقال إلى Google Gemini لاستخراج المرشحات.
+        · نسخة ما قبل التحدي (خط الأساس) — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
