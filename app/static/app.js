@@ -60,7 +60,7 @@ async function loadHealth() {
       // "Configured" is not "working": state what is known about the last real call.
       const last = h.ai_last_call || {};
       banner.className = "banner ai";
-      banner.append(el("strong", { text: "الاستخراج بالذكاء الاصطناعي مُعَدّ " }), `(${h.provider}). `);
+      banner.append(el("strong", { text: "الاستخراج بالذكاء الاصطناعي مُعَدّ" }), " — ", el("bdi", { dir: "ltr", text: h.provider }), ". ");
       if (last.outcome === "ok") {
         banner.append("آخر استدعاء له على هذا الخادم نجح. ");
       } else if (last.outcome === "failed") {
@@ -149,7 +149,8 @@ function render(data) {
   if (data.mode === "reduced") {
     notices.append(el("div", { class: "notice warning", text: "نُفِّذ هذا التدقيق في الوضع المخفّض دون ذكاء اصطناعي." }));
   } else if (data.mode === "ai") {
-    notices.append(el("div", { class: "notice info", text: `استجاب نموذج الذكاء الاصطناعي (${data.provider_model || data.provider}) في هذا التدقيق، وتحقق الخادم من كل مقترح منه.` }));
+    notices.append(el("div", { class: "notice info" }, "استجاب نموذج الذكاء الاصطناعي ", el("bdi", { dir: "ltr", text: data.provider_model || data.provider }),
+      " في هذا التدقيق، وتحقق الخادم من كل مقترح منه."));
   }
   if (data.source?.available && data.source.fetched_at) {
     const when = new Date(data.source.fetched_at * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
