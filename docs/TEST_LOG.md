@@ -63,3 +63,15 @@ The 25–27 s wait before fallback was too long for a live demo. The new default
 total AI budget, 8 s per attempt, no retry of a model that hung, and a 60 s per-instance
 cooldown after a failure (120 s after 429). Measured locally against an endpoint that never
 replies: first audit **12.0 s**, next audit **0.0 s** (AI skipped during the cooldown, with a notice).
+
+### Independent live check by the project owner (2026-09-28)
+
+The project owner ran the live «مقال عن الصبر» sample in the browser. Gemini failed and the
+app fell back, showing **7 findings, 3 needing review, in about 1.9 s**. This matches the
+scripted runs above (7 findings, 3 needing review).
+
+### Labelled fallback evaluation
+
+See `EVALUATION.md`: 25/28 gold quotations detected, 0 false "matched" wording or
+references, and 0 findings on 5 non-Quran negatives. The three misses are short unmarked quotes
+that need AI extraction.

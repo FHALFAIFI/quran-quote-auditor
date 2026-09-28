@@ -205,8 +205,9 @@ so no other changes are needed.
 
 ## Known limitations
 
-- **No accuracy claims yet.** A labelled evaluation has not been run. See
-  [docs/EVALUATION.md](docs/EVALUATION.md) for the plan.
+- **No general accuracy claims.** A small author-written labelled set has been run in fallback
+  mode only: 25/28 detected, 0 false "matched" verdicts. See [docs/EVALUATION.md](docs/EVALUATION.md)
+  for its limits. AI-mode results do not exist yet, because no real Gemini call has succeeded.
 - The source is Quranpedia's Hafs text in standard (imla'i) spelling with full diacritics.
   Quotations copied from Uthmani-script editions (e.g. «الصلوة», «السموت», small
   letters) may appear as *differences* needing review.
@@ -234,7 +235,9 @@ app/
   static/            index.html, styles.css, app.js, samples/*.txt
 tests/               verifier, references, normalization, pipeline, source, Gemini tests
 scripts/e2e_check.py end-to-end check of a running instance (samples + error cases)
-docs/EVALUATION.md   plan for the labelled evaluation (not yet performed)
+docs/EVALUATION.md   labelled evaluation: method, fallback results, limits
+docs/TEST_LOG.md     dated end-to-end observations (local + live)
+eval/                labelled cases, label validator, scorer, raw results
 SOURCES.md           sources, licences and attribution record
 BASELINE.md          pre-challenge baseline declaration
 ```
@@ -249,7 +252,8 @@ Each contains some deliberately wrong quotations or references so every status c
 - [ ] Source documentation: this README, [SOURCES.md](SOURCES.md) and [BASELINE.md](BASELINE.md)
 - [ ] Demo video ≤ 2 minutes, with no API keys visible on screen
 - [ ] Final PDF/PPT presentation (organizer template or matching identity)
-- [ ] Labelled evaluation results (docs/EVALUATION.md), only once actually measured
+- [x] Labelled evaluation, fallback mode (docs/EVALUATION.md)
+- [ ] Labelled evaluation, AI mode — only after a real successful Gemini call
 
 ## Licence
 

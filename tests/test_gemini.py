@@ -149,3 +149,17 @@ def test_default_budget_is_demo_friendly():
 
     st = Settings()
     assert st.ai_timeout <= 12 and st.ai_attempt_timeout <= st.ai_timeout
+
+
+def test_last_call_status_reports_real_outcome(monkeypatch):
+    gemini._last.update(outcome="never_called", at=None, model=None, detail=None)
+    status = {"code": 429}
+    patch_client(monkeypatch, lambda r: httpx.Response(status["code"], json=ok_response('{"candidates": []}')))
+    with pytest.raises(ExtractionError):
+        gemini.GeminiProvider().extract("مقال")
+    st = gemini.last_call_status()
+    assert st["outcome"] == "failed" and st["detail"] == "429" and st["cooldown_seconds"] > 0
+    gemini._cooldown_until[0] = 0.0
+    status["code"] = 200
+    gemini.GeminiProvider().extract("مقال")
+    assert gemini.last_call_status()["outcome"] == "ok"

@@ -31,3 +31,9 @@ template.pptx
 # Vercel CLI link data and pulled env files (contain tokens)
 .vercel
 .env.local
+
+# Submission drafts (slides, video) — kept out of the code repository
+submission/
+
+# Claude Code local state
+.claude/

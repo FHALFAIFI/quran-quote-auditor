@@ -1,0 +1,567 @@
+{
+  "_about": "Hand-labelled evaluation set, v1 (2026-09-28). Articles were written for this test by the project author's AI-assisted workflow; gold labels were written by hand from the mushaf and cross-checked against the Quranpedia Hafs text by eval/validate_labels.py (which does not use the app's verdict logic). A human reviewer should confirm every label before results are cited. Fields: quote = exact substring of the article; correct_text = the mushaf wording without diacritics unless diacritics matter; wording = correct | wording_error | diacritics_error; ambiguous = phrase occurs verbatim in more than one verse; reference = correct | incorrect | out_of_range | missing | partial | surah_only; unmarked = no brackets/quotation marks around the quote.",
+  "version": 1,
+  "cases": [
+    {
+      "id": "c01-marked-correct",
+      "article": "التغيير يبدأ من الداخل، قال تعالى: ﴿إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنْفُسِهِمْ﴾ [الرعد: 11]. ومن أسس المجتمع قوله سبحانه: {وتعاونوا على البر والتقوى} (المائدة: 2).",
+      "gold": [
+        {
+          "quote": "إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنْفُسِهِمْ",
+          "surah": 13,
+          "ayah_start": 11,
+          "ayah_end": 11,
+          "correct_text": "إن الله لا يغير ما بقوم حتى يغيروا ما بأنفسهم",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "الرعد: 11",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "vocalized"
+          ]
+        },
+        {
+          "quote": "وتعاونوا على البر والتقوى",
+          "surah": 5,
+          "ayah_start": 2,
+          "ayah_end": 2,
+          "correct_text": "وتعاونوا على البر والتقوى",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "المائدة: 2",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c02-multi-verse",
+      "article": "سورة قصيرة جمعت منهج الفلاح: ﴿والعصر إن الإنسان لفي خسر إلا الذين آمنوا وعملوا الصالحات وتواصوا بالحق وتواصوا بالصبر﴾ [العصر: 1-3]. ونستعيذ كل ليلة: ﴿قل أعوذ برب الناس ملك الناس إله الناس﴾ (الناس: 1-3).",
+      "gold": [
+        {
+          "quote": "والعصر إن الإنسان لفي خسر إلا الذين آمنوا وعملوا الصالحات وتواصوا بالحق وتواصوا بالصبر",
+          "surah": 103,
+          "ayah_start": 1,
+          "ayah_end": 3,
+          "correct_text": "والعصر إن الإنسان لفي خسر إلا الذين آمنوا وعملوا الصالحات وتواصوا بالحق وتواصوا بالصبر",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "العصر: 1-3",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "multi_verse"
+          ]
+        },
+        {
+          "quote": "قل أعوذ برب الناس ملك الناس إله الناس",
+          "surah": 114,
+          "ayah_start": 1,
+          "ayah_end": 3,
+          "correct_text": "قل أعوذ برب الناس ملك الناس إله الناس",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "الناس: 1-3",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "multi_verse"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c03-wording-errors",
+      "article": "الدعاء عبادة، وقد وعد الله بالإجابة فقال: ﴿وقال ربكم ادعوني أستجيب لكم﴾ [غافر: 60]. وعلّم نبيه أن يسأل الزيادة: ﴿وقل ربي زدني علما﴾ [طه: 114].",
+      "gold": [
+        {
+          "quote": "وقال ربكم ادعوني أستجيب لكم",
+          "surah": 40,
+          "ayah_start": 60,
+          "ayah_end": 60,
+          "correct_text": "وقال ربكم ادعوني أستجب لكم",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": "غافر: 60",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "wording_error"
+          ]
+        },
+        {
+          "quote": "وقل ربي زدني علما",
+          "surah": 20,
+          "ayah_start": 114,
+          "ayah_end": 114,
+          "correct_text": "وقل رب زدني علما",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": "طه: 114",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "wording_error"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c04-wording-error-grammar",
+      "article": "التنوع البشري سنة إلهية: ﴿يا أيها الناس إنا خلقناكم من ذكر وأنثى وجعلناكم شعوباً وقبائلاً لتعارفوا﴾ [الحجرات: 13]. والتقوى معيار التفاضل.",
+      "gold": [
+        {
+          "quote": "يا أيها الناس إنا خلقناكم من ذكر وأنثى وجعلناكم شعوباً وقبائلاً لتعارفوا",
+          "surah": 49,
+          "ayah_start": 13,
+          "ayah_end": 13,
+          "correct_text": "يا أيها الناس إنا خلقناكم من ذكر وأنثى وجعلناكم شعوبا وقبائل لتعارفوا",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": "الحجرات: 13",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "wording_error"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c05-diacritics-errors",
+      "article": "من المواضع التي يُخطأ في ضبطها: ﴿إنما يخشى اللهُ من عباده العلماءَ﴾ [فاطر: 28]، وقوله: ﴿وَإِذِ ابْتَلَى إِبْرَاهِيمُ رَبَّهُ بِكَلِمَاتٍ﴾ [البقرة: 124]، وقوله: ﴿أَنَّ اللَّهَ بَرِيءٌ مِنَ الْمُشْرِكِينَ وَرَسُولِهِ﴾ [التوبة: 3].",
+      "gold": [
+        {
+          "quote": "إنما يخشى اللهُ من عباده العلماءَ",
+          "surah": 35,
+          "ayah_start": 28,
+          "ayah_end": 28,
+          "correct_text": "إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ",
+          "wording": "diacritics_error",
+          "ambiguous": false,
+          "reference_text": "فاطر: 28",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "diacritics_error"
+          ]
+        },
+        {
+          "quote": "وَإِذِ ابْتَلَى إِبْرَاهِيمُ رَبَّهُ بِكَلِمَاتٍ",
+          "surah": 2,
+          "ayah_start": 124,
+          "ayah_end": 124,
+          "correct_text": "وَإِذِ ابْتَلَىٰ إِبْرَاهِيمَ رَبُّهُ بِكَلِمَاتٍ",
+          "wording": "diacritics_error",
+          "ambiguous": false,
+          "reference_text": "البقرة: 124",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "diacritics_error",
+            "vocalized"
+          ]
+        },
+        {
+          "quote": "أَنَّ اللَّهَ بَرِيءٌ مِنَ الْمُشْرِكِينَ وَرَسُولِهِ",
+          "surah": 9,
+          "ayah_start": 3,
+          "ayah_end": 3,
+          "correct_text": "أَنَّ اللَّهَ بَرِيءٌ مِنَ الْمُشْرِكِينَ وَرَسُولُهُ",
+          "wording": "diacritics_error",
+          "ambiguous": false,
+          "reference_text": "التوبة: 3",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "diacritics_error",
+            "vocalized"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c06-repeated-with-ref",
+      "article": "المسؤولية فردية: ﴿ولا تزر وازرة وزر أخرى﴾ [الإسراء: 15]. ونفتتح بالحمد: ﴿الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ﴾ [الفاتحة: 2]. ويتكرر التحذير: ﴿ويل يومئذ للمكذبين﴾ (المرسلات: 15).",
+      "gold": [
+        {
+          "quote": "ولا تزر وازرة وزر أخرى",
+          "surah": 17,
+          "ayah_start": 15,
+          "ayah_end": 15,
+          "correct_text": "ولا تزر وازرة وزر أخرى",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": "الإسراء: 15",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "repeated"
+          ]
+        },
+        {
+          "quote": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+          "surah": 1,
+          "ayah_start": 2,
+          "ayah_end": 2,
+          "correct_text": "الحمد لله رب العالمين",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": "الفاتحة: 2",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "repeated",
+            "vocalized"
+          ]
+        },
+        {
+          "quote": "ويل يومئذ للمكذبين",
+          "surah": 77,
+          "ayah_start": 15,
+          "ayah_end": 15,
+          "correct_text": "ويل يومئذ للمكذبين",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": "المرسلات: 15",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "repeated"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c07-repeated-without-ref",
+      "article": "تتكرر في سورة الرحمن آية ﴿فبأي آلاء ربكما تكذبان﴾ لتذكير الثقلين بالنعم. وتُختم آيات كثيرة بقوله: ﴿إن الله غفور رحيم﴾.",
+      "gold": [
+        {
+          "quote": "فبأي آلاء ربكما تكذبان",
+          "surah": 55,
+          "ayah_start": 13,
+          "ayah_end": 13,
+          "correct_text": "فبأي آلاء ربكما تكذبان",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": "سورة الرحمن",
+          "reference": "surah_only",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "repeated",
+            "surah_only_ref"
+          ],
+          "label_note": "Corrected after the first fallback run (2026-09-28): the article names the surah before the quote, so the original label \"missing\" was an author labelling error."
+        },
+        {
+          "quote": "إن الله غفور رحيم",
+          "surah": 2,
+          "ayah_start": 173,
+          "ayah_end": 173,
+          "correct_text": "إن الله غفور رحيم",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "repeated",
+            "missing_ref"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c08-missing-refs",
+      "article": "التقوى باب الفرج: ﴿ومن يتق الله يجعل له مخرجا﴾. وذكر الله دواء القلق: ﴿ألا بذكر الله تطمئن القلوب﴾.",
+      "gold": [
+        {
+          "quote": "ومن يتق الله يجعل له مخرجا",
+          "surah": 65,
+          "ayah_start": 2,
+          "ayah_end": 2,
+          "correct_text": "ومن يتق الله يجعل له مخرجا",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "missing_ref"
+          ]
+        },
+        {
+          "quote": "ألا بذكر الله تطمئن القلوب",
+          "surah": 13,
+          "ayah_start": 28,
+          "ayah_end": 28,
+          "correct_text": "ألا بذكر الله تطمئن القلوب",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "missing_ref"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c09-incorrect-refs",
+      "article": "التوكل ثمرته الكفاية: ﴿ومن يتوكل على الله فهو حسبه﴾ [الطلاق: 2]. والصلاة تهذيب: ﴿إن الصلاة تنهى عن الفحشاء والمنكر﴾ [العنكبوت: 54]. وحسن القول مأمور به: ﴿وقولوا للناس حسنا﴾ [البقرة: 383].",
+      "gold": [
+        {
+          "quote": "ومن يتوكل على الله فهو حسبه",
+          "surah": 65,
+          "ayah_start": 3,
+          "ayah_end": 3,
+          "correct_text": "ومن يتوكل على الله فهو حسبه",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "الطلاق: 2",
+          "reference": "incorrect",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "incorrect_ref"
+          ]
+        },
+        {
+          "quote": "إن الصلاة تنهى عن الفحشاء والمنكر",
+          "surah": 29,
+          "ayah_start": 45,
+          "ayah_end": 45,
+          "correct_text": "إن الصلاة تنهى عن الفحشاء والمنكر",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "العنكبوت: 54",
+          "reference": "incorrect",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "incorrect_ref"
+          ]
+        },
+        {
+          "quote": "وقولوا للناس حسنا",
+          "surah": 2,
+          "ayah_start": 83,
+          "ayah_end": 83,
+          "correct_text": "وقولوا للناس حسنا",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "البقرة: 383",
+          "reference": "out_of_range",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "incorrect_ref",
+            "out_of_range"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c10-repeated-wrong-surah-and-partial",
+      "article": "الموت حق على كل حي: ﴿كل نفس ذائقة الموت﴾ [البقرة: 185]. ومع الشدة فرج: ﴿فإن مع العسر يسرا إن مع العسر يسرا﴾ [الشرح: 5].",
+      "gold": [
+        {
+          "quote": "كل نفس ذائقة الموت",
+          "surah": 3,
+          "ayah_start": 185,
+          "ayah_end": 185,
+          "correct_text": "كل نفس ذائقة الموت",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": "البقرة: 185",
+          "reference": "incorrect",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "repeated",
+            "incorrect_ref"
+          ]
+        },
+        {
+          "quote": "فإن مع العسر يسرا إن مع العسر يسرا",
+          "surah": 94,
+          "ayah_start": 5,
+          "ayah_end": 6,
+          "correct_text": "فإن مع العسر يسرا إن مع العسر يسرا",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "الشرح: 5",
+          "reference": "partial",
+          "unmarked": false,
+          "tags": [
+            "marked",
+            "multi_verse",
+            "partial_ref"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c11-unmarked-short",
+      "article": "العمل الصالح طريق النجاح، والله يقول وافعلوا الخير لعلكم تفلحون. وفي الخلافات الأسرية نتذكر قوله ولا تنسوا الفضل بينكم فالعلاقات أبقى من الخصومات.",
+      "gold": [
+        {
+          "quote": "وافعلوا الخير لعلكم تفلحون",
+          "surah": 22,
+          "ayah_start": 77,
+          "ayah_end": 77,
+          "correct_text": "وافعلوا الخير لعلكم تفلحون",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "short",
+            "missing_ref"
+          ]
+        },
+        {
+          "quote": "ولا تنسوا الفضل بينكم",
+          "surah": 2,
+          "ayah_start": 237,
+          "ayah_end": 237,
+          "correct_text": "ولا تنسوا الفضل بينكم",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "short",
+            "missing_ref"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c12-unmarked-long-and-error",
+      "article": "أمرنا ربنا بقوله إن الله يأمر بالعدل والإحسان وإيتاء ذي القربى (النحل: 90)، وهو القائل ادعوني أستجيب لكم فلا ييأس داعٍ.",
+      "gold": [
+        {
+          "quote": "إن الله يأمر بالعدل والإحسان وإيتاء ذي القربى",
+          "surah": 16,
+          "ayah_start": 90,
+          "ayah_end": 90,
+          "correct_text": "إن الله يأمر بالعدل والإحسان وإيتاء ذي القربى",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "النحل: 90",
+          "reference": "correct",
+          "unmarked": true,
+          "tags": [
+            "unmarked"
+          ]
+        },
+        {
+          "quote": "ادعوني أستجيب لكم",
+          "surah": 40,
+          "ayah_start": 60,
+          "ayah_end": 60,
+          "correct_text": "ادعوني أستجب لكم",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "short",
+            "wording_error",
+            "missing_ref"
+          ]
+        }
+      ],
+      "negatives": []
+    },
+    {
+      "id": "c13-negatives",
+      "article": "قال رسول الله ﷺ: «إنما الأعمال بالنيات». ومن الأدعية المأثورة: «اللهم إني أسألك العفو والعافية». وقالت العرب: \"العلم في الصغر كالنقش على الحجر\". وفي القاعدة الفقهية: «لا ضرر ولا ضرار».",
+      "gold": [],
+      "negatives": [
+        "إنما الأعمال بالنيات",
+        "اللهم إني أسألك العفو والعافية",
+        "العلم في الصغر كالنقش على الحجر",
+        "لا ضرر ولا ضرار"
+      ]
+    },
+    {
+      "id": "c14-mixed",
+      "article": "من ثمار الصبر معية الله: ﴿واصبروا إن الله مع الصابرين﴾ [الأنفال: 46]. ومن أدب الحوار: ﴿وجادلهم بالتي هي أحسن﴾ [النحل: 125]. قال النبي ﷺ: «المسلم من سلم المسلمون من لسانه ويده».",
+      "gold": [
+        {
+          "quote": "واصبروا إن الله مع الصابرين",
+          "surah": 8,
+          "ayah_start": 46,
+          "ayah_end": 46,
+          "correct_text": "واصبروا إن الله مع الصابرين",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "الأنفال: 46",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked"
+          ]
+        },
+        {
+          "quote": "وجادلهم بالتي هي أحسن",
+          "surah": 16,
+          "ayah_start": 125,
+          "ayah_end": 125,
+          "correct_text": "وجادلهم بالتي هي أحسن",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": "النحل: 125",
+          "reference": "correct",
+          "unmarked": false,
+          "tags": [
+            "marked"
+          ]
+        }
+      ],
+      "negatives": [
+        "المسلم من سلم المسلمون من لسانه ويده"
+      ]
+    }
+  ]
+}

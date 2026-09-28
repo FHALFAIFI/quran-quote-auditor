@@ -77,6 +77,16 @@ def parse_model_json(text: str, limit: int) -> list[RawSuggestion]:
 
 
 _cooldown_until = [0.0]  # monotonic time until which calls are skipped (per instance)
+# Outcome of the most recent real call on this instance: never_called | ok | failed
+_last = {"outcome": "never_called", "at": None, "model": None, "detail": None}
+
+
+def _record(outcome: str, model: str | None, detail: str | None = None) -> None:
+    _last.update(outcome=outcome, at=time.time(), model=model, detail=detail)
+
+
+def last_call_status() -> dict:
+    return {**_last, "cooldown_seconds": _cooldown_remaining()}
 
 
 def _cooldown_remaining() -> int:
@@ -148,6 +158,7 @@ class GeminiProvider(ExtractionProvider):
                     continue
                 except httpx.HTTPError as exc:
                     _start_cooldown(settings.ai_cooldown)
+                    _record("failed", model, "connection")
                     raise ExtractionError("تعذّر الاتصال بخدمة الذكاء الاصطناعي") from exc
                 resp, self.used_model = r, model
                 if r.status_code == 503 or (r.status_code == 404 and i >= 1):
@@ -155,19 +166,29 @@ class GeminiProvider(ExtractionProvider):
                 break
         if resp is None or resp.status_code == 503:
             _start_cooldown(settings.ai_cooldown)
+            _record("failed", self.used_model, "timeout" if resp is None else "503")
             if resp is None:
                 raise ExtractionError("انتهت مهلة خدمة الذكاء الاصطناعي")
             raise ExtractionError("خدمة الذكاء الاصطناعي مشغولة حاليًا (503)")
         if resp.status_code == 429:
             _start_cooldown(max(settings.ai_cooldown, 120))
+            _record("failed", self.used_model, "429")
             raise ExtractionError("تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا")
         if resp.status_code >= 400:
+            _record("failed", self.used_model, str(resp.status_code))
             raise ExtractionError(f"خدمة الذكاء الاصطناعي أعادت الخطأ {resp.status_code}")
         try:
             payload = resp.json()
             parts = payload["candidates"][0]["content"]["parts"]
             text = "".join(p.get("text", "") for p in parts if isinstance(p, dict) and not p.get("thought"))
         except (ValueError, KeyError, IndexError, TypeError) as exc:
+            _record("failed", self.used_model, "empty_or_blocked")
             raise ExtractionError("استجابة خدمة الذكاء الاصطناعي غير مكتملة أو محجوبة") from exc
+        try:
+            suggestions = parse_model_json(text, settings.max_candidates)
+        except ExtractionError:
+            _record("failed", self.used_model, "malformed_json")
+            raise
         _cooldown_until[0] = 0.0
-        return parse_model_json(text, settings.max_candidates)
+        _record("ok", self.used_model)
+        return suggestions

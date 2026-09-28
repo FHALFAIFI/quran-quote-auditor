@@ -57,9 +57,20 @@ async function loadHealth() {
     banner.hidden = false;
     banner.replaceChildren();
     if (h.mode === "ai") {
+      // "Configured" is not "working": state what is known about the last real call.
+      const last = h.ai_last_call || {};
       banner.className = "banner ai";
-      banner.append(el("strong", { text: "الاستخراج بالذكاء الاصطناعي مفعّل " }), `(${h.provider}). `,
-        "يقترح النموذج مواضع الاقتباس فقط، ويُتحقق من كل مقترح بمقارنته بنص المقال ثم بنص المصحف من قرآنبيديا.");
+      banner.append(el("strong", { text: "الاستخراج بالذكاء الاصطناعي مُعَدّ " }), `(${h.provider}). `);
+      if (last.outcome === "ok") {
+        banner.append("آخر استدعاء له على هذا الخادم نجح. ");
+      } else if (last.outcome === "failed") {
+        banner.append(el("b", { text: "آخر استدعاء له على هذا الخادم فشل" }),
+          last.cooldown_seconds > 0 ? ` ويُتخطّى مؤقتًا (${toArabicDigits(last.cooldown_seconds)} ث). ` : ". ");
+      } else {
+        banner.append("لم يُستدعَ بعدُ على هذا الخادم. ");
+      }
+      banner.append("نتيجة كل تدقيق تبيّن هل استجاب النموذج فعلًا أو استُخدم الوضع الاحتياطي. ",
+        "دوره اقتراح مواضع الاقتباس فقط، ويُتحقق من كل مقترح بمقارنته بنص المقال ثم بنص المصحف من قرآنبيديا.");
     } else {
       banner.className = "banner reduced";
       banner.append(el("strong", { text: "وضع مخفّض — الذكاء الاصطناعي غير مفعّل. " }),
@@ -120,6 +131,7 @@ async function runAudit() {
     lastArticle = article;
     lastResult = data;
     render(data);
+    loadHealth();  // refresh the banner with this call's real outcome
     setStatus(`اكتمل التدقيق في ${toArabicDigits((data.elapsed_ms / 1000).toFixed(1))} ث.`);
   } catch (e) {
     setStatus(e.name === "AbortError" ? "انتهت مهلة الطلب؛ حاول مرة أخرى." : "تعذّر الاتصال بالخادم.", true);
@@ -136,6 +148,8 @@ function render(data) {
   notices.replaceChildren(...(data.notices || []).map((n) => el("div", { class: `notice ${n.level}`, text: n.text })));
   if (data.mode === "reduced") {
     notices.append(el("div", { class: "notice warning", text: "نُفِّذ هذا التدقيق في الوضع المخفّض دون ذكاء اصطناعي." }));
+  } else if (data.mode === "ai") {
+    notices.append(el("div", { class: "notice info", text: `استجاب نموذج الذكاء الاصطناعي (${data.provider_model || data.provider}) في هذا التدقيق، وتحقق الخادم من كل مقترح منه.` }));
   }
   if (data.source?.available && data.source.fetched_at) {
     const when = new Date(data.source.fetched_at * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
