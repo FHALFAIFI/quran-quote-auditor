@@ -17,3 +17,4 @@ template.pptx
 *.pptx
 submission/
 eval/
+.claude/
