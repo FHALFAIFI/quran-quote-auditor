@@ -29,7 +29,9 @@ class Settings:
     ai_provider: str = os.environ.get("AI_PROVIDER", "gemini").strip().lower()
     gemini_model: str = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash").strip()
     gemini_fallback_models: tuple[str, ...] = tuple(m.strip() for m in os.environ.get("GEMINI_FALLBACK_MODELS", "").split(",") if m.strip())
-    ai_timeout: float = _float("AI_TIMEOUT_SECONDS", 25.0)
+    ai_timeout: float = _float("AI_TIMEOUT_SECONDS", 12.0)  # total budget for all Gemini attempts
+    ai_attempt_timeout: float = _float("AI_ATTEMPT_TIMEOUT_SECONDS", 8.0)  # cap per request
+    ai_cooldown: float = _float("AI_COOLDOWN_SECONDS", 60.0)  # skip AI this long after a failure
     source_timeout: float = _float("SOURCE_TIMEOUT_SECONDS", 20.0)
     max_chars: int = _int("MAX_ARTICLE_CHARS", 6000)
     max_candidates: int = _int("MAX_CANDIDATES", 40)

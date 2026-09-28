@@ -76,6 +76,18 @@ def parse_model_json(text: str, limit: int) -> list[RawSuggestion]:
     return out
 
 
+_cooldown_until = [0.0]  # monotonic time until which calls are skipped (per instance)
+
+
+def _cooldown_remaining() -> int:
+    return max(0, int(_cooldown_until[0] - time.monotonic() + 0.999))
+
+
+def _start_cooldown(seconds: float) -> None:
+    if seconds > 0:
+        _cooldown_until[0] = time.monotonic() + seconds
+
+
 class GeminiProvider(ExtractionProvider):
     name = "gemini"
 
@@ -101,39 +113,54 @@ class GeminiProvider(ExtractionProvider):
                 "maxOutputTokens": 4096,
             },
         }
-        # Attempt plan: primary model, one short retry of it on 503 (overload), then any
-        # configured fallback models. 429 (quota) is never retried, to avoid burning quota.
+        # Fail fast after a recent failure so a live demo is not stuck waiting (per instance).
+        wait = _cooldown_remaining()
+        if wait > 0:
+            raise ExtractionError(f"خدمة الذكاء الاصطناعي غير متاحة مؤقتًا بعد فشل حديث؛ ستُعاد المحاولة بعد {wait} ث")
+        # Attempt plan within one overall budget (AI_TIMEOUT_SECONDS), each call capped at
+        # AI_ATTEMPT_TIMEOUT_SECONDS: primary model; one retry of it only after a *fast* 503;
+        # then configured fallback models. 429 (quota) is never retried.
         plan = [self.model, self.model] + [m for m in settings.gemini_fallback_models if m != self.model]
         deadline = time.monotonic() + settings.ai_timeout
         resp = None
-        with httpx.Client(timeout=httpx.Timeout(settings.ai_timeout, connect=8.0)) as client:
+        timed_out: set[str] = set()
+        with httpx.Client() as client:
             for i, model in enumerate(plan):
                 remaining = deadline - time.monotonic()
-                if remaining < 3:
+                if remaining < 2:
                     break
+                if model in timed_out:
+                    continue  # a model that just hung will not answer a retry in time
                 if i == 1:
-                    time.sleep(min(1.5, remaining - 2))
+                    time.sleep(min(1.0, remaining - 1.5))
+                    remaining = deadline - time.monotonic()
+                attempt = min(remaining, settings.ai_attempt_timeout)
                 try:
-                    resp = client.post(
+                    r = client.post(
                         ENDPOINT.format(model=model),
                         headers={"x-goog-api-key": key, "Content-Type": "application/json"},
                         json=body,
-                        timeout=httpx.Timeout(remaining, connect=8.0),
+                        timeout=httpx.Timeout(attempt, connect=min(5.0, attempt)),
                     )
-                except httpx.TimeoutException as exc:
-                    raise ExtractionError("انتهت مهلة خدمة الذكاء الاصطناعي") from exc
+                except httpx.TimeoutException:
+                    timed_out.add(model)
+                    self.used_model = model
+                    continue
                 except httpx.HTTPError as exc:
+                    _start_cooldown(settings.ai_cooldown)
                     raise ExtractionError("تعذّر الاتصال بخدمة الذكاء الاصطناعي") from exc
-                self.used_model = model
-                if resp.status_code == 503 or (resp.status_code == 404 and i >= 1):
+                resp, self.used_model = r, model
+                if r.status_code == 503 or (r.status_code == 404 and i >= 1):
                     continue  # overloaded / unavailable model: try the next step of the plan
                 break
-        if resp is None:
-            raise ExtractionError("انتهت مهلة خدمة الذكاء الاصطناعي")
-        if resp.status_code == 429:
-            raise ExtractionError("تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا")
-        if resp.status_code == 503:
+        if resp is None or resp.status_code == 503:
+            _start_cooldown(settings.ai_cooldown)
+            if resp is None:
+                raise ExtractionError("انتهت مهلة خدمة الذكاء الاصطناعي")
             raise ExtractionError("خدمة الذكاء الاصطناعي مشغولة حاليًا (503)")
+        if resp.status_code == 429:
+            _start_cooldown(max(settings.ai_cooldown, 120))
+            raise ExtractionError("تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا")
         if resp.status_code >= 400:
             raise ExtractionError(f"خدمة الذكاء الاصطناعي أعادت الخطأ {resp.status_code}")
         try:
@@ -142,4 +169,5 @@ class GeminiProvider(ExtractionProvider):
             text = "".join(p.get("text", "") for p in parts if isinstance(p, dict) and not p.get("thought"))
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise ExtractionError("استجابة خدمة الذكاء الاصطناعي غير مكتملة أو محجوبة") from exc
+        _cooldown_until[0] = 0.0
         return parse_model_json(text, settings.max_candidates)

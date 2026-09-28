@@ -10,6 +10,13 @@ from app.extraction import gemini
 from app.extraction.base import ExtractionError
 
 
+@pytest.fixture(autouse=True)
+def reset_cooldown():
+    gemini._cooldown_until[0] = 0.0
+    yield
+    gemini._cooldown_until[0] = 0.0
+
+
 def patch_client(monkeypatch, handler):
     real = httpx.Client
 
@@ -100,3 +107,45 @@ def test_timeout(monkeypatch):
 def test_no_key_means_unavailable(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     assert gemini.GeminiProvider().available() is False
+
+
+def test_cooldown_skips_calls_after_failure(monkeypatch):
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        return httpx.Response(503, json={})
+
+    patch_client(monkeypatch, handler)
+    monkeypatch.setattr(gemini.time, "sleep", lambda s: None)
+    with pytest.raises(ExtractionError, match="503"):
+        gemini.GeminiProvider().extract("مقال")
+    n = len(calls)
+    with pytest.raises(ExtractionError, match="مؤقتًا"):
+        gemini.GeminiProvider().extract("مقال")
+    assert len(calls) == n  # no network call during the cooldown
+
+
+def test_timeout_moves_to_fallback_without_retrying_same_model(monkeypatch):
+    calls = []
+
+    def handler(request):
+        model = request.url.path.rsplit("/", 1)[-1].split(":")[0]
+        calls.append(model)
+        if model == "backup-model":
+            return httpx.Response(200, json=ok_response('{"candidates": [{"quote": "اقرأ"}]}'))
+        raise httpx.ReadTimeout("slow", request=request)
+
+    patch_client(monkeypatch, handler)
+    monkeypatch.setattr(gemini, "settings", dataclasses.replace(gemini.settings, gemini_fallback_models=("backup-model",)))
+    p = gemini.GeminiProvider()
+    assert [s.quote for s in p.extract("مقال")] == ["اقرأ"]
+    assert calls == [gemini.settings.gemini_model, "backup-model"]
+    assert gemini._cooldown_remaining() == 0  # success clears the cooldown
+
+
+def test_default_budget_is_demo_friendly():
+    from app.config import Settings
+
+    st = Settings()
+    assert st.ai_timeout <= 12 and st.ai_attempt_timeout <= st.ai_timeout

@@ -56,3 +56,10 @@ These are marked/scan detections, since AI extraction was unavailable.
 - Cold `/api/health` on a fresh instance: 0.66 s. The Quran text loads on the first audit (locally about 1.2 s to fetch and index).
 - One Quranpedia request per instance. Later requests on the same instance reused the in-memory copy (`instance_started` unchanged, one `GET /v1/mushafs/1` in the logs).
 - A redeploy started a new instance (`instance_started` changed), which fetched the text again. The cache does not persist across instances or deployments; see README “Actual limits on Vercel”.
+
+### Fallback wait reduced (after the baseline commit, still 2026-09-28)
+
+The 25–27 s wait before fallback was too long for a live demo. The new defaults are a 12 s
+total AI budget, 8 s per attempt, no retry of a model that hung, and a 60 s per-instance
+cooldown after a failure (120 s after 429). Measured locally against an endpoint that never
+replies: first audit **12.0 s**, next audit **0.0 s** (AI skipped during the cooldown, with a notice).

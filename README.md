@@ -104,7 +104,7 @@ The app runs as one Vercel Function using Vercel's FastAPI support (entrypoint
 `app/main.py`, exporting `app`). `vercel.json` only declares `"framework": "fastapi"`.
 Without it, a project created from the CLI had no preset and the build produced nothing
 (every path returned 404). The default Fluid-compute timeout is longer than the app's own
-limits (25 s AI + 20 s source). `.vercelignore` keeps `.env`, `.env.local`, tests and local
+limits (12 s AI + 20 s source). `.vercelignore` keeps `.env`, `.env.local`, tests and local
 files out of the upload, because the Vercel CLI does not read `.gitignore`.
 
 Using the dashboard:
@@ -146,7 +146,8 @@ submitted content may be used to improve Google's products. A paid tier is advis
 for real editorial content. The app itself does not store or log articles.
 
 Optional variables: `GEMINI_MODEL` (default `gemini-3.8-flash`), `GEMINI_FALLBACK_MODELS`
-(comma-separated; tried after one retry when the primary model returns 503), `AI_TIMEOUT_SECONDS`,
+(comma-separated; tried after one retry when the primary model returns 503), `AI_TIMEOUT_SECONDS`
+(12), `AI_ATTEMPT_TIMEOUT_SECONDS` (8), `AI_COOLDOWN_SECONDS` (60),
 `MAX_ARTICLE_CHARS` (6000), `RATE_LIMIT_PER_MINUTE` (10 per instance), and
 `QURANPEDIA_CONTACT`, a contact e-mail added to the User-Agent as Quranpedia's policy requests.
 See `.env.example`.
@@ -189,8 +190,14 @@ so no other changes are needed.
 ## Security and privacy
 
 - Input is capped at 6,000 characters (body size is also checked), with per-IP rate limiting.
-- AI calls time out after 25 s, and Quranpedia calls after 20 s. Malformed model JSON raises a
-  handled error, and the app falls back to marked-only extraction with a notice.
+- AI extraction has a 12 s total budget with at most 8 s per request. A model that hangs is not
+  retried; the next fallback model is tried instead. After a failure the instance skips AI
+  for 60 s (120 s after a quota error), so a demo is never stuck waiting twice. Measured with
+  a hanging endpoint: first audit 12.0 s, then immediate. Quranpedia calls time out after 20 s.
+  Malformed model JSON raises a handled error. In every AI failure the app falls back to
+  marked-only extraction with a notice.
+  These limits may cut off a slow but working Gemini response; that has not been observed
+  yet, because no real Gemini call has succeeded (see docs/TEST_LOG.md).
 - Articles are processed in memory and never written to disk or logged. Error handlers log
   only the exception type, and the API response does not echo the article back.
 - The frontend inserts all text with `textContent` (never `innerHTML`), and a strict CSP blocks inline scripts.
