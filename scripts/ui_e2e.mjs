@@ -79,6 +79,12 @@ await page.click("#copy-btn");
 const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => null));
 check(clip === null || clip === revised, "copy button puts the revised article on the clipboard");
 
+// reply draft for a social post: approved fix only, no claim about the whole post
+await page.click(".reply-box summary");
+const reply = await page.inputValue("#reply-text");
+check(reply.includes("«الشرح: 6» ← الصواب «الشرح: 5»") && reply.includes("وليس حكمًا على المنشور كله"), "reply draft lists the approved fix and the scope disclaimer");
+check(!reply.includes("155-156"), "reply draft omits corrections that were not approved");
+
 // review-only filter
 await page.check("#only-review");
 const nFiltered = await page.locator(".finding").count();

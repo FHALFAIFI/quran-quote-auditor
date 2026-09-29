@@ -103,6 +103,12 @@
           <button id="print-btn" type="button" class="btn">سجل مراجعة الاقتباسات (طباعة / PDF)</button>
           <button id="reset-btn" type="button" class="btn ghost">إلغاء كل القرارات</button>
         </div>
+        <details class="reply-box">
+          <summary>مسودة رد على منشور (للنسخ اليدوي بعد مراجعتك)</summary>
+          <p class="editor-note">نص قصير مبني على التصحيحات التي اعتمدتها وما بقي غير محسوم فقط. راجعه وعدّله قبل نشره بنفسك؛ لا تنشر الأداة شيئًا تلقائيًا، ولا يقول الرد إن المنشور كله متحقق منه.</p>
+          <textarea id="reply-text" class="revised-text reply-text" dir="rtl" rows="6" aria-label="مسودة الرد"></textarea>
+          <div class="editor-actions"><span id="reply-count" class="muted"></span><button id="reply-copy" type="button" class="btn">نسخ المسودة</button></div>
+        </details>
       </section>
     </section>
 

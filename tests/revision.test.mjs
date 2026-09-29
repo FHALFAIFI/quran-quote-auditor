@@ -85,3 +85,23 @@ test("unresolved findings: needs review until every non-optional fix is approved
   assert.deepEqual(R.unresolvedFindings(findings, { "3-r": "approved" }).map((f) => f.id), [2]);
   assert.deepEqual(R.unresolvedFindings(findings, { "3-r": "rejected" }).map((f) => f.id), [2, 3]);
 });
+
+test("reply draft: only approved fixes and unresolved items; never claims the whole post", () => {
+  const c1 = { id: "4-reference", kind: "reference", optional: false, original: "الشرح: 6", replacement: "الشرح: 5", label: "الشرح: 5", source_urls: ["https://x/94/5"] };
+  const c2 = { id: "3-reference", kind: "reference", optional: false, original: "البقرة: 156", replacement: "البقرة: 155-156", label: "البقرة: 155–156", source_urls: ["u"] };
+  const opt = { id: "1-vocalize", kind: "vocalize", optional: true, quote_before: "a", quote_after: "b", label: "l", source_urls: [] };
+  const findings = [
+    { id: 4, quote: "فإن مع العسر يسرا", needs_review: true, changes: [c1] },
+    { id: 3, quote: "وبشر الصابرين", needs_review: true, changes: [c2] },
+    { id: 2, quote: "إن الله مع الصابرون", needs_review: true, changes: [] },
+    { id: 1, quote: "q", needs_review: false, changes: [opt] },
+  ];
+  const text = R.replyDraft(findings, [c1, c2, opt], { "4-reference": "approved", "1-vocalize": "approved" });
+  assert.match(text, /«الشرح: 6» ← الصواب «الشرح: 5»/);
+  assert.doesNotMatch(text, /155-156/);           // pending fix is not presented as a correction
+  assert.match(text, /«وبشر الصابرين»: لم أتحقق منه بيقين/);
+  assert.match(text, /«إن الله مع الصابرون»: لم أتحقق منه بيقين/);
+  assert.doesNotMatch(text, /«a»/);                // optional formatting is not a correction
+  assert.match(text, /وليس حكمًا على المنشور كله/);
+  assert.doesNotMatch(text, /(المنشور|المقال) (كله )?(صحيح|متحقق منه بالكامل|سليم)/);
+});

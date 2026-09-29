@@ -91,7 +91,26 @@
     });
   }
 
-  const api = { approvedChanges, plan, applyApproved, previewSegments, slice, unresolvedFindings };
+  // Copy-ready reply for a social-media post. Built only from APPROVED non-optional
+  // corrections and unresolved items; never states that the whole post is verified.
+  function replyDraft(findings, changes, decisions) {
+    const lines = ["راجعتُ الاقتباسات القرآنية في المنشور بمقارنتها بنص مصحف حفص (قرآنبيديا):"];
+    for (const c of changes) {
+      if (c.optional || decisions[c.id] !== "approved") continue;
+      const before = c.kind === "reference" ? c.original : c.quote_before;
+      const after = c.kind === "reference" ? c.replacement : c.quote_after;
+      lines.push(`• «${before}» ← الصواب «${after}» (${c.label}) ${c.source_urls[0] || ""}`.trim());
+    }
+    for (const f of unresolvedFindings(findings, decisions)) {
+      if ((f.changes || []).some((c) => !c.optional && decisions[c.id] === "approved")) continue;
+      lines.push(`• «${f.quote}»: لم أتحقق منه بيقين، ويحتاج مراجعة.`);
+    }
+    if (lines.length === 1) lines.push("• لم أجد ما يستدعي تصحيحًا في الاقتباسات التي رُصدت.");
+    lines.push("هذا فحص للاقتباسات التي رُصدت فقط، وليس حكمًا على المنشور كله.");
+    return lines.join("\n");
+  }
+
+  const api = { replyDraft, approvedChanges, plan, applyApproved, previewSegments, slice, unresolvedFindings };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.Revision = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -113,7 +113,8 @@ provider selection and health), corrections (26: offsets, repeated phrases, mult
 fuzzy matches, pinpointing references, diacritics, hamza, short phrases, missing references, source outage,
 AI failure, AI-invented text, markup, emoji/CRLF offsets, preservation of all non-change text, reference
 formatting) and the browser revision engine under Node (9 Node tests run by 1 pytest wrapper: approval gating, code-point offsets with emoji,
-stale offsets refused, overlaps refused, repeated text, byte-identical preservation, preview, unresolved logic).
+stale offsets refused, overlaps refused, repeated text, byte-identical preservation, preview, unresolved logic;
+plus 1 added later for the social-post reply draft → 10).
 
 ### Local end-to-end (reduced mode — no AI key)
 
@@ -126,7 +127,7 @@ stale offsets refused, overlaps refused, repeated text, byte-identical preservat
   - optional full-vocalization changes for correct unvocalized quotes (never counted as errors).
 - Files that must not be served (`/.env`, `/.env.local`, `/.env.example`, `/app/config.py`, `/requirements.txt`,
   `/eval/cases.json`, the test fixture, `/.git/config`, `/.vercel/project.json`, a `%2e%2e` traversal) → all 404.
-- Browser (Playwright, Chromium 1440×900 and 390×844 mobile): `scripts/ui_e2e.mjs` → **24/24 checks passed**:
+- Browser (Playwright, Chromium 1440×900 and 390×844 mobile): `scripts/ui_e2e.mjs` → **26/26 checks passed** (24 at first, 2 added for the reply draft):
   sample 2 audit (7 findings); revised article identical to the input before any approval; approving
   «الشرح: 6» → «الشرح: 5» changes only that span (line count unchanged); rejecting an optional change;
   before/after preview with deletions, insertions and unresolved marks; copy to clipboard; review-only
@@ -139,3 +140,22 @@ stale offsets refused, overlaps refused, repeated text, byte-identical preservat
 See `EVALUATION.md`. Same labels, same detection results as 28 Sep; new correction scoring: 6/6 detected
 wording/diacritics errors receive a fix that re-verifies against Quranpedia, 4 correct reference fixes,
 2 reference problems left for review, **0 fixes proposed for correct quotes or references**.
+
+### Deployment attempt (29 Sep, ~20:55 UTC+3)
+
+- Set a non-secret production variable `AI_PROVIDER=groq`, so that the new code will not call Gemini
+  (the production Gemini key and two fallback models would otherwise be tried on every audit). It takes
+  effect only after a successful deploy; the Gemini adapter stays available (`AI_PROVIDER=gemini`).
+- `npx vercel deploy --prod` from the repository → deployment `dpl_gPoudmAxLk4B3UscEdFduVcQ3oXu` **Blocked**:
+  «The deployment was blocked because the commit author doesn't have permission to create deployments
+  for this project.» As instructed, no workaround was used (no archive upload, no change of commit author).
+- The live site therefore still serves commit `2860743` (28 Sep). Read-only check: `/api/health` → `mode: ai`,
+  Gemini, `ai_last_call.never_called`; `/static/revision.js` → 404 (new code not live). **No public audits
+  were run**, because they would have spent Gemini calls on the old code.
+
+### Submission drafts (local, git-ignored `submission/`)
+
+- Deck updated and exported to PDF; rendered with Readex Pro and inspected slide by slide.
+- Video draft `submission/video/demo-B-draft.mp4`: **1:44**, H.264/AAC 1280×720, recorded with Playwright from
+  the local app in reduced mode, synthetic narration (macOS voice "Majed"). Frames checked for each scene.
+  It is variant B only (no AI shown).

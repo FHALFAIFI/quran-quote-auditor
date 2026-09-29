@@ -436,6 +436,13 @@ function renderEditor() {
     else view.append(el("span", { class: "unresolved", title: "اقتباس غير محسوم — يحتاج مراجعة بشرية", text: s.text }), el("sup", { class: "unres-mark", text: "⚠" + toArabicDigits(s.id) }));
   }
   $("revised-text").value = text;
+  $("reply-text").value = R.replyDraft(lastResult.findings, changes, decisions);
+  updateReplyCount();
+}
+
+function updateReplyCount() {
+  const n = Array.from($("reply-text").value).length;
+  $("reply-count").textContent = `${toArabicDigits(n)} حرفًا`;
 }
 
 async function copyRevised() {
@@ -533,6 +540,11 @@ document.addEventListener("DOMContentLoaded", () => {
   $("only-review").addEventListener("change", renderFindings);
   $("article").addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAudit(); });
   $("copy-btn").addEventListener("click", copyRevised);
+  $("reply-text").addEventListener("input", updateReplyCount);
+  $("reply-copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("reply-text").value); setStatus("نُسخت المسودة. راجعها قبل نشرها بنفسك."); }
+    catch { $("reply-text").select(); setStatus("تعذّر النسخ التلقائي؛ النص محدد، انسخه يدويًا.", true); }
+  });
   $("print-btn").addEventListener("click", printRecord);
   $("reset-btn").addEventListener("click", () => {
     decisions = {}; saveSession();

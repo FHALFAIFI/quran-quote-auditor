@@ -15,7 +15,7 @@ Each item must be committed during 4–6 October and listed in `CHANGELOG.md` un
 | 4 | Handle quotations with an ellipsis («…») as two excerpts in the correction logic, so the omitted part is not flagged as missing words. | Tests for «…» inside ﴿﴾ pass; no automatic insertion of omitted words. |
 | 5 | Uthmani-script input: map common Uthmani spellings (e.g. «الصلوة», small alef) so correct Uthmani quotes are not shown as differences. | Tests with Uthmani quotes; no new false fixes on the labelled set. |
 | 6 | Demo polish from real evidence: final screenshots, video variant A or B (per `submission/VIDEO_SCRIPT.md`), final PDF deck. | Video ≤ 2:00 and deck show only observed behaviour and numbers. |
-| 7 | Optional (only if 1–6 are done): copy-ready, human-reviewed **audit reply for a social-media post** (see section C, step 1). | Draft text generated in the browser; the editor copies it manually; it never claims the whole post is verified. |
+| 7 | Test the existing reply draft (built pre-challenge, section C step 1) with real posts pasted by an editor; adjust wording. | Feedback recorded; still copy-only, no API. |
 
 Out of scope for the challenge days: new AI providers, server-side storage of articles, accounts, any automatic posting.
 
@@ -39,7 +39,7 @@ A bot that replies to posts quoting the Quran needs work and approvals that a ha
 
 Staged plan:
 
-1. **Copy-ready reply draft (no API):** in the app, a button produces a short Arabic text for a pasted post,
+1. **Copy-ready reply draft (no API) — exists as a pre-challenge draft (29 Sep):** in the app, a button produces a short Arabic text for a pasted post,
    e.g. «راجعتُ الاقتباس القرآني في المنشور: ورد «الشرح: 6» والصواب «الشرح: 5» (قرآنبيديا: …). فحصُ الاقتباسات فقط، وليس حكمًا على المنشور كله.»
    The editor copies and posts it manually.
 2. **Opt-in review queue:** mentions of an official account are fetched, audited, and queued for a human to approve.

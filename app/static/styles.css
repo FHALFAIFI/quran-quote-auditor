@@ -242,3 +242,6 @@ details.alts ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: .92rem
 }
 .preview-view del, .preview-view ins, .ch-before, .ch-after { unicode-bidi: isolate; }
 .preview-view del + ins { margin-inline-start: 3px; }
+.reply-box { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.reply-box summary { cursor: pointer; color: var(--violet); font-weight: 500; }
+.reply-text { min-height: 140px; }

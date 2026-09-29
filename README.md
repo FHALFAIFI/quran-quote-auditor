@@ -108,6 +108,11 @@ changes (original, replacement, reason, surah/ayah, source link), rejected and u
 unresolved items, the source retrieval time, and whether AI extraction actually ran on this audit.
 It is labelled as an editorial aid, not a certificate of religious or textual correctness.
 
+**Reply draft for a social post (optional).** Under the editor card, «مسودة رد على منشور» builds a short,
+editable Arabic reply from the *approved* corrections and the unresolved quotations only, ending with
+«هذا فحص للاقتباسات التي رُصدت فقط، وليس حكمًا على المنشور كله». The editor copies and posts it manually;
+the app never posts anything. An X bot is deliberately not built (see docs/CONTINUATION.md).
+
 ---
 
 ## Run locally
