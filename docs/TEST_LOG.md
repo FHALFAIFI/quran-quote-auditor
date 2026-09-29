@@ -85,3 +85,10 @@ that need AI extraction.
 - Verified on the live URL with a page load only (no audit, so no Gemini call). The banner reads
   «الاستخراج بالذكاء الاصطناعي مُعَدّ — Google Gemini (gemini-3.8-flash). لم يُستدعَ بعدُ على هذا الخادم…».
   `/api/health` shows `ai_last_call.outcome = "never_called"`. There were no console errors and no POST requests.
+
+## 2026-09-29 — single post-reset Gemini check
+
+- At 10:07:12 (UTC+3), after the daily free-tier quota reset, **exactly one** minimal request was sent: `gemini-3.8-flash`, prompt "Reply with ok".
+- Result: **HTTP 503 UNAVAILABLE** in 1.5 s, «This model is currently experiencing high demand. Spikes in demand are usually temporary.»
+- Following the agreed plan, no further diagnostic calls were made, and the end-to-end runs were not repeated.
+- **AI extraction remains UNVERIFIED.** No Gemini request has succeeded with this key so far.
