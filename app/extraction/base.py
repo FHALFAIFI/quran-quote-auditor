@@ -41,6 +41,7 @@ class ExtractionProvider(ABC):
     name: str = "base"
     label: str = "base"
     used_model: str | None = None  # model that actually answered the last call, if relevant
+    tracker = None  # CallTracker with the outcome of this provider's last real call
 
     @abstractmethod
     def available(self) -> bool:
@@ -51,12 +52,34 @@ class ExtractionProvider(ABC):
         """Return candidate quotations copied verbatim from ``article``."""
 
 
-def get_provider() -> ExtractionProvider | None:
+def _registry() -> dict[str, type[ExtractionProvider]]:
     from .gemini import GeminiProvider
+    from .groq import GroqProvider
 
-    providers: dict[str, type[ExtractionProvider]] = {"gemini": GeminiProvider}
-    cls = providers.get(settings.ai_provider)
-    if cls is None or settings.ai_provider in ("", "none", "off"):
+    return {"groq": GroqProvider, "gemini": GeminiProvider}
+
+
+def configured_provider() -> ExtractionProvider | None:
+    """The provider selected by AI_PROVIDER that has a key configured, or None.
+
+    ``auto`` (default) picks Groq when GROQ_API_KEY is set, else Gemini when
+    GEMINI_API_KEY is set. Exactly one provider is used; if it fails the audit
+    falls back to deterministic extraction, not to another model.
+    """
+    name = settings.ai_provider
+    if name in ("", "none", "off"):
         return None
-    provider = cls()
-    return provider if provider.available() else None
+    registry = _registry()
+    order = list(registry) if name == "auto" else [name]
+    for n in order:
+        cls = registry.get(n)
+        if cls is None:
+            continue
+        provider = cls()
+        if provider.available():
+            return provider
+    return None
+
+
+def get_provider() -> ExtractionProvider | None:
+    return configured_provider()

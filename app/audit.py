@@ -162,21 +162,44 @@ def run_audit(article: str) -> dict:
     provider = get_provider()
     mode = "ai" if provider else "reduced"
     candidates: list[Candidate] = extract_marked(article, refs)
+    # What really happened with AI on THIS audit (configured ≠ responded).
+    ai: dict = {
+        "configured": provider is not None,
+        "provider": provider.name if provider else None,
+        "model": getattr(provider, "model", None) if provider else None,
+        "responded": False,
+        "outcome": "not_configured" if provider is None else "not_called",
+        "http_status": None,
+        "elapsed_ms": None,
+        "proposed": 0,
+        "located": 0,
+        "discarded": 0,
+        "error": None,
+    }
     discarded = 0
     if provider:
+        t_ai = time.monotonic()
         try:
-            for sug in provider.extract(article):
+            suggestions = provider.extract(article)
+            ai.update(responded=True, outcome="ok", proposed=len(suggestions), model=provider.used_model)
+            for sug in suggestions:
                 spans = locate(tokens, sug.quote)
                 if not spans:
                     discarded += 1
                     continue
+                ai["located"] += 1
                 for i, j in spans:
                     c = _span_candidate(article, tokens, i, j, "ai")
                     c.reference_hint = sug.reference_text
                     candidates.append(c)
         except ExtractionError as exc:
             mode = "ai_failed"
-            notices.append({"level": "warning", "text": f"تعذّر الاستخراج بالذكاء الاصطناعي ({exc}). عُرضت الاقتباسات المعلَّمة صراحةً والمقاطع المطابقة حرفيًا لنص المصحف فقط."})
+            ai.update(outcome="failed", error=str(exc))
+            notices.append({"level": "warning", "text": f"تعذّر الاستخراج بالذكاء الاصطناعي ({exc}). عُرضت الاقتباسات المعلَّمة صراحةً والمقاطع المطابقة حرفيًا لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة."})
+        ai["elapsed_ms"] = int((time.monotonic() - t_ai) * 1000)
+        ai["discarded"] = discarded
+        last = provider.tracker.status() if getattr(provider, "tracker", None) else {}
+        ai["http_status"] = last.get("http_status")
     if discarded:
         notices.append({"level": "info", "text": f"استُبعد {discarded} مقطعًا اقترحه نموذج الذكاء الاصطناعي لأنه غير موجود حرفيًا في المقال."})
     if index is not None:
@@ -218,6 +241,7 @@ def run_audit(article: str) -> dict:
         "mode": mode,
         "provider": provider.label if provider else None,
         "provider_model": provider.used_model if provider else None,
+        "ai": ai,
         "notices": notices,
         "source": {
             "name": "Quranpedia — مصحف حفص عن عاصم",

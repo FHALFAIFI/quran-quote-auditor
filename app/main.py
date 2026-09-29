@@ -21,7 +21,6 @@ from pydantic import BaseModel, Field
 from .audit import InputError, run_audit
 from .config import settings
 from .extraction import get_provider
-from .extraction.gemini import last_call_status
 from .quran_source import source
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -100,10 +99,14 @@ def health():
     provider = get_provider()
     return {
         "status": "ok",
-        # "ai" means a provider is CONFIGURED; whether it answered is in "ai_last_call".
+        # "ai" means a provider is CONFIGURED (a key is set). Whether it has actually
+        # answered on this server instance is in "ai_last_call" (never_called | ok | failed).
         "mode": "ai" if provider else "reduced",
+        "ai_configured": provider is not None,
         "provider": provider.label if provider else None,
-        "ai_last_call": last_call_status() if provider else None,
+        "provider_name": provider.name if provider else None,
+        "ai_selection": settings.ai_provider,
+        "ai_last_call": provider.tracker.status() if provider and provider.tracker else None,
         "max_chars": settings.max_chars,
         "source": source.status(),
     }

@@ -15,6 +15,7 @@ import httpx
 
 from ..config import gemini_api_key, settings
 from .base import ExtractionError, ExtractionProvider, RawSuggestion
+from .status import CallTracker
 
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
@@ -76,30 +77,31 @@ def parse_model_json(text: str, limit: int) -> list[RawSuggestion]:
     return out
 
 
-_cooldown_until = [0.0]  # monotonic time until which calls are skipped (per instance)
-# Outcome of the most recent real call on this instance: never_called | ok | failed
-_last = {"outcome": "never_called", "at": None, "model": None, "detail": None}
+_tracker = CallTracker()
+# Module-level aliases kept for callers and tests (same mutable objects).
+_cooldown_until = _tracker.cooldown_until
+_last = _tracker.last
 
 
-def _record(outcome: str, model: str | None, detail: str | None = None) -> None:
-    _last.update(outcome=outcome, at=time.time(), model=model, detail=detail)
+def _record(outcome: str, model: str | None, detail: str | None = None, http_status: int | None = None) -> None:
+    _tracker.record(outcome, model, detail, http_status)
 
 
 def last_call_status() -> dict:
-    return {**_last, "cooldown_seconds": _cooldown_remaining()}
+    return _tracker.status()
 
 
 def _cooldown_remaining() -> int:
-    return max(0, int(_cooldown_until[0] - time.monotonic() + 0.999))
+    return _tracker.cooldown_remaining()
 
 
 def _start_cooldown(seconds: float) -> None:
-    if seconds > 0:
-        _cooldown_until[0] = time.monotonic() + seconds
+    _tracker.start_cooldown(seconds)
 
 
 class GeminiProvider(ExtractionProvider):
     name = "gemini"
+    tracker = _tracker
 
     def __init__(self) -> None:
         self.model = settings.gemini_model
@@ -166,16 +168,16 @@ class GeminiProvider(ExtractionProvider):
                 break
         if resp is None or resp.status_code == 503:
             _start_cooldown(settings.ai_cooldown)
-            _record("failed", self.used_model, "timeout" if resp is None else "503")
+            _record("failed", self.used_model, "timeout" if resp is None else "503", None if resp is None else 503)
             if resp is None:
                 raise ExtractionError("انتهت مهلة خدمة الذكاء الاصطناعي")
             raise ExtractionError("خدمة الذكاء الاصطناعي مشغولة حاليًا (503)")
         if resp.status_code == 429:
             _start_cooldown(max(settings.ai_cooldown, 120))
-            _record("failed", self.used_model, "429")
+            _record("failed", self.used_model, "429", 429)
             raise ExtractionError("تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا")
         if resp.status_code >= 400:
-            _record("failed", self.used_model, str(resp.status_code))
+            _record("failed", self.used_model, str(resp.status_code), resp.status_code)
             raise ExtractionError(f"خدمة الذكاء الاصطناعي أعادت الخطأ {resp.status_code}")
         try:
             payload = resp.json()
@@ -190,5 +192,5 @@ class GeminiProvider(ExtractionProvider):
             _record("failed", self.used_model, "malformed_json")
             raise
         _cooldown_until[0] = 0.0
-        _record("ok", self.used_model)
+        _record("ok", self.used_model, None, 200)
         return suggestions
