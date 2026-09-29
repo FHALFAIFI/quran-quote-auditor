@@ -326,6 +326,7 @@ def unavailable_result(ref: Reference | None) -> dict:
         ref_block["message"] = "الإحالة سليمة الصيغة، لكن تعذّر التحقق من مطابقتها للنص لغياب المصدر."
     return {
         "wording": {"status": "uncertain", "level": None, "similarity": None, "message": "المصدر غير متاح", "diff": [], "script_diffs": [], "diacritic_conflicts": []},
+        "proposal": {"status": "review_only", "edits": [], "vocalize": [], "reason": "المصدر غير متاح؛ لا يُقترح أي تصحيح."},
         "source": None,
         "alternatives": [],
         "occurrences": None,
@@ -345,6 +346,8 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> 
     occurrences = 0
     fuzzy = False
 
+    fuzzy_best: Alignment | None = None
+    fuzzy_good: list[Alignment] = []
     exact = find_exact(index, qf)
     occurrences = len(exact)
     ref_ok = ref if (ref and ref.valid) else None
@@ -394,6 +397,7 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> 
                     break
             chosen = best.span
             fuzzy = True
+            fuzzy_best, fuzzy_good = best, good
             wording.update({
                 "status": "difference",
                 "level": "fuzzy",
@@ -420,8 +424,10 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> 
         # deterministic letter-form / diacritics finding; still worth a human look
         reasons.append(wording["message"])
 
+    proposal = propose_wording(index, quote_words, wording, chosen, fuzzy_best, fuzzy_good, ref_ok)
     return {
         "wording": wording,
+        "proposal": proposal,
         "source": _source_block(index, chosen) if chosen else None,
         "alternatives": alternatives,
         "occurrences": occurrences,
@@ -429,6 +435,113 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> 
         "needs_review": bool(needs_review),
         "review_reasons": list(dict.fromkeys(r for r in reasons if r)),
     }
+
+
+# ---------------------------------------------------------------------------
+# correction proposals (deterministic; replacement words come ONLY from the source)
+# ---------------------------------------------------------------------------
+
+FUZZY_PROPOSE_WITH_REF = 0.75  # min similarity when the nearby reference confirms the location
+FUZZY_PROPOSE_NO_REF = 0.8  # min similarity when there is no reference at all
+FUZZY_MARGIN = 0.1  # the runner-up location must be at least this much less similar
+
+
+def styled(source_word: str, like_quote_word: str | None, quote_vocalized: bool) -> str:
+    """Source word in the article's writing style: vocalized only if the article vocalized it.
+
+    Quranic pause/annotation marks are always dropped (they are not wording).
+    """
+    vocal = arabic.has_diacritics(like_quote_word) if like_quote_word is not None else quote_vocalized
+    return arabic.literal(source_word) if vocal else arabic.letters(source_word)
+
+
+def _word_fixes(quote_words: list[str], source_words: list[str], q0: int, s0: int, n: int, vocalized: bool) -> list[tuple[int, int, list[str]]]:
+    """One-to-one fixes for words that fold equal: significant letter-form changes and diacritic conflicts."""
+    edits = []
+    for k in range(n):
+        qw, sw = quote_words[q0 + k], source_words[s0 + k]
+        if arabic.letters(qw) != arabic.letters(sw):
+            if script_diff_kind(qw, sw) == "significant":
+                edits.append((q0 + k, q0 + k + 1, [styled(sw, qw, vocalized)]))
+        elif arabic.has_diacritics(qw) and diacritics_conflict(qw, sw):
+            edits.append((q0 + k, q0 + k + 1, [arabic.literal(sw)]))
+    return edits
+
+
+def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, chosen: Span | None,
+                    best: Alignment | None, good: list[Alignment], ref_ok: Reference | None) -> dict:
+    """Decide whether a source-backed wording correction can be offered.
+
+    Returns ``{"status": ..., "edits": [...], "vocalize": [...], "reason": str}``:
+      * ``none_needed`` — the wording matches (a canonical vocalization may still be offered
+        as an explicit, optional editor choice in ``vocalize``);
+      * ``proposed``    — ``edits`` (quote-token ranges → source words) fix the wording;
+      * ``review_only`` — the intended source span is not certain; no replacement is offered.
+    Edits never extend beyond the quoted excerpt, so a partial quote is never expanded to a full verse.
+    """
+    out = {"status": "review_only", "edits": [], "vocalize": [], "reason": ""}
+    vocalized = any(arabic.has_diacritics(w) for w in quote_words)
+    if chosen is None:
+        out["reason"] = "موضع الاقتباس في المصحف غير محدد (غير موجود أو وارد في أكثر من موضع)، فلا يُقترح تصحيح تلقائي."
+        return out
+    src = span_words(index, chosen)
+    if best is None:  # exact folded match at a single, confirmed location
+        if wording["status"] == "uncertain":
+            out["reason"] = "الاقتباس قصير ولم تؤكد إحالةٌ موضعَه، فلا يُقترح تصحيح تلقائي."
+            return out
+        edits = _word_fixes(quote_words, src, 0, 0, len(quote_words), vocalized)
+        if edits:
+            out.update(status="proposed", edits=edits, reason=wording.get("message") or "")
+            return out
+        out["status"] = "none_needed"
+        if wording.get("level") != "literal":
+            out["vocalize"] = [(k, k + 1, [arabic.literal(sw)]) for k, (qw, sw) in enumerate(zip(quote_words, src))
+                               if arabic.literal(qw) != arabic.literal(sw)]
+        return out
+    # fuzzy: only when the location is unambiguous and supported
+    if len(quote_words) < MIN_WORDS:
+        out["reason"] = "الاقتباس أقصر من أن يُحدَّد موضعه بالمطابقة التقريبية."
+        return out
+    rivals = [c for c in good if c is not best and not ref_overlaps_span(c.span, best.span)]
+    close_rival = bool(rivals) and max(c.similarity for c in rivals) >= best.similarity - FUZZY_MARGIN
+    if ref_ok is not None and ref_ok.ayah_start is not None and close_rival:
+        # a reference with an ayah number may disambiguate, but only if no close rival is also in it
+        if any(ref_overlaps(ref_ok, index, c.span)[0] for c in rivals if c.similarity >= best.similarity - FUZZY_MARGIN):
+            out["reason"] = "أكثر من موضع قريب يقع ضمن الإحالة المكتوبة؛ اختر الموضع المقصود يدويًا."
+            return out
+    elif close_rival:
+        out["reason"] = "يوجد أكثر من موضع قريب في المصحف ولا تحدده إحالة برقم الآية؛ اختر الموضع المقصود يدويًا."
+        return out
+    if ref_ok is not None:
+        if not ref_overlaps(ref_ok, index, best.span)[0]:
+            out["reason"] = "الإحالة المكتوبة لا تشير إلى أقرب موضع، فلا يُعرف الموضع المقصود يقينًا."
+            return out
+        if best.similarity < FUZZY_PROPOSE_WITH_REF:
+            out["reason"] = "الفرق كبير بين الاقتباس وأقرب موضع؛ يلزم تحقق بشري."
+            return out
+    elif best.similarity < FUZZY_PROPOSE_NO_REF:
+        out["reason"] = "لا توجد إحالة تؤكد الموضع، والتشابه غير كافٍ لاقتراح تصحيح تلقائي."
+        return out
+    edits: list[tuple[int, int, list[str]]] = []
+    for tag, i1, i2, j1, j2 in best.ops:
+        if tag == "equal":
+            edits += _word_fixes(quote_words, src, i1, j1, i2 - i1, vocalized)
+        elif tag == "replace":
+            ql = quote_words[i1:i2]
+            edits.append((i1, i2, [styled(src[j], ql[j - j1] if j - j1 < len(ql) else None, vocalized) for j in range(j1, j2)]))
+        elif tag == "delete":
+            edits.append((i1, i2, []))
+        else:  # insert: words missing from the quote
+            edits.append((i1, i1, [styled(src[j], None, vocalized) for j in range(j1, j2)]))
+    if not edits:
+        out["reason"] = "تعذّر بناء تصحيح آمن."
+        return out
+    out.update(status="proposed", edits=edits, reason="الاقتباس يختلف عن نص المصحف في الموضع المحدد؛ التصحيح المقترح مأخوذ من قرآنبيديا لهذا المقطع فقط.")
+    return out
+
+
+def ref_overlaps_span(a: Span, b: Span) -> bool:
+    return a.surah == b.surah and a.p0 < b.p1 and b.p0 < a.p1
 
 
 def check_reference(index: QuranIndex, ref: Reference | None, chosen: Span | None, fuzzy: bool, exact: list[Span]) -> dict:

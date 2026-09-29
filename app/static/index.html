@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="/static/styles.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312183F'/%3E%3Cpath d='M9 17l4 4 10-10' stroke='%232EF2C2' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script src="/static/revision.js" defer></script>
   <script src="/static/app.js" defer></script>
 </head>
 <body>
@@ -47,6 +48,7 @@
       <textarea id="article" rows="11" dir="rtl" spellcheck="false" placeholder="الصق هنا مقالًا عربيًا قصيرًا يتضمن آيات قرآنية…"></textarea>
       <div class="input-foot">
         <span id="char-count" class="muted">0 حرف</span>
+        <span id="stale-note" class="stale-note" hidden>تغيّر النص بعد آخر تدقيق؛ أعد التدقيق قبل اعتماد التصحيحات.</span>
         <div class="actions">
           <button id="clear-btn" type="button" class="btn ghost">مسح</button>
           <button id="audit-btn" type="button" class="btn primary">دقّق الاقتباسات</button>
@@ -72,11 +74,36 @@
         <section class="findings-col" aria-labelledby="findings-title">
           <div class="findings-head">
             <h2 id="findings-title">قائمة المراجعة</h2>
-            <label class="filter"><input type="checkbox" id="only-review"> أظهر ما يحتاج مراجعة فقط</label>
+            <label class="filter"><input type="checkbox" id="only-review"> أظهر ما يحتاج مراجعة أو تصحيحًا فقط</label>
           </div>
           <ol id="findings" class="findings"></ol>
         </section>
       </div>
+
+      <section class="card editor-card" aria-labelledby="editor-title">
+        <div class="editor-head">
+          <h2 id="editor-title">المقال المعدّل — قبل وبعد</h2>
+          <div id="editor-progress" class="editor-progress"></div>
+        </div>
+        <p class="editor-note">
+          لا يتغير أي حرف في مقالك إلا بالتصحيحات التي تعتمدها واحدًا واحدًا من قائمة المراجعة. يبقى كل ما سواها كما كتبته، بما في ذلك الأسطر وعلامات الترقيم.
+          <b>لا يعني ذلك أن المقال كله متحقق منه أو جاهز للنشر</b>: الأداة تفحص الاقتباسات القرآنية التي رصدتها وإحالاتها فقط.
+        </p>
+        <div class="tabs" role="tablist">
+          <button id="tab-preview" type="button" role="tab" aria-selected="true" class="tab">المعاينة: المحذوف والمضاف</button>
+          <button id="tab-text" type="button" role="tab" aria-selected="false" class="tab">النص المعدّل الكامل</button>
+        </div>
+        <div id="preview-view" class="article-view preview-view" dir="rtl"></div>
+        <textarea id="revised-text" class="revised-text" dir="rtl" rows="12" readonly hidden aria-label="النص المعدّل الكامل"></textarea>
+        <div class="preview-legend">
+          <span><del>نص محذوف</del></span> <span><ins>نص معتمد</ins></span> <span><span class="unresolved">اقتباس غير محسوم</span><sup class="unres-mark">⚠</sup></span>
+        </div>
+        <div class="editor-actions">
+          <button id="copy-btn" type="button" class="btn primary">نسخ المقال المعدّل</button>
+          <button id="print-btn" type="button" class="btn">سجل مراجعة الاقتباسات (طباعة / PDF)</button>
+          <button id="reset-btn" type="button" class="btn ghost">إلغاء كل القرارات</button>
+        </div>
+      </section>
     </section>
 
     <section class="card legend" aria-labelledby="legend-title">
@@ -98,10 +125,12 @@
         لا يُستخدم الذكاء الاصطناعي مصدرًا لنص القرآن ولا حكَمًا على صحته؛ دوره اقتراح مواضع الاقتباس فقط.
       </p>
       <p class="muted">
-        الخصوصية: لا تُخزَّن المقالات ولا تُسجَّل. عند تفعيل الذكاء الاصطناعي يُرسل نص المقال إلى Google Gemini لاستخراج المرشحات.
+        الخصوصية: لا تُخزَّن المقالات على الخادم ولا تُسجَّل، وقرارات التصحيح تبقى في متصفحك. عند تفعيل الذكاء الاصطناعي يُرسل نص المقال إلى مزوّد النموذج المبيَّن أعلى الصفحة (Groq أو Google Gemini) لاستخراج المرشحات.
         · نسخة ما قبل التحدي (خط الأساس) — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026.
       </p>
     </div>
   </footer>
+
+  <section id="print-record" class="print-record" dir="rtl" aria-hidden="true"></section>
 </body>
 </html>

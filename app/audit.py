@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 
 from . import arabic
+from .corrections import build_changes
 from .config import settings
 from .extraction import Candidate, ExtractionError, get_provider
 from .extraction.marked import extract_marked
@@ -214,7 +215,7 @@ def run_audit(article: str) -> dict:
         words = [t.raw for t in arabic.tokenize(c.text)]
         result = verify(index, words, ref) if index is not None else unavailable_result(ref)
         line, col = _line_col(article, c.start)
-        findings.append({
+        finding = {
             "id": n,
             "start": c.start,
             "end": c.end,
@@ -224,7 +225,23 @@ def run_audit(article: str) -> dict:
             "detected_by": sorted(c.sources, key=lambda x: PRIORITY[x]),
             "marker": c.marker,
             **result,
-        })
+        }
+        changes, summary = build_changes(article, finding, c.start, ref)
+        finding.pop("proposal", None)
+        finding["changes"] = changes
+        finding["correction"] = summary
+        findings.append(finding)
+    # Changes from different findings must never overlap; drop any that would (defensive).
+    taken: list[tuple[int, int]] = []
+    for f in findings:
+        keep = []
+        for ch in f["changes"]:
+            s0, e0 = ch["start"], ch["end"]
+            if any(s0 < e1 and s1 < e0 or (s0 == e0 == s1 == e1) for s1, e1 in taken):
+                continue
+            taken.append((s0, e0))
+            keep.append(ch)
+        f["changes"] = keep
 
     stats = {
         "total": len(findings),
@@ -236,6 +253,7 @@ def run_audit(article: str) -> dict:
         "ref_missing": sum(f["reference"]["status"] == "missing" for f in findings),
         "ref_incorrect": sum(f["reference"]["status"] == "incorrect" for f in findings),
         "ref_uncertain": sum(f["reference"]["status"] == "uncertain" for f in findings),
+        "proposed_changes": sum(len(f["changes"]) for f in findings),
     }
     return {
         "mode": mode,

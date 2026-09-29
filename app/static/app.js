@@ -1,12 +1,18 @@
 // Quran quotation auditor — frontend.
 // All user-supplied and server-supplied text is inserted with textContent
 // (never innerHTML), so article text cannot inject markup.
+// Revision state (the editor's approve/reject decisions) lives only in this
+// browser tab (memory + sessionStorage); it is never sent to the server.
 "use strict";
 
 const $ = (id) => document.getElementById(id);
+const R = window.Revision;
 let MAX_CHARS = 6000;
 let lastArticle = "";
 let lastResult = null;
+let decisions = {};  // changeId -> "approved" | "rejected"
+let auditedAt = null;
+const STORE_KEY = "qqa-session-v1";
 
 function el(tag, attrs, ...children) {
   const node = document.createElement(tag);
@@ -25,6 +31,7 @@ function el(tag, attrs, ...children) {
 }
 
 const toArabicDigits = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+const fmtTime = (secs) => new Date(secs * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
 
 const WORDING = {
   matched: { literal: ["مطابق حرفيًا", "ok"], diacritics: ["مطابق بتجاهل التشكيل", "ok"], normalized: ["مطابق بعد توحيد الرسم", "ok"] },
@@ -43,8 +50,32 @@ const REF = {
 };
 const DETECTED = { marked: "معلَّم بأقواس أو علامات", ai: "استخراج بالذكاء الاصطناعي", scan: "مطابقة آلية مع نص المصحف" };
 const COVERAGE = { full: "آية كاملة", partial: "جزء من آية", "multi-partial": "أجزاء من آيات متتالية" };
+const KIND = {
+  wording: "تصحيح ألفاظ الاقتباس",
+  diacritics: "تصحيح التشكيل",
+  vocalize: "ضبط كامل بتشكيل المصحف (اختياري)",
+  reference: "تصحيح الإحالة",
+  reference_add: "إضافة إحالة (اختياري)",
+};
 
 function chip(label, cls) { return el("span", { class: `chip ${cls}`, text: label }); }
+
+function allChanges() { return (lastResult?.findings || []).flatMap((f) => f.changes || []); }
+
+// ---------------------------------------------------------------- session state
+function saveSession() {
+  try {
+    sessionStorage.setItem(STORE_KEY, JSON.stringify({ article: lastArticle, result: lastResult, decisions, auditedAt }));
+  } catch { /* storage unavailable: state stays in memory only */ }
+}
+function loadSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(STORE_KEY) || "null");
+    if (s && s.result && typeof s.article === "string") return s;
+  } catch { /* ignore */ }
+  return null;
+}
+function clearSession() { try { sessionStorage.removeItem(STORE_KEY); } catch { /* ignore */ } }
 
 // ---------------------------------------------------------------- health
 async function loadHealth() {
@@ -74,7 +105,7 @@ async function loadHealth() {
     } else {
       banner.className = "banner reduced";
       banner.append(el("strong", { text: "وضع مخفّض — الذكاء الاصطناعي غير مفعّل. " }),
-        "تُفحص فقط الاقتباسات المعلَّمة صراحةً (﴿ ﴾ أو { } أو علامات تنصيص مع «قال تعالى» أو إحالة)، إضافةً إلى المقاطع المطابقة حرفيًا لنص المصحف (5 كلمات فأكثر). قد تفوت الاقتباسات غير المعلَّمة المنقولة بخطأ.");
+        "تُفحص فقط الاقتباسات المعلَّمة صراحةً (﴿ ﴾ أو { } أو علامات تنصيص مع «قال تعالى» أو إحالة)، إضافةً إلى المقاطع المطابقة حرفيًا لنص المصحف (5 كلمات فأكثر). قد تفوت الاقتباسات القصيرة غير المعلَّمة.");
     }
   } catch {
     banner.hidden = true;
@@ -87,6 +118,8 @@ function updateCount() {
   const c = $("char-count");
   c.textContent = `${toArabicDigits(n)} / ${toArabicDigits(MAX_CHARS)} حرف`;
   c.classList.toggle("char-over", n > MAX_CHARS);
+  const stale = lastResult && $("article").value.replace(/\r\n?/g, "\n") !== lastArticle;
+  $("stale-note").hidden = !stale;
 }
 
 async function loadSample(name) {
@@ -130,7 +163,10 @@ async function runAudit() {
     if (!res.ok) { setStatus(data.error || "تعذّر إكمال التدقيق.", true); return; }
     lastArticle = article;
     lastResult = data;
-    render(data);
+    decisions = {};
+    auditedAt = Date.now() / 1000;
+    saveSession();
+    render(data, true);
     loadHealth();  // refresh the banner with this call's real outcome
     setStatus(`اكتمل التدقيق في ${toArabicDigits((data.elapsed_ms / 1000).toFixed(1))} ث.`);
   } catch (e) {
@@ -142,25 +178,35 @@ async function runAudit() {
 }
 
 // ---------------------------------------------------------------- render
-function render(data) {
+function aiNotice(data) {
+  const ai = data.ai || {};
+  if (data.mode === "reduced") {
+    return el("div", { class: "notice warning", text: "نُفِّذ هذا التدقيق في الوضع المخفّض دون ذكاء اصطناعي؛ قد تفوت الاقتباسات القصيرة غير المعلَّمة." });
+  }
+  if (data.mode === "ai" && ai.responded) {
+    return el("div", { class: "notice info" }, "استجاب نموذج الذكاء الاصطناعي ", el("bdi", { dir: "ltr", text: ai.model || data.provider_model || data.provider }),
+      ` في هذا التدقيق (${toArabicDigits(((ai.elapsed_ms || 0) / 1000).toFixed(1))} ث): اقترح ${toArabicDigits(ai.proposed)} مقطعًا، وُجد منها في المقال ${toArabicDigits(ai.located)}، واستُبعد ${toArabicDigits(ai.discarded)}. `,
+      "ثم حُكم على كل اقتباس بمقارنته بنص المصحف فقط.");
+  }
+  return null;
+}
+
+function render(data, scroll) {
   $("results").hidden = false;
   const notices = $("notices");
   notices.replaceChildren(...(data.notices || []).map((n) => el("div", { class: `notice ${n.level}`, text: n.text })));
-  if (data.mode === "reduced") {
-    notices.append(el("div", { class: "notice warning", text: "نُفِّذ هذا التدقيق في الوضع المخفّض دون ذكاء اصطناعي." }));
-  } else if (data.mode === "ai") {
-    notices.append(el("div", { class: "notice info" }, "استجاب نموذج الذكاء الاصطناعي ", el("bdi", { dir: "ltr", text: data.provider_model || data.provider }),
-      " في هذا التدقيق، وتحقق الخادم من كل مقترح منه."));
-  }
+  const an = aiNotice(data);
+  if (an) notices.append(an);
   if (data.source?.available && data.source.fetched_at) {
-    const when = new Date(data.source.fetched_at * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
-    notices.append(el("div", { class: "notice info" }, "نص المصحف من قرآنبيديا، جُلب في ", el("b", { text: when }),
+    notices.append(el("div", { class: "notice info" }, "نص المصحف من قرآنبيديا، جُلب في ", el("b", { text: fmtTime(data.source.fetched_at) }),
       data.source.stale ? " (نسخة مخبأة لتعذّر التحديث)" : ""));
   }
   renderSummary(data);
   renderArticle(data.findings);
   renderFindings();
-  $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  renderEditor();
+  updateCount();
+  if (scroll) $("results").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function renderSummary(data) {
@@ -174,6 +220,7 @@ function renderSummary(data) {
     tile(s.ref_incorrect, "إحالات خاطئة"),
     tile(s.ref_missing, "بلا إحالة"),
     tile(s.needs_review, "تحتاج مراجعة بشرية", "review"),
+    tile(allChanges().filter((c) => !c.optional).length, "تصحيحات مقترحة من المصدر", "fix"),
   );
 }
 
@@ -183,14 +230,14 @@ function renderArticle(findings) {
   let pos = 0;
   for (const f of [...findings].sort((a, b) => a.start - b.start)) {
     if (f.start < pos) continue;
-    view.append(lastArticle.slice(pos, f.start));
+    view.append(R.slice(lastArticle, pos, f.start));
     const mark = el("mark", { class: `s-${f.wording.status}`, "data-id": f.id, title: `اقتباس ${f.id}`, tabindex: "0",
       onclick: () => focusFinding(f.id), onkeydown: (e) => { if (e.key === "Enter") focusFinding(f.id); } },
-      lastArticle.slice(f.start, f.end), el("sup", { text: toArabicDigits(f.id) }));
+      R.slice(lastArticle, f.start, f.end), el("sup", { text: toArabicDigits(f.id) }));
     view.append(mark);
     pos = f.end;
   }
-  view.append(lastArticle.slice(pos));
+  view.append(R.slice(lastArticle, pos));
 }
 
 function focusFinding(id) {
@@ -204,7 +251,7 @@ function focusFinding(id) {
 function renderFindings() {
   const list = $("findings");
   const onlyReview = $("only-review").checked;
-  const items = (lastResult?.findings || []).filter((f) => !onlyReview || f.needs_review);
+  const items = (lastResult?.findings || []).filter((f) => !onlyReview || f.needs_review || (f.changes || []).some((c) => !c.optional));
   if (!items.length) {
     list.replaceChildren(el("li", { class: "empty", text: onlyReview ? "لا توجد حالات تحتاج مراجعة." : "لم تُرصد اقتباسات قرآنية في النص." }));
     return;
@@ -250,6 +297,47 @@ function pairsList(pairs) {
   return el("ul", { class: "pairs" }, pairs.map((p) => el("li", {}, el("span", { text: p.quote }), " ← ", el("b", { text: p.source }))));
 }
 
+function setDecision(id, value) {
+  if (decisions[id] === value) delete decisions[id];
+  else decisions[id] = value;
+  saveSession();
+  document.querySelectorAll(`[data-change="${CSS.escape(id)}"]`).forEach(updateChangeNode);
+  renderEditor();
+}
+
+function updateChangeNode(node) {
+  const id = node.getAttribute("data-change");
+  const d = decisions[id];
+  node.classList.toggle("approved", d === "approved");
+  node.classList.toggle("rejected", d === "rejected");
+  const state = node.querySelector(".ch-state");
+  if (state) state.textContent = d === "approved" ? "معتمد" : d === "rejected" ? "مرفوض" : "بانتظار قرارك";
+  node.querySelectorAll("button[data-act]").forEach((b) => b.setAttribute("aria-pressed", String(d === b.getAttribute("data-act"))));
+}
+
+function changeCard(c) {
+  const quoteLevel = c.kind !== "reference" && c.kind !== "reference_add";
+  const before = quoteLevel ? c.quote_before : c.original || "—";
+  const after = quoteLevel ? c.quote_after : (c.original ? c.replacement : c.replacement.trim());
+  const node = el("div", { class: `change ${c.optional ? "optional" : ""}`, "data-change": c.id },
+    el("div", { class: "ch-head" },
+      el("b", { text: KIND[c.kind] || c.kind }),
+      el("span", { class: "ch-state", text: "بانتظار قرارك" })),
+    el("div", { class: "ch-diff" },
+      el("div", {}, el("span", { class: "row-label", text: "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: before })),
+      el("div", {}, el("span", { class: "row-label", text: "بعد" }), el("div", { class: `ch-after ${quoteLevel ? "quran" : ""}`, dir: "rtl", text: after }))),
+    el("p", { class: "ch-reason", text: c.reason }),
+    c.kind === "diacritics" ? el("p", { class: "muted small", text: "تنبيه: تختلف طبعات المصاحف في بعض علامات الضبط (كشدّة الإدغام)؛ تأكد قبل الاعتماد." }) : null,
+    el("div", { class: "ch-src" }, "المصدر: ", el("b", { text: c.label }), " — ",
+      ...c.source_urls.map((u, i) => el("a", { href: u, target: "_blank", rel: "noopener", text: i ? ` (${toArabicDigits(i + 1)})` : "قرآنبيديا" }))),
+    el("div", { class: "ch-actions" },
+      el("button", { type: "button", class: "btn small approve", "data-act": "approved", "aria-pressed": "false", onclick: () => setDecision(c.id, "approved") }, "اعتماد"),
+      el("button", { type: "button", class: "btn small reject", "data-act": "rejected", "aria-pressed": "false", onclick: () => setDecision(c.id, "rejected") }, "رفض")),
+  );
+  updateChangeNode(node);
+  return node;
+}
+
 function renderFinding(f) {
   const w = f.wording, r = f.reference;
   const [wl, wc] = wordingChip(w);
@@ -270,11 +358,10 @@ function renderFinding(f) {
       sourceBox(f.source)));
   }
 
-  // wording details
   const wBox = el("div", { class: "status-box" }, el("div", { class: "row-label", text: "الألفاظ" }), chip(wl, wc));
   if (w.message) wBox.append(el("p", { text: w.message }));
   if (w.level === "fuzzy" && w.similarity != null) wBox.append(el("p", { class: "muted", text: `نسبة التشابه: ${toArabicDigits(Math.round(w.similarity * 100))}٪` }));
-  if (w.level === "diacritics" && w.status === "matched") wBox.append(el("p", { class: "muted", text: "الحروف مطابقة؛ التشكيل في المقال ناقص أو غائب لكنه غير مخالف." }));
+  if (w.level === "diacritics" && w.status === "matched") wBox.append(el("p", { class: "muted", text: "الحروف مطابقة؛ التشكيل في المقال ناقص أو غائب لكنه غير مخالف، فليس خطأً." }));
   if (w.level === "literal") wBox.append(el("p", { class: "muted", text: "مطابق حرفًا وتشكيلًا (بعد تجاهل علامات الوقف)." }));
 
   const rBox = el("div", { class: "status-box" }, el("div", { class: "row-label", text: "الإحالة" }), chip(rl, rc));
@@ -293,6 +380,16 @@ function renderFinding(f) {
   if (f.review_reasons?.length && f.needs_review) {
     body.append(el("div", {}, el("div", { class: "row-label", text: "سبب طلب المراجعة" }), el("ul", { class: "reasons" }, f.review_reasons.map((x) => el("li", { text: x })))));
   }
+
+  // proposed corrections (source-backed only)
+  const changes = f.changes || [];
+  if (changes.length) {
+    body.append(el("div", { class: "changes" }, el("div", { class: "row-label", text: "تصحيحات مقترحة من نص المصحف — لا يُغيَّر شيء إلا بعد اعتمادك" }), ...changes.map(changeCard)));
+  }
+  if (f.correction?.status === "review_only" && f.needs_review) {
+    body.append(el("div", { class: "no-fix" }, el("b", { text: "لا يُقترح تصحيح تلقائي. " }), f.correction.reason || "الموضع المقصود غير محسوم."));
+  }
+
   if (f.alternatives?.length) {
     body.append(el("details", { class: "alts" },
       el("summary", { text: `مواضع أخرى محتملة (${toArabicDigits(f.alternatives.length)}${f.occurrences > f.alternatives.length ? " من " + toArabicDigits(f.occurrences) : ""})` }),
@@ -306,14 +403,153 @@ function renderFinding(f) {
   return el("li", { id: `finding-${f.id}`, class: `finding ${f.needs_review ? "review" : ""}` }, head, body);
 }
 
+// ---------------------------------------------------------------- editor: before/after + copy
+function unresolvedSpans() {
+  return R.unresolvedFindings(lastResult?.findings || [], decisions).map((f) => ({ start: f.start, end: f.end, id: f.id }));
+}
+
+function renderEditor() {
+  if (!lastResult) return;
+  const changes = allChanges();
+  const nApproved = changes.filter((c) => decisions[c.id] === "approved").length;
+  const nRejected = changes.filter((c) => decisions[c.id] === "rejected").length;
+  const nPending = changes.length - nApproved - nRejected;
+  const unresolved = R.unresolvedFindings(lastResult.findings, decisions);
+  const { text, refused } = R.applyApproved(lastArticle, changes, decisions);
+
+  $("editor-progress").replaceChildren(
+    el("span", { class: "pill ok", text: `معتمد ${toArabicDigits(nApproved)}` }),
+    el("span", { class: "pill bad", text: `مرفوض ${toArabicDigits(nRejected)}` }),
+    el("span", { class: "pill", text: `بانتظار قرارك ${toArabicDigits(nPending)}` }),
+    el("span", { class: "pill warn", text: `اقتباسات غير محسومة ${toArabicDigits(unresolved.length)}` }),
+  );
+  if (refused.length) {
+    $("editor-progress").append(el("span", { class: "pill bad", text: `تعذّر تطبيق ${toArabicDigits(refused.length)} (تداخل أو إزاحة)` }));
+  }
+
+  const view = $("preview-view");
+  view.replaceChildren();
+  for (const s of R.previewSegments(lastArticle, changes, decisions, unresolvedSpans())) {
+    if (s.type === "text") view.append(s.text);
+    else if (s.type === "del") view.append(el("del", { title: "قبل", text: s.text }));
+    else if (s.type === "ins") view.append(el("ins", { title: "بعد (معتمد)", text: s.text }));
+    else view.append(el("span", { class: "unresolved", title: "اقتباس غير محسوم — يحتاج مراجعة بشرية", text: s.text }), el("sup", { class: "unres-mark", text: "⚠" + toArabicDigits(s.id) }));
+  }
+  $("revised-text").value = text;
+}
+
+async function copyRevised() {
+  const text = $("revised-text").value;
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus("نُسخ المقال المعدّل. تذكير: الأداة فحصت الاقتباسات القرآنية فقط، والحالات غير المحسومة تحتاج مراجعة.");
+  } catch {
+    $("revised-text").select();
+    setStatus("تعذّر النسخ التلقائي؛ النص محدد الآن، انسخه يدويًا (Ctrl+C).", true);
+  }
+}
+
+function showTab(which) {
+  const preview = which === "preview";
+  $("tab-preview").setAttribute("aria-selected", String(preview));
+  $("tab-text").setAttribute("aria-selected", String(!preview));
+  $("preview-view").hidden = !preview;
+  $("revised-text").hidden = preview;
+}
+
+// ---------------------------------------------------------------- print record
+function aiRecordText(data) {
+  const ai = data.ai || {};
+  if (!ai.configured) return "لم يُستخدم الذكاء الاصطناعي (وضع مخفّض): فُحصت الاقتباسات المعلَّمة والمقاطع المطابقة حرفيًا فقط، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.";
+  if (ai.responded) return `نعم — استجاب النموذج ${ai.model} (${ai.provider}) في هذا التدقيق خلال ${((ai.elapsed_ms || 0) / 1000).toFixed(1)} ث؛ اقترح ${ai.proposed} مقطعًا، وُجد منها في المقال ${ai.located}، واستُبعد ${ai.discarded}. دوره اقتراح المواضع فقط.`;
+  return `لا — كان ${ai.provider} مُعَدًّا لكنه لم يستجب في هذا التدقيق (${ai.error || ai.outcome})، فاستُخدم الوضع الاحتياطي الحتمي، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
+}
+
+function buildRecord() {
+  const data = lastResult;
+  const rec = $("print-record");
+  const changes = allChanges();
+  const byFinding = Object.fromEntries(data.findings.map((f) => [f.id, f]));
+  const approved = changes.filter((c) => decisions[c.id] === "approved");
+  const rejected = changes.filter((c) => decisions[c.id] === "rejected");
+  const pending = changes.filter((c) => !decisions[c.id]);
+  const notApplied = changes.filter((c) => decisions[c.id] === "rejected" || (!decisions[c.id] && !c.optional));
+  const optionalPending = changes.filter((c) => !decisions[c.id] && c.optional).length;
+  const unresolved = R.unresolvedFindings(data.findings, decisions);
+  const kv = (k, v) => el("tr", {}, el("th", { text: k }), el("td", {}, v));
+
+  rec.replaceChildren(
+    el("h1", { text: "سجل مراجعة الاقتباسات" }),
+    el("p", { class: "rec-disclaimer" },
+      el("b", { text: "أداة مساعدة تحريرية، وليست شهادة بصحة النص الديني أو سلامته. " }),
+      "يقتصر الفحص على الاقتباسات القرآنية التي رُصدت وإحالاتها، بمقارنتها بنص مصحف حفص من قرآنبيديا. لا يشهد هذا السجل بأن المقال كله متحقق منه أو جاهز للنشر، ولا يغني عن مراجعة المختص."),
+    el("table", { class: "rec-meta" },
+      kv("وقت التدقيق", auditedAt ? fmtTime(auditedAt) : "—"),
+      kv("وقت إعداد السجل", fmtTime(Date.now() / 1000)),
+      kv("مصدر النص القرآني", `${data.source.name} — ${data.source.url}`),
+      kv("وقت جلب المصدر", data.source.fetched_at ? fmtTime(data.source.fetched_at) + (data.source.stale ? " (نسخة مخبأة)" : "") : "المصدر غير متاح — لم يُحكم على أي اقتباس"),
+      kv("هل عمل الاستخراج بالذكاء الاصطناعي؟", aiRecordText(data)),
+      kv("الأعداد", `اقتباسات مرصودة ${data.stats.total} · تصحيحات معتمدة ${approved.length} · مرفوضة ${rejected.length} · بلا قرار ${pending.length} · غير محسومة ${unresolved.length}`),
+    ),
+    el("h2", { text: "التصحيحات المعتمدة" }),
+    approved.length ? el("table", { class: "rec-table" },
+      el("thead", {}, el("tr", {}, ...["#", "النوع", "النص الأصلي", "البديل المعتمد", "السبب", "السورة/الآية", "رابط المصدر"].map((h) => el("th", { text: h })))),
+      el("tbody", {}, approved.map((c) => el("tr", {},
+        el("td", { text: String(c.finding_id) }),
+        el("td", { text: KIND[c.kind] || c.kind }),
+        el("td", { class: "q", text: c.original || "(إضافة)" }),
+        el("td", { class: "q", text: c.replacement.trim() }),
+        el("td", { text: c.reason }),
+        el("td", { text: c.label }),
+        el("td", { class: "url", text: c.source_urls.join("\n") }))))) : el("p", { text: "لم يُعتمد أي تصحيح." }),
+    el("h2", { text: "تصحيحات مقترحة رُفضت أو لم يُبتّ فيها" }),
+    notApplied.length ? el("ul", {}, notApplied.map((c) =>
+      el("li", {}, `#${c.finding_id} ${KIND[c.kind] || c.kind}: «${c.original || "(إضافة)"}» ← «${c.replacement.trim()}» — `, el("b", { text: decisions[c.id] === "rejected" ? "رُفض" : "بلا قرار" }), ` (${c.label})`))) : el("p", { text: "لا يوجد." }),
+    optionalPending ? el("p", { class: "muted", text: `إضافةً إلى ${optionalPending} اقتراحًا اختياريًا للتنسيق (ضبط بالتشكيل أو إضافة إحالة) لم يُبتّ فيه؛ لا يدل على خطأ.` }) : null,
+    el("h2", { text: "اقتباسات غير محسومة (تحتاج مراجعة بشرية)" }),
+    unresolved.length ? el("ul", {}, unresolved.map((f) => el("li", {},
+      `#${f.id} (السطر ${f.line}) «${f.quote}» — `,
+      (f.review_reasons || []).join("؛ ") || (f.correction?.reason || "تصحيح مقترح لم يُعتمد"),
+      f.source ? (f.wording.level === "fuzzy" ? ` — أقرب موضع مقترح (غير مؤكد): ${f.source.label}` : ` — الموضع في المصدر: ${f.source.label}`) : ""))) : el("p", { text: "لا يوجد في الاقتباسات المرصودة. (قد توجد اقتباسات لم تُرصد.)" }),
+    el("p", { class: "rec-foot", text: "أُعدّ بواسطة مدقق الاقتباسات القرآنية. نص المقال لا يُخزَّن على الخادم؛ هذا السجل مولَّد في المتصفح." }),
+  );
+}
+
+function printRecord() {
+  if (!lastResult) return;
+  buildRecord();
+  window.print();
+}
+
 // ---------------------------------------------------------------- init
 document.addEventListener("DOMContentLoaded", () => {
   $("article").addEventListener("input", updateCount);
   $("audit-btn").addEventListener("click", runAudit);
-  $("clear-btn").addEventListener("click", () => { $("article").value = ""; updateCount(); $("results").hidden = true; setStatus(""); });
+  $("clear-btn").addEventListener("click", () => {
+    $("article").value = ""; lastResult = null; lastArticle = ""; decisions = {}; clearSession();
+    updateCount(); $("results").hidden = true; setStatus("");
+  });
   $("sample-select").addEventListener("change", (e) => loadSample(e.target.value));
   $("only-review").addEventListener("change", renderFindings);
   $("article").addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAudit(); });
+  $("copy-btn").addEventListener("click", copyRevised);
+  $("print-btn").addEventListener("click", printRecord);
+  $("reset-btn").addEventListener("click", () => {
+    decisions = {}; saveSession();
+    document.querySelectorAll("[data-change]").forEach(updateChangeNode);
+    renderEditor();
+  });
+  $("tab-preview").addEventListener("click", () => showTab("preview"));
+  $("tab-text").addEventListener("click", () => showTab("text"));
+  window.addEventListener("beforeprint", () => { if (lastResult) buildRecord(); });
+
+  const saved = loadSession();
+  if (saved) {
+    lastArticle = saved.article; lastResult = saved.result; decisions = saved.decisions || {}; auditedAt = saved.auditedAt || null;
+    $("article").value = lastArticle;
+    render(lastResult, false);
+    setStatus("استُعيدت نتيجة التدقيق وقراراتك من هذه الجلسة.");
+  }
   updateCount();
   loadHealth();
 });
