@@ -30,6 +30,20 @@ and only work done during **4–6 October 2026** is scored. This file is that re
 - No labelled accuracy evaluation. No accuracy numbers are claimed.
 - **AI extraction not verified with the real Gemini service** (it returned 503/429 during every test; see docs/TEST_LOG.md).
 - Live deployment exists (https://quran-quote-auditor.vercel.app); no demo video or presentation yet.
+- (Added after the tag, see below: editor workflow and Groq adapter — also pre-challenge.)
+
+## Pre-challenge work after the tag (still before 4 October 2026)
+
+Everything below was also built before the challenge and must **not** be counted as challenge work.
+The commits are listed in `CHANGELOG.md` under "Pre-challenge work".
+
+- 28 Sep: shorter AI failure wait, labelled evaluation set (14 articles, 28 gold quotations, 5 negatives), fallback results, AI-status banner.
+- 29 Sep:
+  - Groq extraction provider (strict JSON schema) next to Gemini, `AI_PROVIDER=auto`, per-audit record of whether AI actually responded, `/api/health` separating "configured" from the last real outcome.
+  - Editor workflow: source-backed correction proposals, approve/reject per change, before/after preview, copy of the revised article, unresolved quotations marked, print-friendly review record.
+  - Correction-safety scoring in the evaluation, browser end-to-end script, more tests.
+  - Presentation and video-script drafts updated.
+- Still **not** verified before the challenge: real AI extraction (no successful Gemini call; no Groq key yet).
 
 ## How to see challenge-period changes
 

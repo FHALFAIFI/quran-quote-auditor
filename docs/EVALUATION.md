@@ -4,9 +4,9 @@
 
 - The labelled set is small (14 articles, 28 gold quotations, 5 non-Quran negatives).
 - The articles were written by the project author for this test, using the same AI-assisted workflow that built the app. They are not an independent sample of real articles.
-- A human reviewer still needs to confirm the labels.
+- A human reviewer still needs to confirm the labels (checklist: `docs/LABEL_REVIEW.md`).
 - The results show how the pipeline behaves on the listed case types. They are **not** a general accuracy figure.
-- **AI-mode results do not exist yet.** No real Gemini call has succeeded (see `TEST_LOG.md`).
+- **AI-mode results do not exist yet.** No real AI call has succeeded: Gemini returned 503/429, and no Groq key has been configured (see `TEST_LOG.md`).
 
 ## Labelled set (`eval/cases.json`, v1)
 
@@ -79,10 +79,39 @@ The run is deterministic (no model involved), and all 14 cases ran with `mode = 
   - The three marked quotations with wording errors (c03 ×2, c04) cite the right verse, but the app matched them only approximately.
   - It therefore reports the reference as "uncertain" rather than "matched", which is the intended conservative behaviour.
 
+## Results — proposed corrections, fallback mode, 2026-09-29
+
+Same command and the **same unchanged labels**; raw output `eval/results/fallback-20260929-205031.json`.
+Detection and verdict numbers are identical to the 2026-09-28 run (25/28 detected, 0 false "matched").
+New scoring of the editor workflow's *proposed, non-optional* corrections:
+
+| Measure | Result |
+|---|---|
+| Detected quotes with a wording or diacritics error | 6 (3 wording, 3 diacritics) |
+| · a fix was proposed whose corrected excerpt re-verifies as "matched" at the gold location and equals the gold wording | **6 / 6** |
+| · wrong fixes | 0 |
+| Detected reference problems (incorrect, partial, or unresolvable) | 6 |
+| · reference fix proposed and equal to the gold surah/ayah | 4 (3 wrong verse, 1 partial range → 5-6) |
+| · left for human review (repeated phrase, location not pinned) | 2 |
+| **Fixes proposed for a quote labelled correct** | **0** |
+| **Reference fixes proposed for a reference labelled correct** | **0** |
+
+How fixes are checked (`grade_corrections` in `eval/run_eval.py`): the corrected excerpt is run through the
+verifier again with the gold location as reference, and must fold-equal the gold wording. Optional changes
+(full vocalization, adding a missing reference) are not counted as corrections.
+
+Limits: 6 wording errors and 6 reference problems are far too few to estimate a correction accuracy.
+One fix (c04, «وقبائلاً» → «وَقَبَائِلَ») is fully vocalized because the writer had vocalized that word;
+this is consistent with the style rule but looks mixed in an otherwise unvocalized sentence.
+
 ## Results — AI mode
 
-**Not yet available.** Fill this in only after a real Gemini response, by running
-`python eval/run_eval.py --mode ai`. The script refuses to record the run as an AI result if any case fell back.
+**Not yet available.** Fill this in only after a real AI response, by running
+`python eval/run_eval.py --mode ai` (uses the configured provider; Groq by default when `GROQ_API_KEY` is set).
+The script refuses to start without a configured provider, stops at the **first case that falls back**
+(no retries, to save quota), and records nothing as an AI result unless the model responded on every case.
+Each saved run lists per case: provider, model, HTTP status, time, candidates proposed/located/discarded, and errors.
+On 2026-09-29 it was run once without a key and correctly refused: "NOT AN AI RUN: no AI provider is configured".
 The key comparison to report is detection of the unmarked quotations (1/4 in fallback), while the
 false-"matched" counts stay at zero.
 

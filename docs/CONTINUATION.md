@@ -1,0 +1,46 @@
+# Continuation plan
+
+Everything in the repository today is **pre-challenge work** (see `BASELINE.md`). This file lists what is
+planned, separated into the scored challenge days and later work. Nothing here is done yet.
+
+## A. During the challenge (4–6 October 2026) — realistic scope
+
+Each item must be committed during 4–6 October and listed in `CHANGELOG.md` under "Challenge period".
+
+| Priority | Change | Done when |
+|---|---|---|
+| 1 | **Verify real AI extraction** with the Groq key: one minimal call, then the three samples, then `eval/run_eval.py --mode ai`. | A real response is logged in `docs/TEST_LOG.md` (model, status, time, candidates, discarded), and the AI-mode evaluation either completes on all 14 cases or is reported as failed. |
+| 2 | Report AI vs fallback **detection of unmarked quotes** (1/4 in fallback) with the false-"matched" and false-fix counts, on the same unchanged labels. | `docs/EVALUATION.md` has both columns, clearly labelled as a small author-written set. |
+| 3 | Human review of the labels by an Arabic reader/specialist using `docs/LABEL_REVIEW.md`; log any correction with reason and source. | Checklist ticked; corrections log filled; evaluation re-run. |
+| 4 | Handle quotations with an ellipsis («…») as two excerpts in the correction logic, so the omitted part is not flagged as missing words. | Tests for «…» inside ﴿﴾ pass; no automatic insertion of omitted words. |
+| 5 | Uthmani-script input: map common Uthmani spellings (e.g. «الصلوة», small alef) so correct Uthmani quotes are not shown as differences. | Tests with Uthmani quotes; no new false fixes on the labelled set. |
+| 6 | Demo polish from real evidence: final screenshots, video variant A or B (per `submission/VIDEO_SCRIPT.md`), final PDF deck. | Video ≤ 2:00 and deck show only observed behaviour and numbers. |
+| 7 | Optional (only if 1–6 are done): copy-ready, human-reviewed **audit reply for a social-media post** (see section C, step 1). | Draft text generated in the browser; the editor copies it manually; it never claims the whole post is verified. |
+
+Out of scope for the challenge days: new AI providers, server-side storage of articles, accounts, any automatic posting.
+
+## B. After the challenge — product hardening
+
+- Cross-instance Quran text cache (e.g. Vercel Blob) so cold instances do not each download the mushaf.
+- Paid AI tier or Zero Data Retention settings before processing real editorial content; monitor quota and cost.
+- Larger, independently sourced evaluation set (with permission), reviewed by specialists, with repeated AI runs.
+- Accessibility review (screen reader order of the before/after preview), and an English interface option.
+- Browser-extension or CMS plug-in (e.g. WordPress) that sends the article to the same API and returns the review list.
+
+## C. X (Twitter) use case — deliberately not built yet
+
+A bot that replies to posts quoting the Quran needs work and approvals that a hackathon night cannot provide safely:
+
+- a separate X developer account and paid API access (credits), with its rate limits;
+- **opt-in only** (e.g. the author mentions the bot, or an organisation connects its own account), never unsolicited replies;
+- idempotency (one reply per post, stored post IDs, retries without duplicates);
+- a human approval step before anything public is posted, a kill switch, and an audit log;
+- wording that never says the post "is verified", only which quotations were checked and against which source.
+
+Staged plan:
+
+1. **Copy-ready reply draft (no API):** in the app, a button produces a short Arabic text for a pasted post,
+   e.g. «راجعتُ الاقتباس القرآني في المنشور: ورد «الشرح: 6» والصواب «الشرح: 5» (قرآنبيديا: …). فحصُ الاقتباسات فقط، وليس حكمًا على المنشور كله.»
+   The editor copies and posts it manually.
+2. **Opt-in review queue:** mentions of an official account are fetched, audited, and queued for a human to approve.
+3. **Assisted replies:** only after 2 has run safely, approved replies are posted by the API with idempotency keys.

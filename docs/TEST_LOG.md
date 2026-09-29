@@ -92,3 +92,50 @@ that need AI extraction.
 - Result: **HTTP 503 UNAVAILABLE** in 1.5 s, «This model is currently experiencing high demand. Spikes in demand are usually temporary.»
 - Following the agreed plan, no further diagnostic calls were made, and the end-to-end runs were not repeated.
 - **AI extraction remains UNVERIFIED.** No Gemini request has succeeded with this key so far.
+
+## 2026-09-29 (evening) — Groq adapter and editor workflow (pre-challenge)
+
+### Real AI calls: none
+
+- **No `GROQ_API_KEY` exists** in the environment, `.env` or `.env.local`, so **no real Groq request was made**.
+  The Groq adapter is covered only by offline tests with a mocked HTTP transport. Those tests prove the
+  request shape (strict `json_schema`, `reasoning_effort: "none"`, bearer header) and the failure handling
+  (429/401/498/5xx/400/404, timeout, malformed or truncated JSON, cooldown, one call per audit). **They do
+  not show that the real model extracts quotations.**
+- Following the plan after the 10:07 check, **no further Gemini calls** were made.
+- `python eval/run_eval.py --mode ai` was run once with no key configured: it refused ("NOT AN AI RUN"), exit code 2.
+- **AI extraction remains UNVERIFIED** for both providers.
+
+### Offline tests
+
+`python -m pytest -q` → **125 passed** (Python 3.14, macOS). New since the baseline: Groq provider (25 incl.
+provider selection and health), corrections (26: offsets, repeated phrases, multi-verse excerpts, ambiguous
+fuzzy matches, pinpointing references, diacritics, hamza, short phrases, missing references, source outage,
+AI failure, AI-invented text, markup, emoji/CRLF offsets, preservation of all non-change text, reference
+formatting) and the browser revision engine under Node (9 Node tests run by 1 pytest wrapper: approval gating, code-point offsets with emoji,
+stale offsets refused, overlaps refused, repeated text, byte-identical preservation, preview, unresolved logic).
+
+### Local end-to-end (reduced mode — no AI key)
+
+- `python scripts/e2e_check.py http://localhost:8765` → 0 failures. The three samples give the same verdicts as
+  on 28 Sep (5 / 7 / 3 findings). Proposed changes observed, all with offsets matching the article:
+  - sample 1: «رَّبِّ» → «رَبِّ» (diacritics, flagged as a possible print-convention difference) and «طه: 141» → «طه: 114»;
+  - sample 2: «الشرح: 6» → «الشرح: 5», «البقرة: 156» → «البقرة: 155-156», optional «[الشرح: 6]» insertion;
+    «إن الله مع الصابرون» gets **no** automatic fix because several verses are equally close and no ayah is cited;
+  - sample 3: «الإسراء: 32» → «الإسراء: 23», optional «(المائدة: 2)» insertion;
+  - optional full-vocalization changes for correct unvocalized quotes (never counted as errors).
+- Files that must not be served (`/.env`, `/.env.local`, `/.env.example`, `/app/config.py`, `/requirements.txt`,
+  `/eval/cases.json`, the test fixture, `/.git/config`, `/.vercel/project.json`, a `%2e%2e` traversal) → all 404.
+- Browser (Playwright, Chromium 1440×900 and 390×844 mobile): `scripts/ui_e2e.mjs` → **24/24 checks passed**:
+  sample 2 audit (7 findings); revised article identical to the input before any approval; approving
+  «الشرح: 6» → «الشرح: 5» changes only that span (line count unchanged); rejecting an optional change;
+  before/after preview with deletions, insertions and unresolved marks; copy to clipboard; review-only
+  filter (3 of 7); print record contents (title, "not a certificate", approved change, source link, source
+  time, AI status, unresolved items) and an A4 PDF; decisions restored after reload; markup pasted into the
+  article is shown as text and never executed; no horizontal scroll on mobile; no console errors.
+
+### Labelled evaluation (fallback)
+
+See `EVALUATION.md`. Same labels, same detection results as 28 Sep; new correction scoring: 6/6 detected
+wording/diacritics errors receive a fix that re-verifies against Quranpedia, 4 correct reference fixes,
+2 reference problems left for review, **0 fixes proposed for correct quotes or references**.

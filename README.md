@@ -1,9 +1,15 @@
 # مدقق الاقتباسات القرآنية — Quran Quotation Auditor
 
-> **Pre-challenge baseline.** Everything in this repository up to the git tag
-> `pre-challenge-baseline` was built **before 4 October 2026**. Only work
-> committed during 4–6 October 2026 counts as challenge work. See
-> [BASELINE.md](BASELINE.md).
+> **Pre-challenge work.** Everything in this repository was built **before
+> 4 October 2026**: the git tag `pre-challenge-baseline` marks the first baseline
+> commit, and every later commit dated before 4 October (including the Groq
+> provider and the editor workflow added on 29 September) is also pre-challenge
+> work. Only work committed during 4–6 October 2026 counts as challenge work.
+> See [BASELINE.md](BASELINE.md) and [CHANGELOG.md](CHANGELOG.md).
+>
+> **AI status (29 Sep 2026): unverified.** No real AI extraction call has succeeded
+> yet (Gemini returned 503/429; no Groq key has been configured). Everything shown
+> as working below runs on the deterministic path. See [docs/TEST_LOG.md](docs/TEST_LOG.md).
 
 **AI Challenge Serving Islamic Content 2026 — Track 4: knowledge and verification tools.**
 
@@ -15,7 +21,12 @@ article, and the app:
    live by [Quranpedia](https://quranpedia.net),
 3. shows one review list with each quotation's location in the article, the quoted text,
    the canonical source verse, word-level differences, the reference status, and which
-   cases **need human review**.
+   cases **need human review**,
+4. proposes **source-backed corrections** (only when Quranpedia supports the text and the
+   location), which the editor **approves or rejects one by one**, and
+5. builds the **revised article** (only approved changes; every other character kept) with a
+   before/after preview, a copy button, and a printable **review record**
+   («سجل مراجعة الاقتباسات»).
 
 **Scope:** Quran quotations and their references only. The app does not proofread
 ordinary Arabic, interpret verses, translate, or issue religious rulings.
@@ -38,19 +49,22 @@ ordinary Arabic, interpret verses, translate, or issue religious rulings.
 ## How it works
 
 ```
-article ──► candidate extraction ──► locate in article ──► attach reference ──► verify ──► review list
-            │ AI provider (Gemini)     (reject anything      (regex parser,       (Quranpedia
-            │ marked ﴿…﴾ {…} «…»       not literally          nearest quote)       Hafs text,
-            │ exact-run index scan      present)                                   deterministic)
+article ──► candidate extraction ──► locate in article ──► attach reference ──► verify ──► propose fixes ──► editor approves ──► revised article
+            │ AI provider (Groq or     (reject anything      (regex parser,       (Quranpedia    (source words     (browser only)      + review record
+            │   Gemini, one per audit)  not literally          nearest quote)       Hafs text,     only; none if
+            │ marked ﴿…﴾ {…} «…»        present)                                   deterministic) span ambiguous)
+            │ exact-run index scan
 ```
 
 | Stage | What it does | Trust |
 |---|---|---|
-| **AI extraction** (`app/extraction/gemini.py`) | Gemini returns JSON `{candidates:[{quote, reference_text}]}` copied from the article. | Untrusted. Each quote is re-located in the article (diacritic- and spelling-insensitive), and anything not found is discarded and counted. |
+| **AI extraction** (`app/extraction/groq.py`, `gemini.py`) | The model returns JSON `{candidates:[{quote, reference_text}]}` copied from the article (Groq: strict `json_schema`). | Untrusted. Each quote is re-located in the article (diacritic- and spelling-insensitive); the finding's text is always the article's own substring, and anything not found is discarded and counted. |
 | **Marked extraction** (`app/extraction/marked.py`) | ﴿…﴾ (in either order), {…}, and «…» / "…" / ((…)) when preceded by a cue such as «قال تعالى» or followed by a reference. | Deterministic. |
 | **Index scan** (`app/audit.py`) | Unmarked runs of ≥ 5 article words that occur verbatim (after normalization) in the Quran. | Deterministic. |
 | **Reference parser** (`app/references.py`) | `البقرة: 255`, `[البقرة ٢٥٥]`, `سورة البقرة، الآية 255`, `الآية 255 من سورة البقرة`, `2:255`, ranges, surah-only, common alternative surah names. Range-checked against verse counts. | Deterministic. |
 | **Verifier** (`app/verifier.py`) | Exact search at three normalization levels, fuzzy alignment when nothing exact exists, word diffs, and reference checks. | Deterministic. Quranpedia text only. |
+| **Corrections** (`app/verifier.py` `propose_wording`, `app/corrections.py`) | Turns a verdict into proposed changes with exact character offsets. | Deterministic. Replacement words come only from Quranpedia; see "Editor workflow". |
+| **Revision** (`app/static/revision.js`) | Applies only the approved changes in the browser. | No server state. Refuses a change whose original text is no longer at its offsets, and overlapping changes. |
 
 ### Matching levels (shown to the user)
 
@@ -67,6 +81,32 @@ article ──► candidate extraction ──► locate in article ──► att
 
 `matched` · `missing` · `incorrect` (wrong verse, wrong surah, or a number outside the surah's range) ·
 `uncertain` (the reference covers only part of a multi-verse quotation, the location is fuzzy, or the source is unavailable).
+
+### Editor workflow: proposals, approval and the revised article
+
+A correction is **proposed only when the source supports both the text and the location**:
+
+| Situation | What is proposed |
+|---|---|
+| Exact match at one location, but a letter form differs significantly (e.g. «إن» for «أن») | Replace only the differing word(s), written in the article's own style (no diacritics added to an unvocalized quote). |
+| Exact letters, but a written diacritic contradicts the source | Replace only the conflicting word(s); labelled «تصحيح التشكيل» with a warning that printed mushafs differ in some marks. |
+| Correct quote without diacritics | **Not an error.** An optional «ضبط كامل بتشكيل المصحف» change is offered as an explicit editor choice, covering only the quoted words. |
+| Not found exactly (fuzzy), unique closest passage, similarity ≥ 0.8 — or ≥ 0.75 with a reference that points to it | Minimal word edits (replace / insert / remove) inside the excerpt. The excerpt is never expanded to the whole verse. |
+| Fuzzy with several similar verses and no ayah-level reference that singles one out, a reference that points elsewhere, low similarity, a short phrase, a repeated phrase, or source unavailable | **No replacement.** The card says «لا يُقترح تصحيح تلقائي» and why, and the quotation stays marked unresolved. |
+| Wrong reference, or a reference that covers only part of a multi-verse excerpt, when the location is certain | Replace only the reference text, keeping the writer's style (digits, «سورة … الآية …», numeric `2:255`). |
+| Missing reference, location certain | Optional insertion of «[السورة: الآية]» after the closing bracket. |
+
+Each change carries its offsets, the original and replacement text, the reason, the surah/ayah and
+Quranpedia links. In the browser the editor approves or rejects each one. Nothing changes without
+approval, and every character outside approved changes (prose, punctuation, line breaks, even markup)
+is preserved. Decisions live only in that tab (memory + `sessionStorage`); nothing is sent to or stored
+on the server. The preview marks deletions, insertions and **unresolved quotations**. The app never
+states that the whole article is verified or ready to publish.
+
+**Review record.** «سجل مراجعة الاقتباسات» is a print/PDF view generated in the browser: approved
+changes (original, replacement, reason, surah/ayah, source link), rejected and undecided changes,
+unresolved items, the source retrieval time, and whether AI extraction actually ran on this audit.
+It is labelled as an editorial aid, not a certificate of religious or textual correctness.
 
 ---
 
@@ -87,13 +127,19 @@ uvicorn app.main:app --reload --port 8000
 # open http://localhost:8000
 ```
 
-Without `GEMINI_API_KEY`, the app runs in **reduced mode**. A yellow banner says so, and
-only explicitly marked quotations plus verbatim runs of 5 or more words are checked.
+Without `GROQ_API_KEY` or `GEMINI_API_KEY`, the app runs in **reduced mode**. A yellow banner says so, and
+only explicitly marked quotations plus verbatim runs of 5 or more words are checked, so
+**short unmarked quotations can be missed**.
 
 Run the tests (offline; they use a 36-verse excerpt in `tests/fixtures/`):
 
 ```bash
-python -m pytest -q
+python -m pytest -q                      # Python tests + Node tests of the revision engine (if node is installed)
+node --test tests/revision.test.mjs      # the revision engine alone
+
+# browser end-to-end (Playwright installed in any scratch dir, not a project dependency)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs http://localhost:8000 ./shots
+python scripts/e2e_check.py http://localhost:8000   # API checks, samples, files that must not be served
 ```
 
 ## Deploy to Vercel
@@ -133,10 +179,29 @@ E=$(mktemp -d); git archive HEAD | tar -x -C "$E"; mkdir "$E/.vercel"; cp .verce
 (cd "$E" && npx vercel deploy --prod --yes)
 ```
 
+## Runtime API key — Groq (default when set)
+
+1. Sign in at **https://console.groq.com/keys** and choose **Create API Key**. Copy it once.
+2. **Local:** open `.env` (git-ignored) in an editor and add a line `GROQ_API_KEY=<your key>`.
+   Then `set -a; source .env; set +a` before starting uvicorn. Never paste the key into chat,
+   code, commits, screenshots or the video.
+3. **Production:** Vercel → Project *quran-quote-auditor* → Settings → Environment Variables →
+   add `GROQ_API_KEY`, tick **Sensitive**, environment **Production**, save, then redeploy. Or from a
+   terminal: `npx vercel env add GROQ_API_KEY production --sensitive` (it prompts for the value).
+4. Check `/api/health`: `ai_configured: true`, `provider_name: "groq"`, and `ai_last_call.outcome`
+   shows `never_called`, `ok` or `failed` — configured is not the same as working.
+5. Groq lists `qwen/qwen3.8-27b` as a **preview** model; it may change or be withdrawn. Set
+   `GROQ_MODEL=openai/gpt-oss-20b` (a production model that also supports strict JSON schema) if needed.
+
+The Groq adapter makes **one** request per audit (no retry chain), with the `AI_TIMEOUT_SECONDS`
+budget, and skips AI for `AI_COOLDOWN_SECONDS` after a failure (longer after 429 or a rejected key).
+Groq's data-handling terms: https://console.groq.com/docs/your-data.
+
 ## Runtime API key (Gemini)
 
 Your Claude subscription is only for building the app. The deployed app uses its own
-provider key, read from the `GEMINI_API_KEY` environment variable.
+provider key, read from the `GEMINI_API_KEY` environment variable. With `AI_PROVIDER=auto`,
+Gemini is used only when no Groq key is set.
 
 1. Sign in at **https://aistudio.google.com/apikey** and create an API key in a
    dedicated Google Cloud project for this app.
@@ -149,7 +214,7 @@ provider key, read from the `GEMINI_API_KEY` environment variable.
    Never paste it into code, issues, commits, screenshots or the demo video.
 5. If a key is ever exposed, delete it in AI Studio immediately and create a new one.
 
-Privacy: when AI extraction is enabled, the article text is sent to Google Gemini.
+Privacy: when AI extraction is enabled, the article text is sent to the selected provider (Groq or Google Gemini).
 Check Google's current Gemini API terms for your tier; on some unpaid tiers,
 submitted content may be used to improve Google's products. A paid tier is advisable
 for real editorial content. The app itself does not store or log articles.
@@ -199,7 +264,7 @@ so no other changes are needed.
 ## Security and privacy
 
 - Input is capped at 6,000 characters (body size is also checked), with per-IP rate limiting.
-- AI extraction has a 12 s total budget with at most 8 s per request. A model that hangs is not
+- AI extraction has a 12 s total budget per audit. Groq gets one request; Gemini at most 8 s per request. A model that hangs is not
   retried; the next fallback model is tried instead. After a failure the instance skips AI
   for 60 s (120 s after a quota error), so a demo is never stuck waiting twice. Measured with
   a hanging endpoint: first audit 12.0 s, then immediate. Quranpedia calls time out after 20 s.
@@ -215,8 +280,12 @@ so no other changes are needed.
 ## Known limitations
 
 - **No general accuracy claims.** A small author-written labelled set has been run in fallback
-  mode only: 25/28 detected, 0 false "matched" verdicts. See [docs/EVALUATION.md](docs/EVALUATION.md)
-  for its limits. AI-mode results do not exist yet, because no real Gemini call has succeeded.
+  mode only: 25/28 detected, 0 false "matched" verdicts, and 0 corrections proposed for correct
+  quotes or references. See [docs/EVALUATION.md](docs/EVALUATION.md) for its limits. AI-mode results
+  do not exist yet, because no real AI call has succeeded (Gemini 503/429; Groq key not yet set).
+- Without working AI extraction, **short unmarked quotations (under 5 words) are missed**.
+- Automatic corrections are deliberately conservative: a short fuzzy quote, or a phrase found in
+  several verses, gets review information but no replacement.
 - The source is Quranpedia's Hafs text in standard (imla'i) spelling with full diacritics.
   Quotations copied from Uthmani-script editions (e.g. «الصلوة», «السموت», small
   letters) may appear as *differences* needing review.
@@ -240,10 +309,15 @@ app/
   arabic.py          normalization levels, tokenization with offsets
   quran_source.py    Quranpedia client, cache, search index
   surahs.py          surah names, aliases, verse counts (metadata only)
-  extraction/        provider interface, Gemini provider, marked-quote extractor
-  static/            index.html, styles.css, app.js, samples/*.txt
-tests/               verifier, references, normalization, pipeline, source, Gemini tests
-scripts/e2e_check.py end-to-end check of a running instance (samples + error cases)
+  corrections.py     proposed changes with exact offsets (source words only)
+  extraction/        provider interface, Groq + Gemini providers, call tracker, marked-quote extractor
+  static/            index.html, styles.css, app.js, revision.js (browser revision engine), samples/*.txt
+tests/               verifier, references, normalization, pipeline, source, Gemini, Groq, corrections,
+                     revision-engine (Node) tests
+scripts/e2e_check.py end-to-end API check of a running instance (samples, errors, files not served)
+scripts/ui_e2e.mjs   Playwright browser check of the editor workflow, desktop + mobile
+docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
+docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)
 docs/EVALUATION.md   labelled evaluation: method, fallback results, limits
 docs/TEST_LOG.md     dated end-to-end observations (local + live)
 eval/                labelled cases, label validator, scorer, raw results
@@ -256,13 +330,16 @@ Each contains some deliberately wrong quotations or references so every status c
 
 ## Challenge submission checklist
 
-- [ ] Live demo URL (Vercel), with `GEMINI_API_KEY` set and `/api/health` showing `"mode": "ai"`
+- [ ] Live demo URL (Vercel), with `GROQ_API_KEY` set, `/api/health` showing `"ai_configured": true`,
+      **and** a real audit whose `ai.responded` is `true` recorded in docs/TEST_LOG.md
 - [ ] Public GitHub repository, with the `pre-challenge-baseline` tag pushed
 - [ ] Source documentation: this README, [SOURCES.md](SOURCES.md) and [BASELINE.md](BASELINE.md)
 - [ ] Demo video ≤ 2 minutes, with no API keys visible on screen
 - [ ] Final PDF/PPT presentation (organizer template or matching identity)
 - [x] Labelled evaluation, fallback mode (docs/EVALUATION.md)
-- [ ] Labelled evaluation, AI mode — only after a real successful Gemini call
+- [x] Editor workflow: proposals, approve/reject, revised article, review record (local, browser-tested)
+- [ ] Labelled evaluation, AI mode — only after a real successful AI call on every case
+- [ ] Human review of the evaluation labels (docs/LABEL_REVIEW.md)
 
 ## Licence
 

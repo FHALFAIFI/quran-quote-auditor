@@ -55,6 +55,10 @@ def main(base: str) -> int:
             data = res.json()
             print(f"  mode={data['mode']} provider={data['provider']} source_available={data['source']['available']} "
                   f"loaded_from={data['source'].get('loaded_from')} server_ms={data['elapsed_ms']}")
+            ai = data.get("ai") or {}
+            print(f"  ai: configured={ai.get('configured')} responded={ai.get('responded')} outcome={ai.get('outcome')} "
+                  f"model={ai.get('model')} http={ai.get('http_status')} ms={ai.get('elapsed_ms')} "
+                  f"proposed={ai.get('proposed')} located={ai.get('located')} discarded={ai.get('discarded')} error={ai.get('error')}")
             for n in data["notices"]:
                 print(f"  notice[{n['level']}]: {n['text']}")
             for f in data["findings"]:
@@ -62,6 +66,13 @@ def main(base: str) -> int:
                 if text[f["start"]:f["end"]] != f["quote"]:
                     failures += 1
                     print("  !! quote does not match article offsets")
+                for ch in f.get("changes", []):
+                    print(f"      proposed {ch['kind']}{' (optional)' if ch['optional'] else ''}: «{ch['original']}» → «{ch['replacement']}» [{ch['label']}]")
+                    if text[ch["start"]:ch["end"]] != ch["original"]:
+                        failures += 1
+                        print("  !! change does not match article offsets")
+                if f.get("correction", {}).get("status") == "review_only" and f["needs_review"]:
+                    print(f"      no automatic fix: {f['correction']['reason']}")
             print(f"  stats={data['stats']}")
 
         print("\n=== error handling")
@@ -80,6 +91,13 @@ def main(base: str) -> int:
         failures += r.status_code != 422
         r = c.post(f"{base}/api/audit", json={"article": "<img src=x onerror=alert(1)> ﴿اقرأ باسم ربك الذي خلق﴾"})
         print(f"  markup in article: HTTP {r.status_code}; echoed article field: {'article' in r.json()}")
+        print("\n=== files that must NOT be served")
+        for path in ["/.env", "/.env.local", "/.env.example", "/app/config.py", "/requirements.txt", "/eval/cases.json",
+                     "/tests/fixtures/hafs_subset.json", "/static/../app/config.py", "/static/%2e%2e/app/config.py", "/.git/config", "/.vercel/project.json"]:
+            r = c.get(base + path)
+            ok = r.status_code in (404, 400)
+            failures += not ok
+            print(f"  {path}: HTTP {r.status_code} {'OK' if ok else 'EXPOSED?'}")
     print(f"\nfailures: {failures}")
     return 1 if failures else 0
 

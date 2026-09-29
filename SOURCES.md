@@ -1,6 +1,6 @@
 # Sources, licences and attribution record
 
-Last reviewed: 2026-09-28 (pre-challenge baseline).
+Last reviewed: 2026-09-29 (pre-challenge work; Groq provider added).
 
 ## 1. Quran text — Quranpedia (authoritative source)
 
@@ -22,7 +22,19 @@ Last reviewed: 2026-09-28 (pre-challenge baseline).
 | Service | Gemini API `models/{model}:generateContent`, default model `gemini-3.8-flash` (configurable) |
 | Terms | https://ai.google.dev/gemini-api/terms. Data use depends on your tier; check before processing real content. |
 | Role | Proposes candidate quotation spans and nearby reference strings as JSON. **It is never a source of Quran text or of verdicts.** Every candidate is re-located in the article, and anything not present is discarded. |
+| Verification status | **Unverified** — every real request returned 503 or 429 (28–29 Sep 2026). See docs/TEST_LOG.md. |
 | Key | Supplied by the deployer through `GEMINI_API_KEY`. It is not included in this repository. |
+
+## 2b. AI provider — Groq (candidate extraction only; default when its key is set)
+
+| Item | Detail |
+|---|---|
+| Service | Groq OpenAI-compatible Chat Completions, `POST https://api.groq.com/openai/v1/chat/completions`, strict `response_format: json_schema` |
+| Model | `qwen/qwen3.8-27b` by default (configurable via `GROQ_MODEL`). Groq lists it as a **preview** model (docs read 2026-09-29: https://console.groq.com/docs/models, https://console.groq.com/docs/structured-outputs, https://console.groq.com/docs/reasoning). `reasoning_effort: "none"` is sent for qwen models. |
+| Data | "Your Data in GroqCloud" (https://console.groq.com/docs/your-data, read 2026-09-29): by default inference data is not retained, except up to 30 days for reliability/abuse monitoring; Zero Data Retention can be enabled per organization. Check the current terms before processing real content. |
+| Role | Identical to Gemini's: proposes candidate spans and nearby reference strings only. **Never a source of Quran text, verdicts or corrections.** |
+| Key | `GROQ_API_KEY`, supplied by the deployer; not in this repository. |
+| Verification status | **Unverified** — no real Groq call has been made yet (no key configured). See docs/TEST_LOG.md. |
 
 ## 3. Fonts and design
 
@@ -36,6 +48,10 @@ Fonts are loaded from `fonts.googleapis.com`/`fonts.gstatic.com`, so visitors' b
 contact Google Fonts. The organizer's PDFs and PPTX are **not** included in this repository (they are git-ignored).
 
 ## 4. Software dependencies (pinned in `requirements*.txt`)
+
+Development-only, not in requirements: Playwright (Apache-2.0) for `scripts/ui_e2e.mjs`, installed in a scratch directory;
+Node.js built-in test runner for `tests/revision.test.mjs`.
+
 
 | Package | Licence |
 |---|---|
