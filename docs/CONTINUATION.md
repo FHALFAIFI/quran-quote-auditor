@@ -18,6 +18,14 @@ Each item must be committed during 4–6 October and listed in `CHANGELOG.md` un
 | 6 | Demo polish from real evidence: final screenshots, video variant A or B (per `submission/VIDEO_SCRIPT.md`), final PDF deck. | Video ≤ 2:00 and deck show only observed behaviour and numbers. |
 | 7 | Test the existing reply draft (built pre-challenge, section C step 1) with real posts pasted by an editor; adjust wording. | Feedback recorded; still copy-only, no API. |
 
+Added to the plan from the 30 Sep phrase-search work (*pre-challenge* results are in `docs/EVALUATION.md`; everything below is not done):
+
+| Priority | Change | Done when |
+|---|---|---|
+| 8 | Human review of `eval/phrases_frozen.json` with the same checklist as the other sets; check the formula list and the hadith/du'a cue words in `app/phrases.py` | Corrections (if any) logged with reason; all three sets re-run |
+| 9 | A quotation whose **last or first word** is wrong is reported as matched with only a hint (2 of 12 misquotations in the frozen set). Decide with an editor whether to treat a one-word tail that ends a sentence as part of the quotation | A labelled case set for edge-word errors; false "matched" on it reported |
+| 10 | Real articles by Islamic-content writers (with permission) to measure "maybe" volume; Wikipedia prose is only a proxy | Counts per 1,000 words on the real sample |
+
 Out of scope for the challenge days: new AI providers, server-side storage of articles, accounts, any automatic posting.
 
 ## B. After the challenge — product hardening

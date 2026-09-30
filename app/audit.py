@@ -9,14 +9,29 @@ from .corrections import build_changes
 from .config import settings
 from .extraction import Candidate, ExtractionError, get_provider
 from .extraction.marked import extract_marked
-from .quran_source import MUSHAF_URL, NGRAM, QuranIndex, SourceUnavailable, source
+from .phrases import find_phrases
+from .quran_source import MUSHAF_URL, QuranIndex, SourceUnavailable, source
 from .references import Reference, find_references
-from .verifier import script_diff_kind, source_word, unavailable_result, verify
+from .verifier import unavailable_result, verify
 
-SCAN_MIN_WORDS = 5
 REF_AFTER_CHARS, REF_AFTER_WORDS = 40, 3
 REF_BEFORE_CHARS, REF_BEFORE_WORDS = 60, 6
-PRIORITY = {"marked": 0, "ai": 1, "scan": 2}
+PRIORITY = {"manual": 0, "marked": 0, "ai": 1, "phrase": 2}
+MANUAL_MAX_WORDS = 60
+
+# Detection (is this a Quran quotation?) is reported separately from verification (does it match the text?).
+TIER_LABEL = {
+    "candidate": "مرشَّح لاقتباس قرآني",
+    "possible": "قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة",
+}
+TIER_REASON = {
+    "candidate": "مطابقة حرفية لعبارة مميزة من المصحف دون علامات اقتباس؛ تأكد أنها مقصودة اقتباسًا.",
+    "common": "عبارة قصيرة أو شائعة قد ترد في الكلام العادي.",
+    "approximate": "مطابقة تقريبية: بعض كلمات العبارة تختلف عن المصحف، وليست تحققًا.",
+    "formula": "عبارة شائعة الاستعمال (بسملة أو حمدلة أو ذكر…) وقد لا يُقصد بها اقتباس آية.",
+    "non_quran_cue": "سبقتها إشارة إلى حديث أو دعاء أو مثل، فقد تكون من غير القرآن.",
+}
+UNCONFIRMED_REASON = "لم يتأكد أن هذا المقطع اقتباس قرآني، فلا تُقترح عليه تصحيحات. إن كان اقتباسًا فأكّد ذلك واختر موضعه ليظهر التصحيح المقترح."
 
 
 class InputError(ValueError):
@@ -33,50 +48,13 @@ def locate(tokens: list[arabic.Token], quote: str) -> list[tuple[int, int]]:
     return [(i, i + n) for i in range(len(af) - n + 1) if af[i:i + n] == qf]
 
 
-def scan_index(tokens: list[arabic.Token], index: QuranIndex) -> list[tuple[int, int]]:
-    """Unmarked runs of ≥ SCAN_MIN_WORDS article words that occur verbatim (folded) in the Quran.
-
-    Edge words whose letters differ significantly from the source (e.g. إن
-    for أن) are trimmed, so ordinary prose next to a quotation is not absorbed.
-    """
-    af = [t.fold for t in tokens]
-
-    def ok(ti: int, s: int, p: int) -> bool:
-        src = source_word(index, s, p)
-        return arabic.letters(tokens[ti].raw) == arabic.letters(src) or script_diff_kind(tokens[ti].raw, src) == "benign"
-
-    runs: list[tuple[int, int]] = []
-    i = 0
-    while i <= len(af) - NGRAM:
-        best = (0, 0)  # (length, start offset after trimming)
-        for s, p in index.ngrams.get(tuple(af[i:i + NGRAM]), []):
-            stream = index.streams[s]
-            k = NGRAM
-            while i + k < len(af) and p + k < len(stream) and af[i + k] == stream[p + k][0]:
-                k += 1
-            lo, hi = 0, k
-            while lo < hi and not ok(i + lo, s, p + lo):
-                lo += 1
-            while hi > lo and not ok(i + hi - 1, s, p + hi - 1):
-                hi -= 1
-            if hi - lo > best[0]:
-                best = (hi - lo, lo)
-        length, lo = best
-        if length >= SCAN_MIN_WORDS:
-            runs.append((i + lo, i + lo + length))
-            i += lo + length
-        else:
-            i += 1
-    return runs
-
-
 def _span_candidate(article: str, tokens: list[arabic.Token], i: int, j: int, src: str) -> Candidate:
     s, e = tokens[i].start, tokens[j - 1].end
     return Candidate(s, e, article[s:e], {src})
 
 
 def merge(cands: list[Candidate]) -> list[Candidate]:
-    """Keep non-overlapping candidates, preferring marked > ai > scan; record agreeing sources."""
+    """Keep non-overlapping candidates, preferring manual/marked > ai > phrase; record agreeing sources."""
     kept: list[Candidate] = []
     for c in sorted(cands, key=lambda c: (min(PRIORITY[x] for x in c.sources), c.start, -(c.end - c.start))):
         overlap = next((k for k in kept if c.start < k.end and k.start < c.end), None)
@@ -85,6 +63,7 @@ def merge(cands: list[Candidate]) -> list[Candidate]:
         else:
             overlap.sources |= c.sources
             overlap.reference_hint = overlap.reference_hint or c.reference_hint
+            overlap.phrase = overlap.phrase or c.phrase
     return sorted(kept, key=lambda c: c.start)
 
 
@@ -139,12 +118,143 @@ def _line_col(article: str, pos: int) -> tuple[int, int]:
     return line, col
 
 
-def run_audit(article: str) -> dict:
+def _detection(c: Candidate) -> dict:
+    """How the span was found and how sure we are that the writer meant a Quran quotation."""
+    if "manual" in c.sources:
+        return {"kind": "manual", "tier": "manual", "label": "حدّدتَ هذا المقطع بنفسك", "codes": ["manual"], "reasons": [], "unconfirmed": False}
+    if "marked" in c.sources:
+        return {"kind": "marked", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False}
+    if "ai" in c.sources:
+        return {"kind": "ai", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False}
+    hit = c.phrase
+    codes = list(hit.reasons) or ["candidate"]
+    return {"kind": "phrase", "tier": hit.tier, "label": TIER_LABEL[hit.tier], "codes": codes,
+            "reasons": [TIER_REASON[k] for k in codes if k in TIER_REASON], "unconfirmed": hit.tier == "possible",
+            "exact": hit.exact, "occurrences": len(hit.spans) if hit.exact else None}
+
+
+def _choices(index: QuranIndex, finding: dict) -> list[dict]:
+    """Places the editor can pick from: the proposed place first, then the alternatives."""
+    out, seen = [], set()
+    blocks = ([finding["source"]] if finding.get("source") else []) + [a["source"] for a in finding.get("alternatives", []) if a.get("source")]
+    for b in blocks:
+        key = (b["surah"], b["ayah_start"], b["ayah_end"])
+        if key not in seen:
+            seen.add(key)
+            out.append({"surah": b["surah"], "ayah_start": b["ayah_start"], "ayah_end": b["ayah_end"], "label": b["label"],
+                        "text": b["matched_text"]})
+    return out
+
+
+def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: Reference | None, pin: Reference | None = None) -> dict:
+    """Verify one candidate and assemble the finding (with its proposed changes) the interface shows."""
+    words = [t.raw for t in arabic.tokenize(c.text)]
+    phrase_only = c.sources == {"phrase"} and c.phrase is not None
+    if index is None:
+        result = unavailable_result(ref)
+    else:
+        result = verify(index, words, ref, pin=pin, hints=list(c.phrase.spans) if phrase_only else None)
+    line, col = _line_col(article, c.start)
+    finding = {
+        "id": n,
+        "start": c.start,
+        "end": c.end,
+        "line": line,
+        "column": col,
+        "quote": c.text,
+        "detected_by": sorted(c.sources, key=lambda x: PRIORITY[x]),
+        "marker": c.marker,
+        "detection": _detection(c),
+        **result,
+    }
+    det = finding["detection"]
+    if det["unconfirmed"]:
+        # Detection is weak: show it, but offer no replacement text until the editor says it is a Quran quotation.
+        finding.pop("proposal", None)
+        finding["changes"] = []
+        finding["correction"] = {"status": "unconfirmed", "reason": UNCONFIRMED_REASON}
+        finding["needs_review"] = True
+        finding["review_reasons"] = list(dict.fromkeys([det["label"], *det["reasons"], *finding["review_reasons"]]))
+    else:
+        changes, summary = build_changes(article, finding, c.start, ref)
+        finding.pop("proposal", None)
+        finding["changes"] = changes
+        finding["correction"] = summary
+        if det["kind"] == "phrase":
+            finding["review_reasons"] = list(dict.fromkeys([*det["reasons"], *finding["review_reasons"]]))
+    finding["choices"] = _choices(index, finding) if index is not None and det["kind"] in ("phrase", "manual") else []
+    finding["continuation"] = _continuation(article, c, finding) if index is not None and det["kind"] in ("phrase", "manual") else None
+    return finding
+
+
+def _continuation(article: str, c: Candidate, finding: dict) -> dict | None:
+    """What the verse says right after the phrase versus what the article says.
+
+    The phrase search cannot know where a writer's quotation really ends, so a wrong LAST word looks exactly like
+    ordinary prose after the quotation. This only *shows* the two words side by side (no verdict, no edit) when the
+    phrase ends in the middle of a verse and the next article word differs from the verse's next word.
+    """
+    src = finding.get("source")
+    if not src or not src.get("segments"):
+        return None
+    last = src["segments"][-1]
+    if last["to"] >= len(last["words"]):
+        return None  # the phrase ends where the verse ends
+    nxt = arabic.tokenize(article[c.end:c.end + 80])
+    if not nxt:
+        return None
+    gap = article[c.end:c.end + nxt[0].start]
+    if "\n" in gap or gap.strip(" \t\u00a0،,؛;") != "":
+        return None  # punctuation ends the phrase: nothing adjoins it
+    quran_word = last["words"][last["to"]]
+    if nxt[0].fold == arabic.folded(quran_word):
+        return None
+    return {"quran": arabic.letters(quran_word), "article": nxt[0].raw}
+
+
+def _drop_overlapping_changes(findings: list[dict]) -> None:
+    """Changes from different findings must never overlap; drop any that would (defensive)."""
+    taken: list[tuple[int, int]] = []
+    for f in findings:
+        keep = []
+        for ch in f["changes"]:
+            s0, e0 = ch["start"], ch["end"]
+            if any(s0 < e1 and s1 < e0 or (s0 == e0 == s1 == e1) for s1, e1 in taken):
+                continue
+            taken.append((s0, e0))
+            keep.append(ch)
+        f["changes"] = keep
+
+
+def _stats(findings: list[dict]) -> dict:
+    weak = lambda f: f["detection"]["unconfirmed"]  # noqa: E731
+    return {
+        "total": len(findings),
+        "matched": sum(f["wording"]["status"] == "matched" and not weak(f) for f in findings),
+        "difference": sum(f["wording"]["status"] == "difference" for f in findings),
+        "uncertain": sum(f["wording"]["status"] == "uncertain" for f in findings),
+        "needs_review": sum(f["needs_review"] for f in findings),
+        "possible": sum(weak(f) for f in findings),
+        "candidates": sum(f["detection"]["tier"] == "candidate" for f in findings),
+        "ref_matched": sum(f["reference"]["status"] == "matched" for f in findings),
+        "ref_missing": sum(f["reference"]["status"] == "missing" for f in findings),
+        "ref_incorrect": sum(f["reference"]["status"] == "incorrect" for f in findings),
+        "ref_uncertain": sum(f["reference"]["status"] == "uncertain" for f in findings),
+        "proposed_changes": sum(len(f["changes"]) for f in findings),
+    }
+
+
+def _clean_article(article: str) -> str:
     if not isinstance(article, str) or not article.strip():
         raise InputError("الرجاء إدخال نص المقال.")
     article = article.replace("\r\n", "\n").replace("\r", "\n")
     if len(article) > settings.max_chars:
         raise InputError(f"النص أطول من الحد المسموح ({settings.max_chars} حرف).")
+    return article
+
+
+def run_audit(article: str) -> dict:
+    article = _clean_article(article)
     started = time.monotonic()
     notices: list[dict] = []
     tokens = arabic.tokenize(article)
@@ -196,65 +306,38 @@ def run_audit(article: str) -> dict:
         except ExtractionError as exc:
             mode = "ai_failed"
             ai.update(outcome="failed", error=str(exc))
-            notices.append({"level": "warning", "text": f"تعذّر الاستخراج بالذكاء الاصطناعي ({exc}). عُرضت الاقتباسات المعلَّمة صراحةً والمقاطع المطابقة حرفيًا لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة."})
+            notices.append({"level": "warning", "text": f"تعذّر الاستخراج بالذكاء الاصطناعي ({exc}). عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة."})
         ai["elapsed_ms"] = int((time.monotonic() - t_ai) * 1000)
         ai["discarded"] = discarded
         last = provider.tracker.status() if getattr(provider, "tracker", None) else {}
         ai["http_status"] = last.get("http_status")
     if discarded:
         notices.append({"level": "info", "text": f"استُبعد {discarded} مقطعًا اقترحه نموذج الذكاء الاصطناعي لأنه غير موجود حرفيًا في المقال."})
+    scan = None
     if index is not None:
-        for i, j in scan_index(tokens, index):
-            candidates.append(_span_candidate(article, tokens, i, j, "scan"))
+        scan = find_phrases(article, tokens, index)
+        for h in scan.hits:
+            c = _span_candidate(article, tokens, h.first, h.last, "phrase")
+            c.phrase = h
+            candidates.append(c)
 
     candidates = [c for c in merge(candidates)][: settings.max_candidates]
     attached = attach_references(article, candidates, refs)
 
-    findings = []
-    for n, (c, ref) in enumerate(zip(candidates, attached), start=1):
-        words = [t.raw for t in arabic.tokenize(c.text)]
-        result = verify(index, words, ref) if index is not None else unavailable_result(ref)
-        line, col = _line_col(article, c.start)
-        finding = {
-            "id": n,
-            "start": c.start,
-            "end": c.end,
-            "line": line,
-            "column": col,
-            "quote": c.text,
-            "detected_by": sorted(c.sources, key=lambda x: PRIORITY[x]),
-            "marker": c.marker,
-            **result,
-        }
-        changes, summary = build_changes(article, finding, c.start, ref)
-        finding.pop("proposal", None)
-        finding["changes"] = changes
-        finding["correction"] = summary
-        findings.append(finding)
-    # Changes from different findings must never overlap; drop any that would (defensive).
-    taken: list[tuple[int, int]] = []
-    for f in findings:
-        keep = []
-        for ch in f["changes"]:
-            s0, e0 = ch["start"], ch["end"]
-            if any(s0 < e1 and s1 < e0 or (s0 == e0 == s1 == e1) for s1, e1 in taken):
-                continue
-            taken.append((s0, e0))
-            keep.append(ch)
-        f["changes"] = keep
+    findings = [_finding(article, index, n, c, ref) for n, (c, ref) in enumerate(zip(candidates, attached), start=1)]
+    _drop_overlapping_changes(findings)
 
-    stats = {
-        "total": len(findings),
-        "matched": sum(f["wording"]["status"] == "matched" for f in findings),
-        "difference": sum(f["wording"]["status"] == "difference" for f in findings),
-        "uncertain": sum(f["wording"]["status"] == "uncertain" for f in findings),
-        "needs_review": sum(f["needs_review"] for f in findings),
-        "ref_matched": sum(f["reference"]["status"] == "matched" for f in findings),
-        "ref_missing": sum(f["reference"]["status"] == "missing" for f in findings),
-        "ref_incorrect": sum(f["reference"]["status"] == "incorrect" for f in findings),
-        "ref_uncertain": sum(f["reference"]["status"] == "uncertain" for f in findings),
-        "proposed_changes": sum(len(f["changes"]) for f in findings),
-    }
+    phrase_info = None
+    if scan is not None:
+        # Short, common phrases that match the Quran but cannot be told from ordinary Arabic: counted, not listed.
+        hidden = [h for h in scan.suppressed
+                  if not any(tokens[h.first].start < c.end and c.start < tokens[h.last - 1].end for c in candidates)]
+        phrase_info = {"hidden": len(hidden), "truncated": scan.truncated}
+        if hidden:
+            notices.append({"level": "info", "text": f"لم تُعرض {len(hidden)} عبارة قصيرة أو شائعة تطابق نص المصحف، لأنها لا تتميّز عن الكلام العادي. إن كنت تقصد اقتباسًا قرآنيًا منها فحدّده بالماوس في مربع النص واختر موضعه."})
+        if scan.truncated:
+            notices.append({"level": "warning", "text": "بلغ البحث عن العبارات غير المعلَّمة حدّ العمل المسموح، فلم يُفحص ما بقي من النص بهذه الطريقة."})
+
     return {
         "mode": mode,
         "provider": provider.label if provider else None,
@@ -270,6 +353,38 @@ def run_audit(article: str) -> dict:
             "loaded_from": index.loaded_from if index else None,
         },
         "findings": findings,
-        "stats": stats,
+        "stats": _stats(findings),
+        "phrases": phrase_info,
         "elapsed_ms": int((time.monotonic() - started) * 1000),
     }
+
+
+def run_phrase(article: str, start: int, end: int, surah: int | None = None, ayah_start: int | None = None,
+               ayah_end: int | None = None, finding_id: int = 1) -> dict:
+    """Check a span the editor highlighted by hand (code-point offsets), optionally with a verse they chose.
+
+    No AI is involved and nothing is guessed: the span is verified like any quotation, the editor's verse (if any)
+    settles the location the way a written reference would, and the result is one finding whose proposed changes
+    still need the editor's approval one by one. Very short phrases may match many verses; then the choices are listed.
+    """
+    article = _clean_article(article)
+    if not all(isinstance(v, int) and not isinstance(v, bool) for v in (start, end)) or not 0 <= start < end <= len(article):
+        raise InputError("حدّد مقطعًا من المقال.")
+    index = source.get()  # SourceUnavailable propagates: the API answers "source unavailable"
+    chosen = [t for t in arabic.tokenize(article) if t.start < end and t.end > start]
+    if not chosen:
+        raise InputError("حدّد كلمات عربية من المقال.")
+    if len(chosen) > MANUAL_MAX_WORDS:
+        raise InputError(f"المقطع المحدَّد أطول من {MANUAL_MAX_WORDS} كلمة.")
+    s0, e0 = chosen[0].start, chosen[-1].end
+    cand = Candidate(s0, e0, article[s0:e0], {"manual"})
+    ref = attach_references(article, [cand], find_references(article))[0]
+    pin = None
+    if surah is not None:
+        a1 = ayah_end or ayah_start
+        if ayah_start is None or (surah, ayah_start) not in index.ayah_pos or (surah, a1) not in index.ayah_pos or a1 < ayah_start:
+            raise InputError("الموضع المختار غير موجود في المصحف.")
+        pin = Reference(-1, -1, "", surah, ayah_start, a1)
+    finding = _finding(article, index, int(finding_id), cand, ref, pin=pin)
+    finding["needs_choice"] = finding["source"] is None and bool(finding["choices"])
+    return {"finding": finding, "pinned": pin is not None}

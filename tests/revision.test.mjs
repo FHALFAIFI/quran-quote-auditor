@@ -105,3 +105,15 @@ test("reply draft: only approved fixes and unresolved items; never claims the wh
   assert.match(text, /وليس حكمًا على المنشور كله/);
   assert.doesNotMatch(text, /(المنشور|المقال) (كله )?(صحيح|متحقق منه بالكامل|سليم)/);
 });
+
+test("reply draft never lists a phrase that was only a possible quotation", () => {
+  const findings = [
+    { id: 1, quote: "بعضها على بعض", needs_review: true, detection: { kind: "phrase", tier: "possible", unconfirmed: true }, changes: [] },
+    { id: 2, quote: "إن الله مع الصابرون", needs_review: true, detection: { kind: "marked", tier: "stated", unconfirmed: false }, changes: [] },
+  ];
+  const text = R.replyDraft(findings, [], {});
+  assert.doesNotMatch(text, /بعضها على بعض/);          // not yet known to be a quotation: not named publicly
+  assert.match(text, /«إن الله مع الصابرون»: لم أتحقق منه بيقين/);
+  // the editor's own list still counts it as unresolved, so it is marked in the preview
+  assert.equal(R.unresolvedFindings(findings, {}).length, 2);
+});

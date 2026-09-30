@@ -1,0 +1,53 @@
+{
+ "label": "baseline 8a4b8b7, uvicorn server, same workload",
+ "mode": "server",
+ "summary": {
+  "seconds_to_health": 0.25,
+  "seconds_to_first_audit": 0.76,
+  "audit_mean_s": 0.0095,
+  "audit_max_s": 0.516,
+  "rss_after_all_mb": 1.1,
+  "peak_rss_mb": 120.6
+ },
+ "runs": [
+  {
+   "seconds_to_health": 0.3,
+   "seconds_to_first_audit": 0.83,
+   "audits": 98,
+   "audit_mean_s": 0.0095,
+   "audit_max_s": 0.529,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.029
+   },
+   "rss_after_all_mb": 1.1,
+   "peak_rss_mb": 120.6,
+   "python": "3.14.7"
+  },
+  {
+   "seconds_to_health": 0.25,
+   "seconds_to_first_audit": 0.76,
+   "audits": 98,
+   "audit_mean_s": 0.0095,
+   "audit_max_s": 0.516,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.029
+   },
+   "rss_after_all_mb": 1.1,
+   "peak_rss_mb": 120.5,
+   "python": "3.14.7"
+  },
+  {
+   "seconds_to_health": 0.24,
+   "seconds_to_first_audit": 0.75,
+   "audits": 98,
+   "audit_mean_s": 0.0093,
+   "audit_max_s": 0.516,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.03
+   },
+   "rss_after_all_mb": 1.1,
+   "peak_rss_mb": 120.7,
+   "python": "3.14.7"
+  }
+ ]
+}

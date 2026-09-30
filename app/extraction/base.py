@@ -20,9 +20,10 @@ class Candidate:
     start: int
     end: int
     text: str
-    sources: set[str] = field(default_factory=set)  # "ai", "marked", "scan"
+    sources: set[str] = field(default_factory=set)  # "ai", "marked", "phrase", "manual"
     marker: str | None = None  # e.g. "﴿﴾", "{}", "«»"
     reference_hint: str | None = None  # reference text proposed by the AI
+    phrase: object | None = None  # the app.phrases.PhraseHit that found this span, if any
 
 
 @dataclass

@@ -41,6 +41,8 @@ Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; d
 
 ## Deploy commit 3273078
 
+> Later on 30 Sep the pre-challenge branch gained the unmarked-phrase search (see `CHANGELOG.md`). `3273078` is the commit this guide was written for; deploy whichever commit you want to show, and log its hash. Nothing has been deployed by this work.
+
 1. Create the service with the settings above. Render starts a first deploy of the latest `main` commit.
    That is harmless: the app code at `main` differs from `3273078` only by a configurable
    `GROQ_MAX_COMPLETION_TOKENS` whose default (4096) is the value hard-coded in `3273078`.
@@ -61,6 +63,7 @@ Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; d
 
 - The service sleeps after about 15 minutes idle. The first request afterwards can take close to a minute,
   and the Quran text is fetched again (about 1.6 MB). Open `/api/health` and run one audit before recording.
+- Memory and speed (measured locally, **not on Render**): a real `uvicorn` process with the phrase search peaked at 94.1 MB (Python 3.12, macOS); Render Free has 512 MB. A full-size article (~1,000 words) took about 0.1–0.4 s here; Render's shared CPU will be slower. See `docs/EVALUATION.md`.
 - The file system is temporary. The Quran cache in the temp directory is lost on each restart,
   which only costs one fetch.
 - Groq's free tier: each audit sends about 550–615 input tokens, and the limit is 7,000 input tokens per minute

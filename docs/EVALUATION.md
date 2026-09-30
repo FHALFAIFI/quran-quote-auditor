@@ -182,6 +182,170 @@ both sets (+1 quotation each), is the fastest, and kept every safety count at ze
 run on author-written sets, with visible call-to-call variation. So this is **"a small observed benefit on these
 sets"**, not a measured detection rate. Most short unmarked quotations (4 of 7 across both sets) are still missed.
 
+## Experiment — unmarked phrase search (2026-09-30, deterministic path first)
+
+Goal: find short unmarked quotations (no brackets, quotation marks or reference) without AI, show them with the
+right level of doubt, and keep hadith, du'a, proverbs and ordinary Arabic from being presented as confirmed verses.
+Labels of `eval/cases.json` and `eval/heldout.json` are unchanged (`git diff` empty); scoring rules are unchanged.
+The harness only gained counters (detection tier, false suggestions, false confirmations, whether the gold verse is shown).
+
+### The four misses that started it
+
+With the default AI mode (Groq `qwen/qwen3.8-27b`, prompt v2) four unmarked quotations were still missed on the two
+sets (raw results `ai-20260930-175238-qwen-v2.json`, `ai-20260930-182414-heldout-qwen-v2.json`):
+«وافعلوا الخير لعلكم تفلحون» and «ولا تنسوا الفضل بينكم» (c11), «وتعاونوا على البر والتقوى» (h02) and
+«ادعوا ربكم تضرعا وخفية» (h03). Without AI, two more are missed: «ادعوني أستجيب لكم» (c12, misquoted) and «وقل رب زدني علما» (h01).
+All four are 4-word phrases made of words that are rare in the Quran; the old scan needed 5 words.
+
+**Baseline of the unchanged code** (commit `8a4b8b7`, no AI; raw `fallback-20260930-204519-baseline-cases.json`,
+`…204520-baseline-heldout.json`, `…205537-baseline-phrases-frozen.json`): main 25/28 (unmarked 1/4), held-out 3/6 (2/5).
+
+### What was built (`app/phrases.py`)
+
+- **Seed and extend over the existing word index.** Each article word that is rare in the Quran (occurs in at most 300 of the 6,236 verses)
+  is looked up in `QuranIndex.positions`; every place it occurs is extended left and right along that surah's word stream.
+  Nothing is indexed per phrase. The 4-word dictionary the old scan used (`QuranIndex.ngrams`, about 21 MB of the index) was removed.
+- **Runs stop at punctuation** (full stop, quotation mark, bracket, digit, line break); commas and semicolons do not stop a run.
+- **Normalization is for searching only** (`arabic.folded`). The text shown, compared and copied comes from the source through the verifier;
+  article offsets are kept, and a proposed correction replaces only the words of the quoted span (tested).
+- **Near matches.** Inside a phrase, one or two words that differ are tolerated (a substituted, extra or omitted word, or a word that
+  is spelled or inflected slightly differently). The wrong word stays **inside** the span, so the verifier reports a difference; the old scan
+  cut it off and called the correct remainder "matched". Whatever lies beyond a replaced/extra/omitted word must be backed by two matched
+  words or one rare exact word, so a single neighbouring prose word is not absorbed.
+- **Detection tier** (separate from the verification verdict): `candidate` = exact, (at least 4 words and rarity mass ≥ 20, or at least 5 words and mass ≥ 16; mass = sum of
+  ln(6,236 ÷ verses containing the word)), not a formula, not introduced as a hadith/du'a/proverb. `possible` («قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة»)
+  = anything else that is reported: short or common exact phrases (mass ≥ 12), near matches (≥ 4 matched words, mass ≥ 16), or a phrase after a
+  hadith/du'a/proverb cue. Exact phrases below the floor are **not reported** (counted and announced instead). Everyday formulas (بسملة، حمدلة،
+  شهادة، استرجاع، «إن شاء الله»، «رضي الله عنه» …) are hidden unless a Quran cue such as «قال تعالى» precedes them.
+- **Nothing is replaced silently.** A `possible` finding shows the match but proposes **no** replacement text until the editor confirms it is a
+  Quran quotation and picks the verse. If a phrase occurs in several verses, all are listed as choices and none is picked. A fuzzy match is never
+  called matched. A manual path lets the editor highlight a missed phrase and choose its verse (`POST /api/phrase`; no AI call).
+- **Hint for the last word.** The search cannot know where a writer's quotation ends, so a wrong last word looks like prose after the quotation.
+  When a phrase ends inside a verse and the next article word differs from the verse's next word, the card shows both words side by side
+  (no verdict, no edit).
+- Candidates are merged with bracketed and AI candidates by overlap (priority: manual/bracketed > AI > phrase); tests cover the merge.
+
+### How the parameters were chosen (and what was and was not held out)
+
+1. **The frozen set was written first.** `eval/phrases_frozen.json` (49 cases: 20 short exact unmarked quotations, 12 slightly misquoted ones,
+   12 negatives — hadith, du'a, proverbs, maxims, ordinary Arabic, of which 3 are "hard" because they share a 3–6 word run with the Quran —
+   and 5 everyday formulae) was written and validated by `eval/validate_phrases.py` (independent of the app's matching) **before any detection
+   code existed**. Its SHA-256 is in `eval/phrases_frozen.sha256` and in commit `7ac49a3`. It is author-written with the same AI-assisted workflow,
+   and its labels are pending human review like the others.
+2. **Tuning used other data only:** the main and held-out sets (which had already been used and inspected), a synthetic benchmark (random Quran
+   phrases of 3–8 words placed in Arabic Wikipedia paragraphs, exact and with one substituted/omitted/extra word or a changed ending/spelling —
+   random n-grams are less distinctive than the phrases people really quote, so it compares settings and is not a recall figure),
+   and ordinary Arabic prose from Arabic Wikipedia (31 secular articles, about 101,000 words, and 20 Islamic-topic articles, about 70,000 words;
+   fetched once for local measurement, not committed or redistributed). Choices: rarity-mass floor 12 (function-word coincidences such as «في كثير من»,
+   «ما هي إلا», «حتى لا تكون» score 9–11.7), candidate mass 20, near-match mass 16 with at least 4 matched words (religious prose showed that 3-word and
+   low-mass near matches were mostly noise: 98 → 58 near-match "maybes" in 70,000 words, and 43 after the two fixes described next, while synthetic recall of 5+ word misquotations moved only 715 → 704 of 720).
+3. **Post-freeze defect fixes, disclosed.** The frozen set was run **twice**. Run 1 (first code that could run it) exposed two defects of mine, both
+   code bugs rather than threshold choices: (a) one fully correct 5-word quotation was stretched over a neighbouring prose word (joined through a
+   comma and one near-match word; the same pattern had shown up in the development prose, e.g. «لا شريك له، وألا»), and (b) my cheap pre-filter for near matches
+   rejected a one-letter change in the middle of a word (مذكر/مدكر). I fixed both, re-checked the development data, and ran again (run 2). **Both runs are reported below; run 2 is not untouched.**
+   No threshold was changed after run 1.
+4. **Never tuned on:** the frozen set's thresholds, the 5 secular and 7 Islamic-topic Wikipedia articles used for the "untuned prose" rows below.
+
+### Results — deterministic path (no AI), same labels
+
+| Set | Measure | Baseline `8a4b8b7` | Phrase search |
+|---|---|---|---|
+| Main (`cases.json`, dev data) | gold detected | 25/28 | **27/28** |
+| | unmarked detected | 1/4 | **3/4** (still missed: «ادعوني أستجيب لكم», a 3-word misquotation) |
+| | false "matched" wording / reference | 0 / 0 | 0 / 0 |
+| | findings on non-Quran negatives | 0 | 0 |
+| Held-out (`heldout.json`, dev data) | gold detected | 3/6 | **6/6** |
+| | unmarked detected | 2/5 | **5/5** |
+| | false "matched" / findings on negatives | 0 / 0 | 0 / 0 |
+| **Frozen** (`phrases_frozen.json`) — run 1 | unmarked quotations detected | 18/32 | **30/32** |
+| Frozen — run 2 (after the two fixes) | unmarked quotations detected | — | **30/32** |
+| Frozen, run 2 | · short exact quotations (20) | 9/20 | **20/20** — 13 as `candidate`, 7 as `possible` |
+| | · slightly misquoted (12) | 9/12 | **10/12** — 8 as `possible`, 2 as `candidate` (see next row) |
+| | misquotations reported "matched" (false verified wording) | **8** | **2** in run 2 (1 in run 1) |
+| | wrong verse shown as confirmed | 0 | 0 |
+| | gold verse shown (proposed, or listed among choices for repeated phrases) | — | 30/30 |
+| | findings on the 28 non-Quran negatives | 1 (shown as confirmed) | 2, **both shown as `possible`**, none as confirmed |
+| | findings on the 5 everyday formulae | 1 (shown as confirmed) | 0 (hidden and counted) |
+| | **false suggestions** (any finding on a negative, formula or unlabelled text) | 2 | **2** |
+| | **false confirmed** (negative/formula/unlabelled text shown as confirmed) | 2 | **0** |
+
+What the remaining errors are (frozen set, run 2):
+- **Missed (2):** «إن الله يحب المحسنون» and «فبأي نعم ربكما تكذبان». Both are 4-word phrases made of common words with one changed word; the
+  near-match rules (at least 4 matched words and mass 16) reject them on purpose.
+- **Misquotations reported "matched" (2):** «إن الله لا يغير ما بقوم حتى يغيروا أنفسهم» and «وما خلقت الجن والإنس إلا لعبادتي». In both the wrong words are at the **end**
+  of the quotation; the search reports the correct opening as a `candidate`, and the card shows the hint «بعد هذا المقطع في المصحف: … وبعده في المقال: …». A wrong edge word cannot be told apart from
+  prose after a quotation, so this is a known limit, not a fixed one.
+- **The 2 negatives shown:** «من كان يؤمن بالله واليوم الآخر» (a hadith that begins with a 6-word Quran run, shown as `possible` because «وجاء في الحديث» precedes it)
+  and «إقامة الصلاة وإيتاء الزكاة» (shown as `possible`, common phrase).
+
+### Results — ordinary prose that was never tuned on
+
+| Sample | Words | Candidate | Possible (exact) | Possible (near) | Hidden short/common |
+|---|---|---|---|---|---|
+| 5 secular Wikipedia articles (Medicine, Arabic poetry, Egyptian cuisine, Astronomy, Chemistry) | 18,612 | 1 (a verse quoted in the text) | 0 | 0 | 6 |
+| 7 Islamic-topic Wikipedia articles | 19,794 | 188 (185 are vocalized or bracketed verses; the other 3 are real Quran phrases: «ظلمات بعضها فوق بعض», «الميتة والدم ولحم الخنزير», «من كل فاكهة زوجان») | 57, of which 36 are outside brackets and quotation marks | 10, of which 8 are outside brackets and quotation marks | 43 |
+
+I read every unbracketed, unvocalized candidate in the religious samples: 20 on the tuning sample (read at an earlier code version, before the two fixes) and the 3 above on the untuned sample. All 23 were Quran text that the article itself quotes or alludes to; I found no candidate that was plain prose (my judgement, not a labelled test).
+The "maybe" items in religious prose are real Quran phrases used as ordinary religious wording («لا شريك له»، «على كثير من»…), which is why they are not candidates.
+Islamic-topic prose therefore yields about 2–3 "maybes" per 1,000 words (44 outside brackets and quotation marks in the 19,794 untuned words, 67 counting bracketed ones); secular prose almost none.
+
+### Memory and startup
+
+Measured with `scripts/measure_resources.py` in **fresh processes** (median of 5), on one macOS/arm64 machine with **Python 3.12.13** (the version Render uses, from `.python-version`), cached Quran text on disk, no AI.
+Not measured on Render. Workload: all 67 evaluation articles plus two 6,000-character worst cases. Raw: `eval/results/resources-py312-*.json`.
+
+| | Baseline `8a4b8b7` | Phrase search |
+|---|---|---|
+| RSS after importing the app (audit module only) | 30.6 MB | 30.8 MB |
+| RSS after the Quran index is built | 93.0 MB | **69.9 MB** |
+| **Peak RSS, in-process, after all articles** | 93.8 MB | **75.7 MB** |
+| Index load (build from the cached text) | 0.475 s | 0.399 s |
+| **Real `uvicorn` server, peak RSS** (`/usr/bin/time -l`; FastAPI included; 67 articles + 31 more + a worst case) | 112.8 MB | **94.1 MB** |
+| **Real server: process start → first audit answered** (import, index build from disk; excludes the one Quranpedia download a cold Render instance also makes) | 0.74 s | **0.72 s** |
+| Audit time per article, in-process (mean / max over the evaluation articles) | 0.6 ms / 5.5 ms | 5.6 ms / 17.9 ms |
+| Audit time per article over HTTP (mean / max; max = first request) | 9.1 ms / 0.50 s | 14.5 ms / 0.47 s |
+| Worst case: 6,000 chars of real mushaf text with no markers, in-process | 0.023 s | 0.395 s |
+| Worst case: 5,900 chars of the most frequent Quran words (cut off by the work budget and reported) | 0.007 s | 0.803 s |
+
+The search allocates nothing per phrase: removing the 4-word dictionary more than paid for it (the index is ~23 MB smaller), and a test asserts that searching does not change the index's size.
+The short evaluation articles take milliseconds, but a **full-size article is much slower** than the old scan: in-process, Python 3.12, for ~900–1,000-word (6,000-character) Wikipedia chunks the whole audit took a median of 130 ms (secular prose, 129 chunks), 247 ms and 297 ms (Islamic-topic prose, 71 and 21 chunks), p95 ≤ 0.40 s, maximum 0.43 s. The work budget is 80,000 seed visits per article;
+the largest real chunk needed 41,131, so none of the evaluated articles was cut off (the three evaluation sets gave identical results before and after lowering the budget from 400,000).
+On Render Free (512 MB, shared CPU) memory has a large margin on these numbers, but its CPU is slower than this machine, so times there will be higher; that is untested.
+
+### Results — AI mode compared separately (Groq `qwen/qwen3.8-27b`, prompt v2, after the deterministic runs)
+
+Run **after** all deterministic results were fixed, with `AI_PROVIDER=groq`, `qwen/qwen3.8-27b`, prompt v2, `reasoning_effort: "none"`, free tier, same labels and scoring,
+through the same pipeline (the AI candidates are merged with the phrase-search candidates). A run counts as AI only if the model responded on **every** case. One run per set.
+
+| Set | Deterministic (no AI) | With Groq | What the AI added |
+|---|---|---|---|
+| Main (14 cases) | 27/28, unmarked 3/4 | **28/28**, unmarked 4/4 (14/14 responded, 21 candidates proposed, 0 discarded) | «ادعوني أستجيب لكم» (3-word misquotation), found by the AI alone |
+| Held-out (4 cases) | 6/6, unmarked 5/5 | 6/6, unmarked 5/5 (4/4 responded, 2 proposed) | nothing: both proposals were already found by the phrase search |
+| Frozen (49 cases) | 30/32 (run 3) | 30/32 (49/49 responded, 4 proposed, 1 discarded) | no new detection; the same two misses (f21, f29). For 3 findings the AI vouching changed the label from `candidate`/`possible` to "found by the AI", so for the misquotation f26 the "confirm this is a quotation" step is skipped and source-backed corrections are proposed at once (each still needs the editor's approval; this is the pre-existing rule that an AI-proposed span counts as a stated quotation) |
+| Frozen: findings on negatives and formulas | 2, both `possible` | 2, both `possible` | — |
+| Frozen: misquotations reported "matched" | 2 | 2 | — |
+
+Before the phrase search the same model had added one unmarked quotation on each set (26/28 and 4/6, `ai-20260930-175238-qwen-v2.json`, `…182414-heldout-qwen-v2.json`).
+With the phrase search in place it adds one on the main set and none on the other two, so **on these sets the deterministic search already finds what the model found, except one 3-word misquotation.**
+Single runs, small author-written sets: this shows no measurable benefit beyond that one case, and cannot show that the model never helps; output also varies between calls even at temperature 0.
+
+Runs that did not count (kept, `eval/results/stopped-*.json`): the frozen-set pass **stopped three times** before it completed: HTTP 400 at f18 after 17 cases; HTTP 429 at f03
+(*output tokens per minute: limit 1000, requested 1100*; the input-token budget was untouched); HTTP 400 at f09 after 8 cases. A diagnostic call for the f18 article made right after the first 400 returned 200,
+so the 400s look like intermittent schema-validation failures, which I did not confirm. To finish, I added `--retry-400 N` to the harness (retries only HTTP 400, every retry recorded; 429 and other failures still stop the run)
+and used `GROQ_MAX_COMPLETION_TOKENS=512` (real outputs stay under 100 tokens; one probe succeeded at 512 right after a 429 at the default 4096, which is not a controlled test). The completed pass (attempt 4) had one
+retried case (f18, 400 then 200). The main and held-out passes ran with the defaults (4096, no retries). Total Groq calls for this comparison: 101 (counted passes 49 + 14 + 4, the stopped attempts, the one retry and three single diagnostic calls).
+
+### Limits of these results
+
+- The frozen set is small (32 gold quotations, 28 negatives, 5 formulae), author-written with an AI-assisted workflow, and its labels are pending human review.
+  Differences of one or two items are not evidence of a better method.
+- The main and held-out numbers are **development data**: they were inspected before and while the search was designed. They show the change works on those examples, not that it generalizes.
+- The frozen set was run twice and run 2 followed two fixes (see above); no threshold changed between the runs.
+- The synthetic benchmark and the Wikipedia prose are proxies. Articles by Islamic-content writers may differ from Wikipedia prose.
+- Detection is not complete: phrases of one or two words, phrases made only of common words, near matches of fewer than 4 matched words, a wrong first or last word of a quotation,
+  Uthmani spellings and quotations with omissions are missed or reported only as "maybe". The interface says so and offers manual selection.
+- Memory and timing are from one macOS machine with Python 3.14; Render's Python and CPU differ.
+
 ## Next steps
 
 1. A human reviewer (ideally someone with Quranic studies background) reviews every label in `eval/cases.json`.

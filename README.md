@@ -15,12 +15,23 @@
 > Vercel, and the Render deployment is prepared ([docs/RENDER_DEPLOY.md](docs/RENDER_DEPLOY.md)) but not created.
 > See [docs/EVALUATION.md](docs/EVALUATION.md) and [docs/TEST_LOG.md](docs/TEST_LOG.md).
 
+> **Unmarked phrases (30 Sep 2026, pre-challenge, no AI needed): short quotations without brackets are now searched for, and shown with the right level of doubt.**
+> A memory-light phrase search (`app/phrases.py`) finds Quran phrases in plain text. A distinctive exact match is shown as «مرشَّح لاقتباس قرآني»;
+> a short, common or approximate phrase says «قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة» and gets **no** proposed replacement until the editor confirms it
+> and picks the verse; a phrase found in several verses lists the choices; the editor can also highlight a missed phrase and choose its verse.
+> Observed (deterministic path, same labels): main 25/28 → 27/28 (unmarked 1/4 → 3/4), held-out 3/6 → 6/6 (both are development data); on a new set
+> written and frozen before any tuning (run twice; two bug fixes of mine followed the first run, both disclosed), 30/32 unmarked quotations were found (18/32 before), no non-Quran text or everyday formula was shown as confirmed
+> (2 → 0), and **2 misquotations are still reported "matched"** because their wrong words are at the end of the quotation. Detection is not complete.
+> **AI compared separately** (Groq, same labels, one run per set): with the phrase search in place it adds one quotation on the main set (a 3-word misquotation: 28/28 vs 27/28)
+> and none on the held-out (6/6) or frozen (30/32) sets, so the earlier small AI benefit (26/28, 4/6) is now mostly covered by the deterministic search.
+> Memory and timing (real server peak 94.1 MB vs 112.8 MB before; a full-size article takes ~0.1–0.4 s locally) and all limits: [docs/EVALUATION.md](docs/EVALUATION.md).
+
 **AI Challenge Serving Islamic Content 2026 — Track 4: knowledge and verification tools.**
 
 An Arabic, right-to-left web app for editors and reviewers. You paste a short Arabic
 article, and the app:
 
-1. finds every likely Quran quotation and any nearby surah/ayah reference,
+1. finds likely Quran quotations — marked ones, unmarked phrases (shown as a *candidate* or as «قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة») — and any nearby surah/ayah reference; detection is not complete,
 2. checks each quotation's **wording** and **reference** against the Hafs text served
    live by [Quranpedia](https://quranpedia.net),
 3. shows one review list with each quotation's location in the article, the quoted text,
@@ -69,18 +80,31 @@ article ──► candidate extraction ──► locate in article ──► att
             │ AI provider (Groq or     (reject anything      (regex parser,       (Quranpedia    (source words     (browser only)      + review record
             │   Gemini, one per audit)  not literally          nearest quote)       Hafs text,     only; none if
             │ marked ﴿…﴾ {…} «…»        present)                                   deterministic) span ambiguous)
-            │ exact-run index scan
+            │ unmarked phrase search (seed-and-extend over the word index)
+            │ manual highlight (POST /api/phrase, no AI)
 ```
 
 | Stage | What it does | Trust |
 |---|---|---|
 | **AI extraction** (`app/extraction/groq.py`, `gemini.py`) | The model returns JSON `{candidates:[{quote, reference_text}]}` copied from the article (Groq: strict `json_schema`). | Untrusted. Each quote is re-located in the article (diacritic- and spelling-insensitive); the finding's text is always the article's own substring, and anything not found is discarded and counted. |
 | **Marked extraction** (`app/extraction/marked.py`) | ﴿…﴾ (in either order), {…}, and «…» / "…" / ((…)) when preceded by a cue such as «قال تعالى» or followed by a reference. | Deterministic. |
-| **Index scan** (`app/audit.py`) | Unmarked runs of ≥ 5 article words that occur verbatim (after normalization) in the Quran. | Deterministic. |
+| **Phrase search** (`app/phrases.py`) | Unmarked phrases of ≥ 3 words that occur in the Quran after normalization, plus near matches (a word substituted, added or left out, or spelled slightly differently). Seed-and-extend over the existing word index; no phrase index is built. | Deterministic. A *detection* only: it says where a Quran phrase may be and how sure it is that a quotation was meant (`candidate` / `possible`); the verifier then compares with the source. |
 | **Reference parser** (`app/references.py`) | `البقرة: 255`, `[البقرة ٢٥٥]`, `سورة البقرة، الآية 255`, `الآية 255 من سورة البقرة`, `2:255`, ranges, surah-only, common alternative surah names. Range-checked against verse counts. | Deterministic. |
 | **Verifier** (`app/verifier.py`) | Exact search at three normalization levels, fuzzy alignment when nothing exact exists, word diffs, and reference checks. | Deterministic. Quranpedia text only. |
 | **Corrections** (`app/verifier.py` `propose_wording`, `app/corrections.py`) | Turns a verdict into proposed changes with exact character offsets. | Deterministic. Replacement words come only from Quranpedia; see "Editor workflow". |
 | **Revision** (`app/static/revision.js`) | Applies only the approved changes in the browser. | No server state. Refuses a change whose original text is no longer at its offsets, and overlapping changes. |
+
+### Unmarked phrases: candidate, "maybe", or hidden
+
+Finding a phrase and verifying it are separate steps. Each finding has a **detection** (how it was found and how sure we are that a quotation was meant) and a **verdict** (how the words compare with the Hafs text).
+
+| Shown as | When | What the editor gets |
+|---|---|---|
+| مرشَّح لاقتباس قرآني (*candidate*) | Exact match (after normalization) of a distinctive phrase: at least 4 words of words that are rare in the Quran (or 5+ words), not an everyday formula, not introduced as hadith/du'a/proverb | The normal card and source-backed proposals (each needs approval). Several verses → the choices are listed and none is picked. |
+| قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة (*maybe*) | A short or common exact phrase, a near match (one or two words differ), a formula after a Quran cue, or a phrase after a hadith/du'a/proverb cue | The match is shown, but the green «matched» chip is replaced by the «maybe» label and **no replacement text is proposed** until the editor confirms it is a Quran quotation and picks the verse. The reply draft never names an unconfirmed «maybe». |
+| Not listed | Exact phrases too short or too common to tell from ordinary Arabic, and bare everyday formulae (بسملة، «إن شاء الله»، «رضي الله عنه» …) | Counted in a notice. The editor can highlight the phrase in the text box and press «افحص المقطع المحدَّد», then choose its verse. One- and two-word phrases may be impossible to place reliably without context. |
+
+Known gap: the search cannot know where a writer's quotation ends, so a wrong **last** word looks like prose after the quotation. The card then shows the verse's next word beside the article's next word, with no verdict.
 
 ### Matching levels (shown to the user)
 
@@ -148,18 +172,22 @@ uvicorn app.main:app --reload --port 8000
 # open http://localhost:8000
 ```
 
-Without `GROQ_API_KEY` or `GEMINI_API_KEY`, the app runs in **reduced mode**. A yellow banner says so, and
-only explicitly marked quotations plus verbatim runs of 5 or more words are checked, so
-**short unmarked quotations can be missed**.
+Without `GROQ_API_KEY` or `GEMINI_API_KEY`, the app runs in **reduced mode**. A yellow banner says so. Explicitly marked quotations
+are checked, and the rest of the text is searched for phrases of 3 or more words that match the Quran (see "Unmarked phrases"), so
+**some short unmarked quotations can still be missed**; the editor can select them by hand.
 
 Run the tests (offline; they use a 36-verse excerpt in `tests/fixtures/`):
 
 ```bash
-python -m pytest -q                      # Python tests + Node tests of the revision engine (if node is installed)
+python -m pytest -q                      # Python tests + Node tests of the revision engine (if node is installed);
+                                         # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
 node --test tests/revision.test.mjs      # the revision engine alone
 
 # browser end-to-end (Playwright installed in any scratch dir, not a project dependency)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs http://localhost:8000 ./shots
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs http://localhost:8000 ./shots   # unmarked-phrase workflow (use AI_PROVIDER=none)
+python scripts/measure_resources.py [--server]       # startup time and peak memory in fresh processes (needs a cached Quran text)
+python eval/validate_phrases.py                       # the frozen phrase set against the Hafs text
 python scripts/e2e_check.py http://localhost:8000   # API checks, samples, files that must not be served
 ```
 
@@ -299,7 +327,7 @@ so no other changes are needed.
   for 60 s (120 s after a quota error), so a demo is never stuck waiting twice. Measured with
   a hanging endpoint: first audit 12.0 s, then immediate. Quranpedia calls time out after 20 s.
   Malformed model JSON raises a handled error. In every AI failure (including 429) the app falls back to
-  marked quotations plus verbatim runs of 5+ words, shows a warning in the result, and tags no finding as AI.
+  marked quotations plus the unmarked phrase search, shows a warning in the result, and tags no finding as AI.
   These limits may cut off a slow but working Gemini response; that has not been observed
   yet, because no real Gemini call has succeeded (see docs/TEST_LOG.md).
 - Articles are processed in memory and never written to disk or logged. Error handlers log
@@ -313,8 +341,11 @@ so no other changes are needed.
   25/28 detected; with Groq `qwen/qwen3.8-27b` + prompt v2, 26/28, and 4/6 vs 3/6 on a held-out set.
   Both had 0 false "matched" verdicts and 0 corrections proposed for correct quotes or references.
   See [docs/EVALUATION.md](docs/EVALUATION.md) for its limits. No real Gemini call has succeeded (503/429).
-- **Short unmarked quotations are still missed**: without AI all of them (under 5 words), and with AI
-  most of them (4 of 7 across both sets were still missed).
+- **Detection is not complete.** Unmarked phrases of one or two words, phrases made only of common words, near matches with fewer than 4 matched words,
+  a wrong first or last word of a quotation (it is reported as a match of the rest, with a hint), Uthmani spellings and quotations with omissions can be missed
+  or shown only as «maybe». On the frozen set: 30/32 unmarked quotations found, 2 of 12 misquotations still reported "matched", 2 missed.
+  Islamic-topic prose yields about 2–3 «maybe» items per 1,000 words (44 outside brackets in 19,794 untuned words). See [docs/EVALUATION.md](docs/EVALUATION.md).
+- **Speed and memory.** Searching for unmarked phrases makes a full-size article (about 1,000 words) take roughly 0.1–0.4 s on the development machine (Python 3.12), against milliseconds before; Render's CPU will be slower (untested). Memory went *down*: a real `uvicorn` process peaked at 94.1 MB (112.8 MB before), because the old 4-word phrase dictionary was removed. Measured locally, not on Render; see [docs/EVALUATION.md](docs/EVALUATION.md).
 - Automatic corrections are deliberately conservative: a short fuzzy quote, or a phrase found in
   several verses, gets review information but no replacement.
 - The source is Quranpedia's Hafs text in standard (imla'i) spelling with full diacritics.
@@ -323,8 +354,7 @@ so no other changes are needed.
 - Diacritics conventions vary between printed mushafs (e.g. idgham shadda in «وَقُل رَّبِّ»),
   so a diacritics difference is a prompt to check, not proof of error.
 - Quotations with omissions («…») are compared as one span, so they show missing words and need review.
-- Quotations under 3 words are never confirmed without a reference. In reduced mode,
-  unmarked quotations under 5 words or with wording errors are not detected.
+- Quotations under 3 words are never confirmed without a reference, and are not searched for automatically (select them by hand).
 - Reference parsing covers common Arabic forms, not every possible style. Numeric forms
   like `10:30` are only used when adjacent to a quotation.
 - The rate limiter is per serverless instance (best effort).
@@ -334,7 +364,8 @@ so no other changes are needed.
 ```
 app/
   main.py            FastAPI app, API routes, security headers, rate limit
-  audit.py           pipeline orchestration
+  audit.py           pipeline orchestration (incl. the manual phrase check)
+  phrases.py         unmarked-phrase search: seed-and-extend over the word index, tiers, formula and cue lists
   verifier.py        wording/reference verification (deterministic)
   references.py      reference detection & parsing
   arabic.py          normalization levels, tokenization with offsets
@@ -347,13 +378,15 @@ tests/               verifier, references, normalization, pipeline, source, Gemi
                      revision-engine (Node) tests
 scripts/e2e_check.py end-to-end API check of a running instance (samples, errors, files not served)
 scripts/ui_e2e.mjs   Playwright browser check of the editor workflow, desktop + mobile
+scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirming a verse, manual selection
+scripts/measure_resources.py startup time and peak memory (in-process and real uvicorn server)
 docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
 docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)
 docs/EVALUATION.md   labelled evaluation: method, fallback results, limits
 docs/TEST_LOG.md     dated end-to-end observations (local + live)
 docs/RENDER_DEPLOY.md Render settings and deploy steps (prepared, not yet used)
 render.yaml          optional Render Blueprint with the same settings
-eval/                labelled cases, label validator, scorer, raw results
+eval/                labelled cases, frozen phrase set (+ SHA-256), label validators, scorer, raw results
 SOURCES.md           sources, licences and attribution record
 BASELINE.md          pre-challenge baseline declaration
 ```

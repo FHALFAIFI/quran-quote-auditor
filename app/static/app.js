@@ -48,7 +48,8 @@ const REF = {
   incorrect: ["إحالة خاطئة", "bad"],
   uncertain: ["إحالة غير محسومة", "warn"],
 };
-const DETECTED = { marked: "معلَّم بأقواس أو علامات", ai: "استخراج بالذكاء الاصطناعي", scan: "مطابقة آلية مع نص المصحف" };
+const DETECTED = { marked: "معلَّم بأقواس أو علامات", ai: "استخراج بالذكاء الاصطناعي", phrase: "بحث آلي عن عبارة مطابقة للمصحف", manual: "حدّدته بنفسك" };
+const TIER_CLASS = { candidate: "cand", possible: "maybe", manual: "manual" };
 const COVERAGE = { full: "آية كاملة", partial: "جزء من آية", "multi-partial": "أجزاء من آيات متتالية" };
 const KIND = {
   wording: "تصحيح ألفاظ الاقتباس",
@@ -105,7 +106,8 @@ async function loadHealth() {
     } else {
       banner.className = "banner reduced";
       banner.append(el("strong", { text: "وضع مخفّض — الذكاء الاصطناعي غير مفعّل. " }),
-        "تُفحص فقط الاقتباسات المعلَّمة صراحةً (﴿ ﴾ أو { } أو علامات تنصيص مع «قال تعالى» أو إحالة)، إضافةً إلى المقاطع المطابقة حرفيًا لنص المصحف (5 كلمات فأكثر). قد تفوت الاقتباسات القصيرة غير المعلَّمة.");
+        "تُفحص الاقتباسات المعلَّمة صراحةً (﴿ ﴾ أو { } أو علامات تنصيص مع «قال تعالى» أو إحالة)، ويُبحث في بقية النص عن عبارات (3 كلمات فأكثر) تطابق المصحف دون علامات؛ ",
+        "وما كان شائعًا أو تقريبيًا يُعرض بعبارة «قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة». قد تفوت بعض الاقتباسات القصيرة، ويمكنك تحديدها بنفسك.");
     }
   } catch {
     banner.hidden = true;
@@ -215,6 +217,7 @@ function renderSummary(data) {
   $("summary").replaceChildren(
     tile(s.total, "اقتباسات مرصودة", "accent"),
     tile(s.matched, "ألفاظ مطابقة"),
+    tile(s.possible || 0, "عبارات «قد تكون اقتباسًا»"),
     tile(s.difference, "اختلافات في الألفاظ"),
     tile(s.uncertain, "غير محسومة"),
     tile(s.ref_incorrect, "إحالات خاطئة"),
@@ -231,7 +234,7 @@ function renderArticle(findings) {
   for (const f of [...findings].sort((a, b) => a.start - b.start)) {
     if (f.start < pos) continue;
     view.append(R.slice(lastArticle, pos, f.start));
-    const mark = el("mark", { class: `s-${f.wording.status}`, "data-id": f.id, title: `اقتباس ${f.id}`, tabindex: "0",
+    const mark = el("mark", { class: `s-${f.detection?.unconfirmed ? "possible" : f.wording.status}`, "data-id": f.id, title: `اقتباس ${f.id}`, tabindex: "0",
       onclick: () => focusFinding(f.id), onkeydown: (e) => { if (e.key === "Enter") focusFinding(f.id); } },
       R.slice(lastArticle, f.start, f.end), el("sup", { text: toArabicDigits(f.id) }));
     view.append(mark);
@@ -340,13 +343,17 @@ function changeCard(c) {
 
 function renderFinding(f) {
   const w = f.wording, r = f.reference;
-  const [wl, wc] = wordingChip(w);
+  const det = f.detection || {};
+  const weak = !!det.unconfirmed;  // found only as a possible quotation: the match to the text is shown, but not as a verdict
+  let [wl, wc] = wordingChip(w);
+  if (weak) { wl = "إن كان اقتباسًا: " + wl; wc = "muted-chip"; }
   const [rl, rc] = REF[r.status] || ["—", "muted-chip"];
+  const tierChip = det.label ? chip(det.label, TIER_CLASS[det.tier] || "src") : null;
   const head = el("div", { class: "f-head" },
     el("span", { class: "f-num", text: toArabicDigits(f.id) }),
     el("span", { class: "f-loc", text: `السطر ${toArabicDigits(f.line)}، الحرف ${toArabicDigits(f.column)}` }),
-    chip(wl, wc), chip(rl, rc),
-    f.needs_review ? chip("يحتاج مراجعة", "review") : null,
+    tierChip, chip(wl, wc), chip(rl, rc),
+    f.needs_review && !weak ? chip("يحتاج مراجعة", "review") : null,
   );
 
   const body = el("div", { class: "f-body" });
@@ -358,7 +365,11 @@ function renderFinding(f) {
       sourceBox(f.source)));
   }
 
-  const wBox = el("div", { class: "status-box" }, el("div", { class: "row-label", text: "الألفاظ" }), chip(wl, wc));
+  if (det.reasons?.length && det.kind === "phrase") {
+    body.append(el("div", { class: `detect-note ${det.tier}` }, el("b", { text: det.label + ": " }), det.reasons.join(" ")));
+  }
+
+  const wBox = el("div", { class: "status-box" }, el("div", { class: "row-label", text: weak ? "مطابقة النص للمصحف (إن كان اقتباسًا)" : "الألفاظ" }), chip(wl, wc));
   if (w.message) wBox.append(el("p", { text: w.message }));
   if (w.level === "fuzzy" && w.similarity != null) wBox.append(el("p", { class: "muted", text: `نسبة التشابه: ${toArabicDigits(Math.round(w.similarity * 100))}٪` }));
   if (w.level === "diacritics" && w.status === "matched") wBox.append(el("p", { class: "muted", text: "الحروف مطابقة؛ التشكيل في المقال ناقص أو غائب لكنه غير مخالف، فليس خطأً." }));
@@ -386,7 +397,16 @@ function renderFinding(f) {
   if (changes.length) {
     body.append(el("div", { class: "changes" }, el("div", { class: "row-label", text: "تصحيحات مقترحة من نص المصحف — لا يُغيَّر شيء إلا بعد اعتمادك" }), ...changes.map(changeCard)));
   }
-  if (f.correction?.status === "review_only" && f.needs_review) {
+  if (f.continuation) {
+    body.append(el("p", { class: "muted small continuation" }, "بعد هذا المقطع في المصحف: ", el("b", { class: "quran", text: f.continuation.quran }),
+      "، وبعده في المقال: ", el("b", { text: f.continuation.article }),
+      ". لا تستطيع الأداة معرفة أين ينتهي الاقتباس عندك؛ إن كانت هذه الكلمة منه فراجعها."));
+  }
+  const confirm = choicesBox(f);
+  if (confirm) body.append(confirm);
+  if (f.correction?.status === "unconfirmed") {
+    body.append(el("div", { class: "no-fix" }, el("b", { text: "لا تصحيحات مقترحة بعد. " }), f.correction.reason));
+  } else if (f.correction?.status === "review_only" && f.needs_review) {
     body.append(el("div", { class: "no-fix" }, el("b", { text: "لا يُقترح تصحيح تلقائي. " }), f.correction.reason || "الموضع المقصود غير محسوم."));
   }
 
@@ -400,7 +420,99 @@ function renderFinding(f) {
   }
   body.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => chip(DETECTED[d] || d, "src"))));
 
-  return el("li", { id: `finding-${f.id}`, class: `finding ${f.needs_review ? "review" : ""}` }, head, body);
+  return el("li", { id: `finding-${f.id}`, class: `finding ${f.needs_review ? "review" : ""} ${weak ? "weak" : ""}` }, head, body);
+}
+
+// ---------------------------------------------------------------- confirming a possible quotation / choosing a verse / manual selection
+function choicesBox(f) {
+  const choices = f.choices || [];
+  const det = f.detection || {};
+  if (!choices.length || !(det.unconfirmed || f.needs_choice || (!f.source && ["manual", "phrase"].includes(det.kind)))) return null;
+  const single = choices.length === 1;
+  const box = el("div", { class: "confirm-box" },
+    el("div", { class: "row-label", text: single ? "هل هذا اقتباس قرآني؟" : "اختر الموضع المقصود من المصحف" }),
+    el("p", { class: "muted small", text: det.unconfirmed
+      ? "لا تُقترح تصحيحات قبل أن تؤكد أن المقطع اقتباس قرآني وتحدد موضعه. اختيارك لا يغيّر المقال؛ يُنشئ اقتراحات تعتمدها أو ترفضها واحدًا واحدًا."
+      : "العبارة تتطابق مع أكثر من موضع، فلا يُختار أحدها تلقائيًا." }));
+  for (const ch of choices) {
+    box.append(el("div", { class: "choice" },
+      el("b", { text: ch.label }), " — ", el("span", { class: "quran", dir: "rtl", text: ch.text }),
+      el("button", { type: "button", class: "btn small", onclick: () => requestPhrase(f.start, f.end, ch, f.id) },
+        single ? "أؤكد أنه اقتباس قرآني في هذا الموضع" : "هذا هو الموضع")));
+  }
+  return box;
+}
+
+function computeStats(findings) {
+  const weak = (f) => !!f.detection?.unconfirmed;
+  const n = (fn) => findings.filter(fn).length;
+  return {
+    total: findings.length,
+    matched: n((f) => f.wording.status === "matched" && !weak(f)),
+    difference: n((f) => f.wording.status === "difference"),
+    uncertain: n((f) => f.wording.status === "uncertain"),
+    needs_review: n((f) => f.needs_review),
+    possible: n(weak),
+    candidates: n((f) => f.detection?.tier === "candidate"),
+    ref_matched: n((f) => f.reference.status === "matched"),
+    ref_missing: n((f) => f.reference.status === "missing"),
+    ref_incorrect: n((f) => f.reference.status === "incorrect"),
+    ref_uncertain: n((f) => f.reference.status === "uncertain"),
+    proposed_changes: findings.reduce((a, f) => a + (f.changes || []).length, 0),
+  };
+}
+
+// Offsets from the server are Unicode code points; a textarea reports UTF-16 units.
+function selectedSpan() {
+  const ta = $("article");
+  const a = ta.selectionStart, b = ta.selectionEnd;
+  if (a === b) return null;
+  const text = ta.value.replace(/\r\n?/g, "\n");
+  return { start: Array.from(text.slice(0, a)).length, end: Array.from(text.slice(0, b)).length };
+}
+
+function updateSelectionButton() {
+  const btn = $("phrase-btn");
+  const stale = !lastResult || $("article").value.replace(/\r\n?/g, "\n") !== lastArticle;
+  btn.disabled = !selectedSpan() || stale;
+  btn.title = !lastResult ? "دقّق المقال أولًا ثم حدّد المقطع" : stale ? "تغيّر النص بعد آخر تدقيق؛ أعد التدقيق أولًا" : "";
+}
+
+async function checkSelection() {
+  const sel = selectedSpan();
+  if (!sel || !lastResult) return;
+  const hit = (lastResult.findings || []).filter((f) => f.start < sel.end && sel.start < f.end);
+  const fixed = hit.find((f) => !["phrase", "manual"].includes(f.detection?.kind));
+  if (fixed) { setStatus(`هذا الموضع مشمول بالفعل بالنتيجة رقم ${toArabicDigits(fixed.id)} (رُصد بالعلامات أو بالذكاء الاصطناعي).`, true); focusFinding(fixed.id); return; }
+  const id = hit.length ? hit[0].id : Math.max(0, ...(lastResult.findings || []).map((f) => f.id)) + 1;
+  await requestPhrase(sel.start, sel.end, null, id);
+}
+
+async function requestPhrase(start, end, choice, findingId) {
+  if (!lastResult) return;
+  setStatus("جارٍ فحص المقطع ومقارنته بنص المصحف…", false, true);
+  try {
+    const body = { article: lastArticle, start, end, finding_id: findingId };
+    if (choice) Object.assign(body, { surah: choice.surah, ayah_start: choice.ayah_start, ayah_end: choice.ayah_end });
+    const res = await fetch("/api/phrase", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    let data;
+    try { data = await res.json(); } catch { data = { error: "استجابة غير متوقعة من الخادم." }; }
+    if (!res.ok) { setStatus(data.error || "تعذّر فحص المقطع.", true); return; }
+    applyPhrase(data.finding);
+    setStatus(choice ? "حُدِّد الموضع وحُدِّثت الاقتراحات؛ راجعها قبل الاعتماد." : "فُحص المقطع المحدَّد؛ راجع النتيجة.");
+  } catch {
+    setStatus("تعذّر الاتصال بالخادم.", true);
+  }
+}
+
+function applyPhrase(nf) {
+  const overlapped = (lastResult.findings || []).filter((g) => g.start < nf.end && nf.start < g.end);
+  for (const old of overlapped) for (const c of old.changes || []) delete decisions[c.id];
+  lastResult.findings = [...lastResult.findings.filter((g) => !overlapped.includes(g)), nf].sort((a, b) => a.start - b.start);
+  lastResult.stats = computeStats(lastResult.findings);
+  saveSession();
+  render(lastResult, false);
+  focusFinding(nf.id);
 }
 
 // ---------------------------------------------------------------- editor: before/after + copy
@@ -467,7 +579,7 @@ function showTab(which) {
 // ---------------------------------------------------------------- print record
 function aiRecordText(data) {
   const ai = data.ai || {};
-  if (!ai.configured) return "لم يُستخدم الذكاء الاصطناعي (وضع مخفّض): فُحصت الاقتباسات المعلَّمة والمقاطع المطابقة حرفيًا فقط، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.";
+  if (!ai.configured) return "لم يُستخدم الذكاء الاصطناعي (وضع مخفّض): فُحصت الاقتباسات المعلَّمة والعبارات المطابقة لنص المصحف دون علامات، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.";
   if (ai.responded) return `نعم — استجاب النموذج ${ai.model} (${ai.provider}) في هذا التدقيق خلال ${((ai.elapsed_ms || 0) / 1000).toFixed(1)} ث؛ اقترح ${ai.proposed} مقطعًا، وُجد منها في المقال ${ai.located}، واستُبعد ${ai.discarded}. دوره اقتراح المواضع فقط.`;
   return `لا — كان ${ai.provider} مُعَدًّا لكنه لم يستجب في هذا التدقيق (${ai.error || ai.outcome})، فاستُخدم الوضع الاحتياطي الحتمي، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
 }
@@ -538,6 +650,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   $("sample-select").addEventListener("change", (e) => loadSample(e.target.value));
   $("only-review").addEventListener("change", renderFindings);
+  $("phrase-btn").addEventListener("click", checkSelection);
+  for (const ev of ["select", "keyup", "mouseup", "input", "focus"]) $("article").addEventListener(ev, updateSelectionButton);
   $("article").addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAudit(); });
   $("copy-btn").addEventListener("click", copyRevised);
   $("reply-text").addEventListener("input", updateReplyCount);
@@ -563,5 +677,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setStatus("استُعيدت نتيجة التدقيق وقراراتك من هذه الجلسة.");
   }
   updateCount();
+  updateSelectionButton();
   loadHealth();
 });

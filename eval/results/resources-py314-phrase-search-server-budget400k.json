@@ -1,0 +1,53 @@
+{
+ "label": "after: phrase search, no ngram dictionary; uvicorn server",
+ "mode": "server",
+ "summary": {
+  "seconds_to_health": 0.25,
+  "seconds_to_first_audit": 0.7,
+  "audit_mean_s": 0.0132,
+  "audit_max_s": 0.448,
+  "rss_after_all_mb": 103.0,
+  "peak_rss_mb": 103.2
+ },
+ "runs": [
+  {
+   "seconds_to_health": 0.33,
+   "seconds_to_first_audit": 0.8,
+   "audits": 98,
+   "audit_mean_s": 0.0136,
+   "audit_max_s": 0.47,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.336
+   },
+   "rss_after_all_mb": 99.4,
+   "peak_rss_mb": 103.4,
+   "python": "3.14.7"
+  },
+  {
+   "seconds_to_health": 0.25,
+   "seconds_to_first_audit": 0.7,
+   "audits": 98,
+   "audit_mean_s": 0.0132,
+   "audit_max_s": 0.448,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.328
+   },
+   "rss_after_all_mb": 103.2,
+   "peak_rss_mb": 103.2,
+   "python": "3.14.7"
+  },
+  {
+   "seconds_to_health": 0.25,
+   "seconds_to_first_audit": 0.69,
+   "audits": 98,
+   "audit_mean_s": 0.0131,
+   "audit_max_s": 0.439,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.326
+   },
+   "rss_after_all_mb": 103.0,
+   "peak_rss_mb": 103.0,
+   "python": "3.14.7"
+  }
+ ]
+}

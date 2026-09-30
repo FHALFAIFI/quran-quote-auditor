@@ -45,7 +45,9 @@ The commits are listed in `CHANGELOG.md` under "Pre-challenge work".
   - Presentation and video-script drafts updated.
 - 30 Sep: first real Groq calls (local): the service responds; prompt v2 becomes the default after a small, single-run gain
   (26/28 and 4/6 vs 25/28 and 3/6). Completion-token reservation experiment (inconclusive, default kept). Render deployment
-  files prepared. Still not done before the challenge: AI extraction on the live site; no successful Gemini call.
+  files prepared.
+- 30 Sep (later): unmarked-phrase search without AI (`app/phrases.py`), a frozen evaluation set written before it, manual phrase selection, resource measurements;
+  the AI comparison is separate (`docs/EVALUATION.md`). Still not done before the challenge: AI extraction on the live site; no successful Gemini call.
 
 ## How to see challenge-period changes
 

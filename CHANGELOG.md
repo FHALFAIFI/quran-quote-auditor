@@ -21,7 +21,9 @@ _Record every change made during the challenge here, with its date. Nothing yet.
 | 2026-09-30 | `3273078` | Unmarked-quote experiment: versioned prompts, prompt v2 now default (labelled 26/28, held-out 4/6 vs fallback 25/28 and 3/6); held-out set; eval runner `--cases/--tag/--pace`, stopped runs saved; Groq OTPM 429 finding; Vercel diagnosis |
 | 2026-09-30 | `0382816` | Blocked Vercel deploy of `3273078` logged after confirming the GitHub connection |
 | 2026-09-30 | `f479c4a` | Completion-token reservation experiment (4096/1024/512/256); `GROQ_MAX_COMPLETION_TOKENS` configurable; `run_eval.py --url` |
-| 2026-09-30 | (this commit) | Reservation conclusion: inconclusive, default stays 4096 (log corrected: 4 held-out cases, 20/72 calls 429); rate-limit fallback test; Render deployment files (`render.yaml`, `docs/RENDER_DEPLOY.md`), not yet deployed; README states what "verified" means |
+| 2026-09-30 | `8a4b8b7` | Reservation conclusion: inconclusive, default stays 4096 (log corrected: 4 held-out cases, 20/72 calls 429); rate-limit fallback test; Render deployment files (`render.yaml`, `docs/RENDER_DEPLOY.md`), not yet deployed; README states what "verified" means |
+| 2026-09-30 | `7ac49a3` | Frozen unmarked-phrase evaluation set (`eval/phrases_frozen.json`, 49 cases, SHA-256 recorded) and its independent validator, written **before** any detection code; baselines of the unchanged code; `scripts/measure_resources.py` |
+| 2026-09-30 | (this commit) | Unmarked-phrase search (`app/phrases.py`): seed-and-extend over the existing word index, no phrase index (the 4-word dictionary was removed); candidate / "maybe" tiers kept separate from the verification verdict; near matches keep the wrong word inside the span; corrections withheld until the editor confirms a "maybe"; manual highlight-and-choose-verse (`POST /api/phrase`, no AI); deduplication with bracketed and AI candidates; hint for the word after a phrase; evaluation counters; results on the main, held-out and frozen sets, AI compared separately, memory and startup measured (`docs/EVALUATION.md`) |
 
 ## Pre-challenge baseline — 2026-09-28
 

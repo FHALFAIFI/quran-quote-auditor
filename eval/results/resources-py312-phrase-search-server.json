@@ -1,0 +1,79 @@
+{
+ "label": "phrase search py3.12 server (budget 80k)",
+ "mode": "server",
+ "summary": {
+  "seconds_to_health": 0.24,
+  "seconds_to_first_audit": 0.72,
+  "audit_mean_s": 0.0145,
+  "audit_max_s": 0.472,
+  "rss_after_all_mb": 94.0,
+  "peak_rss_mb": 94.1
+ },
+ "runs": [
+  {
+   "seconds_to_health": 0.32,
+   "seconds_to_first_audit": 0.82,
+   "audits": 98,
+   "audit_mean_s": 0.0145,
+   "audit_max_s": 0.498,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.352
+   },
+   "rss_after_all_mb": 94.0,
+   "peak_rss_mb": 94.1,
+   "python": "3.12.13"
+  },
+  {
+   "seconds_to_health": 0.25,
+   "seconds_to_first_audit": 0.72,
+   "audits": 98,
+   "audit_mean_s": 0.0154,
+   "audit_max_s": 0.472,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.378
+   },
+   "rss_after_all_mb": 91.9,
+   "peak_rss_mb": 92.7,
+   "python": "3.12.13"
+  },
+  {
+   "seconds_to_health": 0.23,
+   "seconds_to_first_audit": 1.08,
+   "audits": 98,
+   "audit_mean_s": 0.0258,
+   "audit_max_s": 0.852,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.354
+   },
+   "rss_after_all_mb": 88.4,
+   "peak_rss_mb": 90.5,
+   "python": "3.12.13"
+  },
+  {
+   "seconds_to_health": 0.24,
+   "seconds_to_first_audit": 0.67,
+   "audits": 98,
+   "audit_mean_s": 0.0131,
+   "audit_max_s": 0.425,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.324
+   },
+   "rss_after_all_mb": 95.4,
+   "peak_rss_mb": 95.4,
+   "python": "3.12.13"
+  },
+  {
+   "seconds_to_health": 0.24,
+   "seconds_to_first_audit": 0.66,
+   "audits": 98,
+   "audit_mean_s": 0.0128,
+   "audit_max_s": 0.416,
+   "worst_case_s": {
+    "unmarked-mushaf-run": 0.319
+   },
+   "rss_after_all_mb": 95.2,
+   "peak_rss_mb": 95.2,
+   "python": "3.12.13"
+  }
+ ]
+}

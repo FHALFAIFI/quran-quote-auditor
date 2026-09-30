@@ -97,6 +97,9 @@ def main() -> int:
     ap.add_argument("--tag", default="", help="added to the result file name")
     ap.add_argument("--url", default="", help="send each article to <url>/api/audit instead of running in-process")
     ap.add_argument("--pace", type=float, default=0.0, help="seconds to wait between AI cases (Groq free tier: 8,000 tokens/min)")
+    ap.add_argument("--retry-400", type=int, default=0, dest="retry_400",
+                    help="in-process AI runs only: retry a case up to N times when the provider answers HTTP 400 (seen intermittently when the model's "
+                         "strict-JSON output fails validation). Every retry is recorded; 429 and all other failures still stop the run")
     args = ap.parse_args()
     ai_quotes: dict[str, list] = {}
     if args.url:
@@ -135,19 +138,29 @@ def main() -> int:
 
     cases_path = Path(args.cases).resolve()
     data = json.loads(cases_path.read_text(encoding="utf-8"))
-    rows, neg_hits, extra_findings, modes, timings, ai_log = [], [], [], Counter(), [], []
+    rows, neg_hits, extra_findings, formula_hits, modes, timings, ai_log = [], [], [], [], Counter(), [], []
     for n_case, case in enumerate(data["cases"]):
         art = case["article"]
         if args.mode == "ai" and args.pace and n_case:
             time.sleep(args.pace)
         t = time.monotonic()
-        res = audit.run_audit(art)
+        retries = []
+        while True:
+            res = audit.run_audit(art)
+            ai0 = res.get("ai") or {}
+            if (args.mode == "ai" and not args.url and not ai0.get("responded") and ai0.get("http_status") == 400
+                    and len(retries) < args.retry_400):
+                retries.append({"error": ai0.get("error"), "elapsed_ms": ai0.get("elapsed_ms")})
+                audit.get_provider().tracker.clear_cooldown()  # the adapter starts a cooldown after any failure
+                time.sleep(max(args.pace, 5.0))
+                continue
+            break
         timings.append(time.monotonic() - t)
         modes[res["mode"]] += 1
         ai = res.get("ai") or {}
         ai_log.append({"case": case["id"], "mode": res["mode"], **{k: ai.get(k) for k in (
             "provider", "model", "responded", "outcome", "http_status", "elapsed_ms", "proposed", "located", "discarded", "error")},
-                       "model_quotes": ai_quotes.get(art)})
+                       "model_quotes": ai_quotes.get(art), "retries_after_http_400": retries})
         if args.mode == "ai" and not ai.get("responded"):
             print(f"STOP: case {case['id']} fell back ({ai.get('outcome')}: {ai.get('error')}). "
                   "Not retrying and not recording an AI result.")
@@ -175,7 +188,14 @@ def main() -> int:
                 loc_ok = None
                 if src and not (g["ambiguous"] and g["reference"] != "correct"):
                     loc_ok = (src["surah"], src["ayah_start"], src["ayah_end"]) == (g["surah"], g["ayah_start"], g["ayah_end"])
+                det = hit.get("detection") or {}
+                shown = [(b["surah"], b["ayah_start"], b["ayah_end"]) for b in ([src] if src else []) + [a["source"] for a in hit.get("alternatives", []) if a.get("source")]]
                 row.update({
+                    "detection_tier": det.get("tier"), "detection_kind": det.get("kind"),
+                    # the gold verse is proposed, or (for repeated phrases) at least listed among the choices
+                    "location_shown": (g["surah"], g["ayah_start"], g["ayah_end"]) in shown,
+                    # a wrong verse offered as if confirmed (not as a mere possibility)
+                    "false_confirmed_location": loc_ok is False and not det.get("unconfirmed"),
                     "detected_by": hit["detected_by"],
                     "wording_expected": w_exp, "wording_actual": w_act, "wording_level": hit["wording"]["level"],
                     "wording_grade": grade(w_act, w_exp),
@@ -191,13 +211,19 @@ def main() -> int:
             if f["id"] in used:
                 continue
             neg = next((n for n in case["negatives"] if overlap(f["start"], f["end"], art.index(n), art.index(n) + len(n)) > 0), None)
-            (neg_hits if neg else extra_findings).append({"case": case["id"], "quote": f["quote"], "negative": neg})
+            frm = next((n for n in case.get("formulas", []) if overlap(f["start"], f["end"], art.index(n), art.index(n) + len(n)) > 0), None)
+            det = f.get("detection") or {}
+            entry = {"case": case["id"], "quote": f["quote"], "negative": neg or frm, "tier": det.get("tier"), "kind": det.get("kind"),
+                     "wording": f["wording"]["status"], "presented_as_confirmed": not det.get("unconfirmed", False)}
+            (formula_hits if frm and not neg else neg_hits if neg else extra_findings).append(entry)
 
     if args.mode == "ai" and (set(modes) != {"ai"} or not all(a["responded"] for a in ai_log)):
         print(f"NOT AN AI RESULT: modes observed {dict(modes)} — at least one case fell back. Nothing recorded as AI.")
         return 2
 
     det = [r for r in rows if r["detected"]]
+    unm = [r for r in rows if "unmarked" in r["tags"]]
+    unm_det = [r for r in unm if r["detected"]]
     summary = {
         "mode": args.mode,
         "cases_file": str(cases_path.relative_to(ROOT)),
@@ -217,6 +243,22 @@ def main() -> int:
         "false_verified_reference": sum(r["false_verified_reference"] for r in det),
         "negative_hits": len(neg_hits),
         "other_extra_findings": len(extra_findings),
+        "formula_hits": len(formula_hits),
+        "unmarked_detection": {
+            "gold": len(unm), "detected": len(unm_det),
+            "as_candidate": sum(r.get("detection_tier") == "candidate" for r in unm_det),
+            "as_possible": sum(r.get("detection_tier") == "possible" for r in unm_det),
+            "by_ai_or_marker": sum(r.get("detection_tier") in ("stated", "manual") for r in unm_det),
+            "gold_verse_shown": sum(bool(r.get("location_shown")) for r in unm_det),
+        },
+        "false_suggestions": len(neg_hits) + len(formula_hits) + len(extra_findings),
+        "false_confirmed": {
+            # findings on non-Quran strings or everyday formulae that are presented as confirmed (not as "possible")
+            "on_negatives_or_formulas": sum(h["presented_as_confirmed"] for h in neg_hits + formula_hits),
+            "wrong_verse_as_confirmed": sum(bool(r.get("false_confirmed_location")) for r in det),
+            "misquotation_reported_matched": sum(r["false_verified_wording"] for r in det),
+            "on_other_unlabelled_text": sum(h["presented_as_confirmed"] for h in extra_findings),
+        },
         "seconds_per_article_max": round(max(timings), 2),
         "seconds_per_article_mean": round(sum(timings) / len(timings), 2),
         "corrections": {
@@ -232,6 +274,7 @@ def main() -> int:
             "FALSE_reference_fix_on_correct_reference": sum(r["false_reference_fix"] for r in det),
         },
         "ai_models": sorted({a["model"] for a in ai_log if a["model"]}),
+        "ai_cases_retried_after_400": sum(bool(a.get("retries_after_http_400")) for a in ai_log),
         "ai_candidates_proposed": sum(a["proposed"] or 0 for a in ai_log),
         "ai_candidates_discarded": sum(a["discarded"] or 0 for a in ai_log),
     }
@@ -246,7 +289,7 @@ def main() -> int:
     out_dir.mkdir(exist_ok=True)
     tag = f"-{args.tag}" if args.tag else ""
     out = out_dir / f"{args.mode}-{datetime.now().strftime('%Y%m%d-%H%M%S')}{tag}.json"
-    out.write_text(json.dumps({"summary": summary, "ai_calls": ai_log, "rows": rows, "negative_hits": neg_hits, "extra_findings": extra_findings}, ensure_ascii=False, indent=1), encoding="utf-8")
+    out.write_text(json.dumps({"summary": summary, "ai_calls": ai_log, "rows": rows, "negative_hits": neg_hits, "formula_hits": formula_hits, "extra_findings": extra_findings}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     for r in rows:
         if not r["detected"]:
@@ -259,9 +302,11 @@ def main() -> int:
             print(f"FIX-ISSUE {r['case']}: «{r['quote']}» wording_fix={r['wording_fix']} reference_fix={r['reference_fix']} "
                   f"false_fix={r['false_fix']} false_reference_fix={r['false_reference_fix']}")
     for n in neg_hits:
-        print(f"NEG-HIT  {n['case']}: «{n['quote']}»")
+        print(f"NEG-HIT  {n['case']}: «{n['quote']}» tier={n['tier']} shown_as_confirmed={n['presented_as_confirmed']}")
+    for n in formula_hits:
+        print(f"FORMULA  {n['case']}: «{n['quote']}» tier={n['tier']} shown_as_confirmed={n['presented_as_confirmed']}")
     for e in extra_findings:
-        print(f"EXTRA    {e['case']}: «{e['quote']}»")
+        print(f"EXTRA    {e['case']}: «{e['quote']}» tier={e['tier']} shown_as_confirmed={e['presented_as_confirmed']}")
     print(f"saved {out.relative_to(ROOT)}")
     return 0
 

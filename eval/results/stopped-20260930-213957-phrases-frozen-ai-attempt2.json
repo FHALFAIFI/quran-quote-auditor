@@ -1,0 +1,53 @@
+{
+ "stopped_at": "f03-exact",
+ "cases_file": "eval/phrases_frozen.json",
+ "url": null,
+ "prompt": "v2",
+ "ai_calls": [
+  {
+   "case": "f01-exact",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 391,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": []
+  },
+  {
+   "case": "f02-exact",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 523,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": []
+  },
+  {
+   "case": "f03-exact",
+   "mode": "ai_failed",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": false,
+   "outcome": "failed",
+   "http_status": 429,
+   "elapsed_ms": 210,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا",
+   "model_quotes": null
+  }
+ ]
+}

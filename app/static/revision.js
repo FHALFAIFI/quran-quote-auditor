@@ -102,6 +102,7 @@
       lines.push(`• «${before}» ← الصواب «${after}» (${c.label}) ${c.source_urls[0] || ""}`.trim());
     }
     for (const f of unresolvedFindings(findings, decisions)) {
+      if (f.detection && f.detection.unconfirmed) continue;  // a possible quotation is not yet known to be one: not listed publicly
       if ((f.changes || []).some((c) => !c.optional && decisions[c.id] === "approved")) continue;
       lines.push(`• «${f.quote}»: لم أتحقق منه بيقين، ويحتاج مراجعة.`);
     }

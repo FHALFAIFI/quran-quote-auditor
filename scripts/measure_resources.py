@@ -17,6 +17,14 @@ downloads anything. Phases reported, per process:
 Workloads: every article of the evaluation sets, plus two 6,000-character worst cases
 (an unmarked run of real mushaf text, and a soup of the most frequent Quran words).
 The numbers describe THIS machine and Python, not Render; see docs/EVALUATION.md.
+
+    python scripts/measure_resources.py --server [--json out.json]
+
+``--server`` measures what Render actually runs: a real ``uvicorn app.main:app`` process (FastAPI, Starlette and
+pydantic included), started fresh under ``/usr/bin/time -l`` so the OS reports its true peak resident set size
+(macOS/BSD output format). It answers /api/health, then audits every evaluation article, the two 6,000-character
+worst cases and 30 more articles in a row over HTTP, with the AI provider disabled, and reports time to the first
+answered audit (server start + reading the cached Quran text + index build) and the peak RSS at shutdown.
 """
 
 from __future__ import annotations
@@ -99,8 +107,86 @@ def child() -> None:
     print(json.dumps(res, ensure_ascii=False))
 
 
+def server_run(port: int = 8765) -> dict:
+    import signal
+    import urllib.request
+
+    env = dict(os.environ, AI_PROVIDER="none", GROQ_API_KEY="", GEMINI_API_KEY="", RATE_LIMIT_PER_MINUTE="1000000")  # measurement only: no AI calls, no throttling
+    t0 = time.perf_counter()
+    proc = subprocess.Popen(["/usr/bin/time", "-l", sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(port), "--log-level", "warning"],
+                            cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+
+    def call(path: str, payload: dict | None = None) -> dict:
+        req = urllib.request.Request(f"http://127.0.0.1:{port}{path}", data=json.dumps(payload, ensure_ascii=False).encode("utf-8") if payload is not None else None,
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return json.loads(r.read())
+
+    try:
+        while True:  # wait for the port
+            try:
+                call("/api/health")
+                break
+            except OSError:
+                if proc.poll() is not None or time.perf_counter() - t0 > 60:
+                    raise RuntimeError("server did not start")
+                time.sleep(0.05)
+        t_health = time.perf_counter() - t0
+        articles: list[str] = []
+        for name in ("cases.json", "heldout.json", "phrases_frozen.json"):
+            p = ROOT / "eval" / name
+            if p.exists():
+                articles += [c["article"] for c in json.loads(p.read_text(encoding="utf-8"))["cases"]]
+        first = None
+        times = []
+        for art in articles:
+            t = time.perf_counter()
+            call("/api/audit", {"article": art})
+            dt = time.perf_counter() - t
+            if first is None:
+                first = time.perf_counter() - t0  # process start → first audit answered
+            times.append(dt)
+        sample = json.loads((ROOT / "eval" / "phrases_frozen.json").read_text(encoding="utf-8"))["cases"][0]["article"]
+        for _ in range(30):
+            call("/api/audit", {"article": sample})
+        worst = {}
+        idx_text = json.loads((Path(tempfile_dir()) / "quran-auditor-cache" / "hafs-mushaf-1.json").read_text(encoding="utf-8"))["ayahs"]
+        run = " ".join(a["text"] for a in idx_text[280:400])[:6000]
+        t = time.perf_counter()
+        call("/api/audit", {"article": run})
+        worst["unmarked-mushaf-run"] = round(time.perf_counter() - t, 3)
+        rss_live = None
+        try:
+            kids = subprocess.run(["pgrep", "-P", str(proc.pid)], capture_output=True, text=True).stdout.split()  # the python child of /usr/bin/time
+            out = subprocess.run(["ps", "-o", "rss=", "-p", kids[0] if kids else str(proc.pid)], capture_output=True, text=True).stdout.strip()
+            rss_live = round(int(out) / 1024, 1) if out else None
+        except (ValueError, OSError):
+            pass
+    finally:
+        proc.send_signal(signal.SIGINT)
+        try:
+            err = proc.communicate(timeout=30)[1]
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            err = proc.communicate()[1]
+    peak = None
+    for line in err.splitlines():
+        if "maximum resident set size" in line:
+            peak = round(int(line.split()[0]) / (1024 * 1024), 1)  # bytes on macOS
+    return {"seconds_to_health": round(t_health, 2), "seconds_to_first_audit": round(first, 2), "audits": len(times) + 31,
+            "audit_mean_s": round(sum(times) / len(times), 4), "audit_max_s": round(max(times), 3), "worst_case_s": worst,
+            "rss_after_all_mb": rss_live, "peak_rss_mb": peak, "python": platform.python_version()}
+
+
+def tempfile_dir() -> str:
+    import tempfile
+
+    return tempfile.gettempdir()
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--server", action="store_true", help="measure a real uvicorn process instead of an in-process audit")
     ap.add_argument("--json", default="", help="write the runs to this file")
     ap.add_argument("--runs", type=int, default=3, help="fresh processes to measure")
     ap.add_argument("--label", default="", help="free-text label stored with the result (e.g. the commit)")
@@ -108,6 +194,17 @@ def main() -> int:
     args = ap.parse_args()
     if args.child:
         child()
+        return 0
+    if args.server:
+        runs = [server_run() for _ in range(args.runs)]
+        med = lambda key: sorted(r[key] for r in runs)[len(runs) // 2]  # noqa: E731
+        summary = {k: med(k) for k in ("seconds_to_health", "seconds_to_first_audit", "audit_mean_s", "audit_max_s", "rss_after_all_mb", "peak_rss_mb")}
+        print(f"uvicorn server, median of {len(runs)} fresh processes ({runs[0]['python']}, {platform.system()}):")
+        print(json.dumps(summary, indent=1))
+        print("worst case (last run):", runs[-1]["worst_case_s"])
+        if args.json:
+            Path(args.json).write_text(json.dumps({"label": args.label, "mode": "server", "summary": summary, "runs": runs}, ensure_ascii=False, indent=1), encoding="utf-8")
+            print("saved", args.json)
         return 0
     runs = []
     for _ in range(args.runs):

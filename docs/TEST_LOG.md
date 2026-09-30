@@ -290,3 +290,46 @@ Clean `git archive 3273078` in a temp dir, Python 3.12.13 (from `.python-version
 installed into a fresh venv (uv), then the Render start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 with `PORT=10000`, `AI_PROVIDER=none`, no keys: `/api/health` 200 (`mode: reduced`), `/` 200, `POST /api/audit`
 with sample 2 → 200, 7 quotations, 3 need review, source available. No Groq call. Steps for tomorrow: `docs/RENDER_DEPLOY.md`.
+
+## 2026-09-30 (evening) — unmarked phrase search (pre-challenge)
+
+Full tables and method: `docs/EVALUATION.md`, "Experiment — unmarked phrase search". Labels of `eval/cases.json` and `eval/heldout.json` unchanged (`git diff` empty).
+
+**Deterministic path first (no Groq calls):**
+- 20:45 baseline of the unchanged code (`8a4b8b7`), fallback mode: main 25/28 (unmarked 1/4), held-out 3/6 (2/5). Raw: `fallback-20260930-204519-baseline-cases.json`, `…204520-baseline-heldout.json`.
+  The four unmarked quotations that AI mode (Groq `qwen/qwen3.8-27b`, prompt v2) still missed: c11 ×2, h02, h03; without AI two more (c12 «ادعوني أستجيب لكم», h01 «وقل رب زدني علما»).
+- 20:49 baseline resources (`scripts/measure_resources.py`, fresh processes, macOS, Python 3.14): index load 0.45 s, peak 97.6 MB in-process (`eval/results/resources-baseline-8a4b8b7.json`).
+- 20:55 **frozen set** `eval/phrases_frozen.json` written and validated (`eval/validate_phrases.py`, `validate_labels.py` both "labels OK"), baseline run of the unchanged code:
+  18/32 detected, **8 misquotations reported "matched"**, 1 negative and 1 formula shown as confirmed (`…205537-baseline-phrases-frozen.json`). SHA-256 in `eval/phrases_frozen.sha256`; committed as `7ac49a3` **before any detection code**.
+- 21:0x–21:2x development on other data: a 1,704-case synthetic benchmark, 31 secular + 20 Islamic-topic Wikipedia articles (local, not committed). Parameter sweeps
+  (mass floor 10–16, candidate mass 18–22, near-match mass 12–22, minimum near-match words 3–5) and the intermediate runs on the main/held-out sets are in `eval/results/dev-iterations/`.
+  Wikipedia answered HTTP 429 when asked too fast; the download job paused and retried.
+- 21:17 **frozen run 1**: 30/32 detected; 1 misquotation "matched"; 2 negatives shown as `possible`; 0 shown as confirmed. It exposed two defects (a correct quotation stretched over a neighbouring
+  prose word through one weak near-match word; a pre-filter that rejected a one-letter change inside a word). Fixed without changing any threshold; tests added.
+- 21:20 **frozen run 2**: 30/32 detected; 2 misquotations "matched" (wrong words at the end of the quotation); 2 negatives shown as `possible`; 0 as confirmed. Both runs kept (`…211719-phrases-frozen-run1.json`, `…212006-phrases-frozen-run2.json`).
+- 21:49 final deterministic runs on main, held-out and the frozen set (run 3, after lowering the work budget): 27/28 (unmarked 3/4), 6/6 (5/5), 30/32 — identical in every finding, tier, verdict and source to the runs before the budget change
+  (`…214906-final2-cases.json`, `…214913-final2-heldout.json`, `…214914-phrases-frozen-run3-after-budget-change.json`).
+- Untuned prose (never used for tuning): 5 secular articles 18,612 words → 1 candidate, 0 "maybe"; 7 Islamic-topic articles 19,794 words → 188 candidates (185 vocalized/bracketed), 57 possible-exact (36 outside brackets), 10 possible-near (8 outside), 43 hidden.
+- Tests: `pytest` 167 passed (incl. fuzz of offsets, `tests/test_phrases_full.py` against the cached real text); `node --test tests/revision.test.mjs` 11 passed.
+  Browser: `scripts/ui_e2e.mjs` (old workflow) all PASS on the new code; `scripts/ui_phrase_e2e.mjs` (candidate vs maybe, confirm a verse, manual selection, mobile) all PASS. A 2,500-article fuzz (real phrases, mutations, punctuation, digits, ﷺ) gave
+  4,286 findings and 3,252 proposed changes with 0 offset errors, 0 overlaps and 0 changes attached to an unconfirmed «maybe» (slowest audit 0.15 s).
+
+- **Resources** (fresh processes, median of 5, macOS/arm64, Python 3.12.13 = Render's version; `eval/results/resources-py312-*.json`): in-process peak 93.8 MB → 75.7 MB, index 93.0 → 69.9 MB; real `uvicorn` server peak 112.8 MB → 94.1 MB,
+  process start → first audit 0.74 s → 0.72 s; 6,000-char unmarked mushaf run 0.023 s → 0.395 s; frequent-word soup 0.007 s → 0.803 s (cut off by the work budget).
+  Earlier Python 3.14 measurements: baseline in-process peak 97.6 MB, baseline server 120.6 MB, phrase search server 103.2 MB (`resources-baseline-8a4b8b7.json`, `resources-py314-*.json`; the "rss_after_all" field of the 3.14 baseline server run read the `time` wrapper, not the server, and is ignored).
+- **Full-size articles** (in-process, Python 3.12, whole audit of ~900–1,000-word Wikipedia chunks, final code): secular prose median 130 ms / p95 ≤ 0.22 s (129 chunks); Islamic-topic prose median 247–297 ms / p95 ≤ 0.40 s / max 0.43 s (92 chunks). Much slower than the old scan; Render's CPU will be slower still (untested).
+- **Work budget:** the first worst-case measurement (frequent-word soup) took 1.9 s with a 400,000-step budget; real text needed at most 41,131 steps (religious prose) / 1,957 (evaluation articles), so the budget was lowered to 80,000 (soup 0.8 s). Results on all three sets were identical afterwards.
+
+**AI compared separately (Groq `qwen/qwen3.8-27b`, prompt v2, after the deterministic runs; free tier):**
+- 21:21 frozen set, pace 12 s → **stopped at f18, HTTP 400** after 17 successful cases (`stopped-20260930-212439-phrases-frozen-ai.json`, not an AI result). One diagnostic call for the same article immediately afterwards returned 200 with an empty list, so the 400 was not reproducible.
+- 21:25 main set, default settings, 14/14 responded: 28/28 detected, unmarked 4/4 (`ai-20260930-212840-ai-cases-new-pipeline.json`). 21:30 held-out set, 4/4 responded: 6/6, unmarked 5/5 (`ai-20260930-213033-ai-heldout-new-pipeline.json`).
+- 21:39 frozen set again, pace 12 s → **stopped at f03, HTTP 429** (`stopped-20260930-213957-phrases-frozen-ai-attempt2.json`). The 429 body: *output tokens per minute (OTPM): Limit 1000, Requested 1100* (input budget untouched: `x-ratelimit-remaining-tokens: 8000`).
+  A single probe with `GROQ_MAX_COMPLETION_TOKENS=512` succeeded. (Earlier, on the input-token limit, the cap made no difference; this time it did for one probe. Not a controlled test.)
+- 21:40 frozen set with `GROQ_MAX_COMPLETION_TOKENS=512`, pace 15 s → **stopped at f09, HTTP 400** after 8 successes (`stopped-20260930-214251-phrases-frozen-ai-attempt3-maxtok512.json`).
+- Added `--retry-400 N` to `eval/run_eval.py` (retries only HTTP 400, every retry recorded, 429 and other failures still stop the run).
+- 21:43 fourth attempt (cap 512, pace 15 s, `--retry-400 1`): **completed — 49/49 responded, one case (f18) retried after a transient 400** (`ai-20260930-215601-phrases-frozen-ai-attempt4-maxtok512-retry400.json`):
+  30/32 unmarked detected, same two misses (f21, f29); 4 candidates proposed (3 located, 1 discarded: «لا تزر وازرة وزر أخرى», the article has «ولا تزر…»); 2 findings on negatives, both `possible`, 0 shown as confirmed;
+  2 misquotations still "matched". The AI re-labelled 3 findings (f07, f15 vocalized exact; f26 misquotation) as found-by-AI; no new detection.
+- Groq calls made for this comparison: 101 in total — frozen attempt 1: 18 (17 ok + the 400), main 14, held-out 4, attempt 2: 3 (2 ok + the 429), attempt 3: 9 (8 ok + the 400), attempt 4: 50 (49 + 1 retry), and 3 single diagnostic calls (the f18 article; the 429 probe; the 512-token probe).
+- Main (21:25) and held-out (21:30) AI passes used the defaults (completion cap 4096, pace 12 s, no retries); the frozen pass used cap 512, pace 15 s, one retry on 400 (temperature 0, so the cap only matters if an output exceeded 512 tokens).
+

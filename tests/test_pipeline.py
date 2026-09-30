@@ -109,9 +109,9 @@ def test_reference_attached_to_nearest_quote(use_source):
     assert all(f["reference"]["status"] == "matched" for f in res["findings"])
 
 
-def test_unmarked_exact_run_is_found_by_scan(use_source):
+def test_unmarked_exact_run_is_found_by_phrase_search(use_source):
     res = run_audit("ومن هنا قيل وتعاونوا على البر والتقوى ولا تعاونوا على الإثم والعدوان وهذا أصل.")
-    assert res["findings"][0]["detected_by"] == ["scan"]
+    assert res["findings"][0]["detected_by"] == ["phrase"]
     assert res["findings"][0]["source"]["label"] == "المائدة: 2"
 
 

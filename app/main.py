@@ -18,10 +18,10 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from .audit import InputError, run_audit
+from .audit import InputError, run_audit, run_phrase
 from .config import settings
 from .extraction import get_provider
-from .quran_source import source
+from .quran_source import SourceUnavailable, source
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("auditor")
@@ -35,6 +35,18 @@ app = FastAPI(title="مدقق الاقتباسات القرآنية", docs_url=N
 
 class AuditRequest(BaseModel):
     article: str = Field(..., max_length=settings.max_chars * 2)
+
+
+class PhraseRequest(BaseModel):
+    """A span the editor highlighted (code-point offsets into ``article``) and, optionally, the verse they chose."""
+
+    article: str = Field(..., max_length=settings.max_chars * 2)
+    start: int
+    end: int
+    surah: int | None = Field(None, ge=1, le=114)
+    ayah_start: int | None = Field(None, ge=1, le=286)
+    ayah_end: int | None = Field(None, ge=1, le=286)
+    finding_id: int = Field(1, ge=1, le=10_000)
 
 
 # --- tiny in-memory rate limiter (per instance, best effort) ---------------
@@ -120,6 +132,19 @@ def audit(body: AuditRequest, request: Request):
         return run_audit(body.article)
     except InputError as exc:
         return JSONResponse({"error": str(exc)}, status_code=400)
+
+
+@app.post("/api/phrase")
+def phrase(body: PhraseRequest, request: Request):
+    """Verify one highlighted span without AI (no Groq call): the manual path for phrases the search missed."""
+    if _rate_limited(_client_ip(request)):
+        return JSONResponse({"error": "عدد الطلبات كبير؛ حاول بعد دقيقة."}, status_code=429)
+    try:
+        return run_phrase(body.article, body.start, body.end, body.surah, body.ayah_start, body.ayah_end, body.finding_id)
+    except InputError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    except SourceUnavailable:
+        return JSONResponse({"error": "تعذّر الوصول إلى قرآنبيديا الآن. أعد المحاولة لاحقًا."}, status_code=503)
 
 
 @app.get("/")

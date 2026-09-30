@@ -336,8 +336,15 @@ def unavailable_result(ref: Reference | None) -> dict:
     }
 
 
-def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> dict:
-    """Verify a quotation given as a list of raw article words."""
+def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None,
+           pin: Reference | None = None, hints: list[Span] | None = None) -> dict:
+    """Verify a quotation given as a list of raw article words.
+
+    ``pin`` is a verse the editor chose by hand. It settles the location the way a nearby written reference
+    does (repeated or very short phrases), but is never reported as a reference the writer wrote.
+    ``hints`` are places the phrase search thinks are close; they are only *offered* to the fuzzy alignment,
+    they never make a match count as a reference and they confirm nothing.
+    """
     qf = [arabic.folded(w) for w in quote_words]
     reasons: list[str] = []
     wording: dict = {"status": "uncertain", "level": None, "similarity": None, "message": "", "diff": [], "script_diffs": [], "diacritic_conflicts": []}
@@ -351,15 +358,17 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> 
     exact = find_exact(index, qf)
     occurrences = len(exact)
     ref_ok = ref if (ref and ref.valid) else None
+    loc = ref_ok or (pin if (pin and pin.valid) else None)  # what settles the location: a written reference, else the chosen verse
 
     if exact:
-        confirmed = [sp for sp in exact if ref_ok and ref_overlaps(ref_ok, index, sp)[0]]
+        confirmed = [sp for sp in exact if loc and ref_overlaps(loc, index, sp)[0]]
         if len(exact) == 1 and len(qf) >= MIN_WORDS:
             chosen = exact[0]
-        elif confirmed and (len(confirmed) == 1 or ref_ok.ayah_start is not None):
+        elif confirmed and (len(confirmed) == 1 or loc.ayah_start is not None):
             chosen = confirmed[0]
             if len(exact) > 1:
-                wording["message"] = f"العبارة واردة في {len(exact)} مواضع، وحددت الإحالةُ المجاورة موضعها."
+                by = "وحددت الإحالةُ المجاورة موضعها" if loc is ref_ok else "وحدّدتَ الموضع بنفسك"
+                wording["message"] = f"العبارة واردة في {len(exact)} مواضع، {by}."
         elif len(exact) == 1:
             chosen = exact[0]
             reasons.append(f"الاقتباس قصير ({len(qf)} كلمة)، ولا يكفي وحده لتأكيد أنه اقتباس قرآني.")
@@ -379,20 +388,21 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> 
                     msg += " قد يرجع بعضه إلى اختلاف طريقة الضبط بين طبعات المصاحف (كعلامات الإدغام)، فيُرجى التأكد."
                 wording["message"] = (wording["message"] + " " if wording["message"] else "") + msg
             else:
-                short_unconfirmed = len(qf) < MIN_WORDS and not (ref_ok and ref_overlaps(ref_ok, index, chosen)[0])
+                short_unconfirmed = len(qf) < MIN_WORDS and not (loc and ref_overlaps(loc, index, chosen)[0])
                 wording["status"] = "uncertain" if short_unconfirmed else "matched"
             wording["diff"] = [{"op": "equal", "quote": " ".join(quote_words), "source": " ".join(span_words(index, chosen))}]
         else:
             wording["status"] = "uncertain"
     else:
-        extra = [sp for sp in [ref_span(index, ref_ok)] if sp] if ref_ok else []
+        extra = [sp for sp in [ref_span(index, loc)] if sp] if loc else []
+        extra += [h for h in (hints or []) if h.surah in index.streams]
         cands = fuzzy_candidates(index, qf, extra) if len(qf) >= MIN_WORDS or extra else []
         good = [c for c in cands if c.similarity >= FUZZY_ACCEPT and sum(i2 - i1 for t, i1, i2, _, _ in c.ops if t == "equal") >= 2]
         if good:
             best = good[0]
             # prefer the referenced passage when it is (nearly) as close as the best one
             for c in good:
-                if ref_ok and ref_overlaps(ref_ok, index, c.span)[0] and c.similarity >= best.similarity - 0.05:
+                if loc and ref_overlaps(loc, index, c.span)[0] and c.similarity >= best.similarity - 0.05:
                     best = c
                     break
             chosen = best.span
@@ -424,7 +434,7 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None) -> 
         # deterministic letter-form / diacritics finding; still worth a human look
         reasons.append(wording["message"])
 
-    proposal = propose_wording(index, quote_words, wording, chosen, fuzzy_best, fuzzy_good, ref_ok)
+    proposal = propose_wording(index, quote_words, wording, chosen, fuzzy_best, fuzzy_good, loc)
     return {
         "wording": wording,
         "proposal": proposal,

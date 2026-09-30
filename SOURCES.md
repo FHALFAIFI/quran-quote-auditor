@@ -1,6 +1,6 @@
 # Sources, licences and attribution record
 
-Last reviewed: 2026-09-29 (pre-challenge work; Groq provider added).
+Last reviewed: 2026-09-30 (pre-challenge work; Groq provider; ordinary-prose sample for false-suggestion measurement).
 
 ## 1. Quran text — Quranpedia (authoritative source)
 
@@ -62,6 +62,14 @@ Node.js built-in test runner for `tests/revision.test.mjs`.
 | typing_extensions | PSF-2.0 |
 | packaging | Apache-2.0 / BSD-2-Clause |
 | Pygments | BSD-2-Clause |
+
+## 4b. Ordinary Arabic prose used only to measure false suggestions (local, not part of the repository)
+
+| Item | Detail |
+|---|---|
+| Source | Arabic Wikipedia (https://ar.wikipedia.org), plain-text extracts through its public API: 36 secular and 27 Islamic-topic articles, fetched on 2026-09-30 with a descriptive User-Agent and pauses between requests (the API answered 429 when asked too fast; the job waited and retried). |
+| Licence | CC BY-SA 4.0 (Wikipedia contributors). |
+| Use | Read locally to count how often the phrase search reports something in ordinary prose (`docs/EVALUATION.md`). The text is **not committed, not redistributed and not used at runtime**; only aggregate counts and a few short phrases quoted in the evaluation appear in the repository. |
 
 ## 5. Project code
 

@@ -245,3 +245,17 @@ details.alts ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: .92rem
 .reply-box { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .reply-box summary { cursor: pointer; color: var(--violet); font-weight: 500; }
 .reply-text { min-height: 140px; }
+
+/* --- unmarked-phrase detection: a candidate is distinctive, a "maybe" is not a verdict ---------------- */
+.chip.cand { background: var(--violet-soft); color: #3B2FA8; }
+.chip.maybe { background: var(--warn-bg); color: var(--warn-fg); border: 1px dashed #C9A21A; }
+.chip.manual { background: var(--surface-2); color: var(--navy-3); border: 1px solid var(--line); }
+.article-view mark.s-possible { background: transparent; box-shadow: none; border-bottom: 2px dashed #C9A21A; border-radius: 0; }
+.finding.weak { border-style: dashed; }
+.detect-note { font-size: .88rem; background: var(--surface-2); border-inline-start: 3px solid var(--violet); border-radius: 8px; padding: 6px 10px; }
+.detect-note.possible { border-inline-color: #C9A21A; background: var(--warn-bg); color: var(--warn-fg); }
+.confirm-box { border: 1px dashed var(--violet); border-radius: 12px; padding: 10px 12px; background: var(--surface-2); }
+.confirm-box .choice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.confirm-box .choice .quran { flex: 1 1 260px; }
+.manual-note { margin: 10px 0 0; font-size: .85rem; color: var(--muted); }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }

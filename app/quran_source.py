@@ -46,7 +46,6 @@ MUSHAF_URL = f"{API_BASE}/mushafs/{MUSHAF_ID}"
 CACHE_TTL = 24 * 3600
 STALE_LIMIT = 7 * 24 * 3600
 FAILURE_BACKOFF = 60
-NGRAM = 4
 
 
 def ayah_api_url(surah: int, ayah: int) -> str:
@@ -77,8 +76,6 @@ class QuranIndex:
     streams: dict[int, list[tuple[str, int, int]]]
     # folded word -> [(surah, position in stream)]
     positions: dict[str, list[tuple[int, int]]]
-    # tuple of NGRAM folded words -> [(surah, position)]
-    ngrams: dict[tuple[str, ...], list[tuple[int, int]]]
     # folded word -> number of ayahs containing it (for weighting)
     doc_freq: dict[str, int]
     # (surah, ayah) -> (first, last+1) position in the surah stream
@@ -109,7 +106,6 @@ def build_index(raw_ayahs: list[dict], fetched_at: float) -> QuranIndex:
     ayahs: dict[tuple[int, int], Ayah] = {}
     streams: dict[int, list[tuple[str, int, int]]] = defaultdict(list)
     positions: dict[str, list[tuple[int, int]]] = defaultdict(list)
-    ngrams: dict[tuple[str, ...], list[tuple[int, int]]] = defaultdict(list)
     doc_freq: dict[str, int] = defaultdict(int)
     ayah_pos: dict[tuple[int, int], tuple[int, int]] = {}
     for rec in sorted(raw_ayahs, key=lambda r: (int(r["surah"]), int(r["number"]))):
@@ -124,10 +120,9 @@ def build_index(raw_ayahs: list[dict], fetched_at: float) -> QuranIndex:
         for i, f in enumerate(folds):
             positions[f].append((s, len(stream)))
             stream.append((f, n, i))
-    for s, stream in streams.items():
-        for p in range(len(stream) - NGRAM + 1):
-            ngrams[tuple(stream[p + k][0] for k in range(NGRAM))].append((s, p))
-    return QuranIndex(dict(ayahs), dict(streams), dict(positions), dict(ngrams), dict(doc_freq), ayah_pos, fetched_at)
+    # No phrase index is kept: phrase search (app/phrases.py) walks ``streams`` from ``positions``,
+    # which saves the ~21 MB a dictionary of every 4-word sequence used to take.
+    return QuranIndex(dict(ayahs), dict(streams), dict(positions), dict(doc_freq), ayah_pos, fetched_at)
 
 
 def _flatten_mushaf(payload: dict) -> list[dict]:
