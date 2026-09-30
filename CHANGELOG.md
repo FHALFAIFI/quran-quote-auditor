@@ -16,7 +16,8 @@ _Record every change made during the challenge here, with its date. Nothing yet.
 | 2026-09-29 | `48d92b2` | Editor workflow: source-backed corrections, approve/reject, revised article, review record |
 | 2026-09-29 | `4b0a5c5` | Evaluation: AI mode stops on first fallback; correction-safety scoring |
 | 2026-09-29 | `3e74cf3` | Documentation, label-review checklist, continuation plan |
-| 2026-09-29 | (this commit) | Copy-only reply draft for a social post; deploy attempt logged (blocked); submission drafts updated (local) |
+| 2026-09-29 | `f51bbc3` | Copy-only reply draft for a social post; deploy attempt logged (blocked); submission drafts updated (local) |
+| 2026-09-30 | (this commit) | First real Groq calls: responded on 3/3 samples and 14/14 labelled cases, but detection unchanged (25/28, unmarked 1/4); labels unchanged; raw result `eval/results/ai-20260930-165858.json`; Groq privacy note in the page footer; deploy still blocked |
 
 ## Pre-challenge baseline — 2026-09-28
 

@@ -159,3 +159,46 @@ wording/diacritics errors receive a fix that re-verifies against Quranpedia, 4 c
 - Video draft `submission/video/demo-B-draft.mp4`: **1:44**, H.264/AAC 1280×720, recorded with Playwright from
   the local app in reduced mode, synthetic narration (macOS voice "Majed"). Frames checked for each scene.
   It is variant B only (no AI shown).
+
+## 2026-09-30 — first real Groq calls (pre-challenge: dated before 4 October)
+
+### Minimal call
+
+- 16:58:13 (UTC+3), local, key from `.env` (not printed): `qwen/qwen3.8-27b`, prompt "Reply with ok",
+  `max_completion_tokens` 8, `reasoning_effort: "none"` → **HTTP 200 in 0.76 s**, reply `ok`, finish `stop`,
+  17 tokens. Account limits in the response headers: 1,000 requests and 8,000 tokens per minute.
+- **AI extraction is now verified to respond**. It is **not** shown to add detections (see below).
+
+### Three samples, local, `AI_PROVIDER=groq` (`scripts/e2e_check.py http://localhost:8765`)
+
+| Sample | AI outcome | Model candidates (proposed / located / discarded) | Findings |
+|---|---|---|---|
+| 1 — العلم | ok, HTTP 200, 753 ms | 5 / 5 / 0 | 5 (same verdicts as 28–29 Sep) |
+| 2 — الصبر | ok, HTTP 200, 278 ms | **0** / 0 / 0 | 7 (same) |
+| 3 — no brackets | ok, HTTP 200, 346 ms | **0** / 0 / 0 | 3 (same). «وافعلوا الخير لعلكم تفلحون» is **still missed**. |
+
+- The UI shows `mode = ai` and names Groq. Error cases and the must-not-serve paths: all as expected, 0 failures.
+- One extra direct request with the app's exact request body for sample 3 returned `{"candidates": []}`
+  (464 prompt tokens, 7 completion tokens, finish `stop`). The empty result is the model's answer, not a parsing loss.
+
+### Labelled evaluation, AI mode (unchanged labels and scoring)
+
+`python eval/run_eval.py --mode ai` → all **14/14 cases responded** (HTTP 200, 258–507 ms per call); raw output
+`eval/results/ai-20260930-165858.json`. Every detection, verdict and correction number is **identical to fallback**:
+25/28 detected, unmarked 1/4, 0 false "matched", 0 fixes for correct text. The model proposed 16 candidates
+in total (all located, 0 discarded), only in cases whose quotations are already marked. It proposed **nothing**
+for c11 and c12 (the unmarked short quotes it is meant to add), nor for c05, c06, c07 and c13 (c13 has only non-Quran negatives, so empty is correct there). See `EVALUATION.md`.
+
+### Browser workflow, local with Groq live
+
+`scripts/ui_e2e.mjs http://localhost:8765` → **26/26 passed** (approve/reject, revised article, preview, copy,
+reply draft, filter, review record, reload, markup safety, mobile, no console errors). `pytest` → 125 passed.
+
+### Deployment — blocked again; live workflow not tested
+
+- `GROQ_API_KEY` is **not** in the Vercel project's variables (`vercel env ls`: only `AI_PROVIDER`,
+  `GEMINI_API_KEY`, `GEMINI_FALLBACK_MODELS`, all Production).
+- `npx vercel deploy --prod` (account `fhalfaifi`, commit `f51bbc3`) → deployment `dpl_EVKfRAaDXspKgYm2Gh4zimrvCfra`
+  **Blocked**: «the commit author doesn't have permission to create deployments for this project». The commit author is
+  `281715064+FHALFAIFI@users.noreply.github.com`. No workaround was used. The live site still serves `2860743` (28 Sep),
+  so the editor workflow was **not** tested on the live URL.

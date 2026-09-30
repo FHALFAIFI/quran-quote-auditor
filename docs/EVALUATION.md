@@ -6,7 +6,7 @@
 - The articles were written by the project author for this test, using the same AI-assisted workflow that built the app. They are not an independent sample of real articles.
 - A human reviewer still needs to confirm the labels (checklist: `docs/LABEL_REVIEW.md`).
 - The results show how the pipeline behaves on the listed case types. They are **not** a general accuracy figure.
-- **AI-mode results do not exist yet.** No real AI call has succeeded: Gemini returned 503/429, and no Groq key has been configured (see `TEST_LOG.md`).
+- **AI mode (Groq, 30 Sep 2026) responded on every case but added no detections**; see "Results — AI mode".
 
 ## Labelled set (`eval/cases.json`, v1)
 
@@ -104,16 +104,27 @@ Limits: 6 wording errors and 6 reference problems are far too few to estimate a 
 One fix (c04, «وقبائلاً» → «وَقَبَائِلَ») is fully vocalized because the writer had vocalized that word;
 this is consistent with the style rule but looks mixed in an otherwise unvocalized sentence.
 
-## Results — AI mode
+## Results — AI mode (Groq), 2026-09-30
 
-**Not yet available.** Fill this in only after a real AI response, by running
-`python eval/run_eval.py --mode ai` (uses the configured provider; Groq by default when `GROQ_API_KEY` is set).
-The script refuses to start without a configured provider, stops at the **first case that falls back**
-(no retries, to save quota), and records nothing as an AI result unless the model responded on every case.
-Each saved run lists per case: provider, model, HTTP status, time, candidates proposed/located/discarded, and errors.
-On 2026-09-29 it was run once without a key and correctly refused: "NOT AN AI RUN: no AI provider is configured".
-The key comparison to report is detection of the unmarked quotations (1/4 in fallback), while the
-false-"matched" counts stay at zero.
+Command: `python eval/run_eval.py --mode ai` with `AI_PROVIDER=groq`, model `qwen/qwen3.8-27b`, `reasoning_effort: "none"`,
+**same unchanged labels and scoring**. Raw output: `eval/results/ai-20260930-165858.json`. One run only.
+
+| Measure | Fallback (29 Sep) | AI mode (30 Sep) |
+|---|---|---|
+| Cases where the AI responded | — | **14 / 14** (HTTP 200, 258–507 ms) |
+| Gold quotations detected | 25 / 28 | **25 / 28** |
+| · unmarked | 1 / 4 | **1 / 4** |
+| False "matched" wording / reference | 0 / 0 | 0 / 0 |
+| Findings on non-Quran negatives | 0 / 5 | 0 / 5 |
+| Wording fixes that re-verify / wrong | 6 / 0 | 6 / 0 |
+| Fixes proposed for correct text or references | 0 | 0 |
+| Model candidates proposed / discarded | — | 16 / 0 |
+
+**Observed:** the model proposed candidates only in 8 cases, all with already-marked quotations. It returned an
+empty list for c11 and c12, the unmarked short quotes that AI extraction is meant to add, and for 4 other
+cases. On this set, AI extraction with the current prompt and model therefore **adds nothing** over fallback. The good
+news is that it also added no false findings. Whether a different prompt, `reasoning_effort` or model does better is
+untested; any change must be re-run on these same labels and reported as a separate run.
 
 ## Next steps
 

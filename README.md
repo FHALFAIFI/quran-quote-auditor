@@ -7,9 +7,10 @@
 > work. Only work committed during 4–6 October 2026 counts as challenge work.
 > See [BASELINE.md](BASELINE.md) and [CHANGELOG.md](CHANGELOG.md).
 >
-> **AI status (29 Sep 2026): unverified.** No real AI extraction call has succeeded
-> yet (Gemini returned 503/429; no Groq key has been configured). Everything shown
-> as working below runs on the deterministic path. See [docs/TEST_LOG.md](docs/TEST_LOG.md).
+> **AI status (30 Sep 2026): responds, adds nothing yet.** Groq (`qwen/qwen3.8-27b`) answered on all
+> 3 samples and all 14 labelled cases, but proposed no quotation that the deterministic path had not already
+> found (unmarked quotes still 1/4). Not yet live: the Vercel deploy is blocked and `GROQ_API_KEY` is not
+> set there. See [docs/TEST_LOG.md](docs/TEST_LOG.md) and [docs/EVALUATION.md](docs/EVALUATION.md).
 
 **AI Challenge Serving Islamic Content 2026 — Track 4: knowledge and verification tools.**
 
@@ -219,8 +220,11 @@ Gemini is used only when no Groq key is set.
    Never paste it into code, issues, commits, screenshots or the demo video.
 5. If a key is ever exposed, delete it in AI Studio immediately and create a new one.
 
-Privacy: when AI extraction is enabled, the article text is sent to the selected provider (Groq or Google Gemini).
-Check Google's current Gemini API terms for your tier; on some unpaid tiers,
+Privacy: the deployed app uses **Groq** (`AI_PROVIDER=groq`), and the page footer names Groq. When AI
+extraction is enabled, the article text is sent to Groq, which by default does not retain inference data except
+for up to 30 days when troubleshooting errors or investigating abuse (https://console.groq.com/docs/your-data,
+checked 30 Sep 2026). If you switch to Gemini, update the footer text in `app/static/index.html`, and
+check Google's current Gemini API terms for your tier; on some unpaid tiers,
 submitted content may be used to improve Google's products. A paid tier is advisable
 for real editorial content. The app itself does not store or log articles.
 
