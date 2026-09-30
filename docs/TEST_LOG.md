@@ -239,3 +239,6 @@ Full tables: `docs/EVALUATION.md`, "Experiment". Labels unchanged (`git diff eva
 - 17:48 deploy of committed `71769ae` from a clean git worktree → `dpl_7m3aDYoWRPCKfnAMi9iq4meH1ZY1` **READY**.
   But the CLI attached **no git metadata** from the worktree, so this deploy **did not go through the author check**.
   It does not show the block is fixed. Live now serves `71769ae`, reduced mode (`GROQ_API_KEY` not set).
+- 18:3x ordinary `vercel deploy --prod` from the main checkout, clean tree, commit `3273078` →
+  **`dpl_9HzjDrVyKBmLBy8UAw2bUfZs3Qbf` BLOCKED** again, although the GitHub connection is confirmed. Findings and a
+  support message are prepared (local, `submission/VERCEL_SUPPORT.md`). Live still serves `71769ae` (prompt v1, no key).
