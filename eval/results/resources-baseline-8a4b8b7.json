@@ -1,0 +1,100 @@
+{
+ "label": "baseline 8a4b8b7 (before unmarked-phrase work)",
+ "summary": {
+  "import_s": 0.042,
+  "index_load_s": 0.453,
+  "first_audit_s": 0.002,
+  "audit_mean_s": 0.0014,
+  "audit_max_s": 0.0073,
+  "rss_after_import_mb": 34.0,
+  "rss_after_index_mb": 97.0,
+  "rss_end_mb": 97.6,
+  "peak_rss_mb": 97.6
+ },
+ "runs": [
+  {
+   "python": "3.14.7",
+   "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+   "import_s": 0.071,
+   "rss_after_import_mb": 34.0,
+   "index_load_s": 0.458,
+   "index_loaded_from": "disk",
+   "rss_after_index_mb": 96.8,
+   "first_audit_s": 0.002,
+   "articles": 18,
+   "audit_mean_s": 0.0014,
+   "audit_max_s": 0.0073,
+   "rss_after_eval_articles_mb": 97.2,
+   "worst_case": {
+    "worst:unmarked-mushaf-run": {
+     "chars": 6000,
+     "seconds": 0.024,
+     "findings": 2
+    },
+    "worst:frequent-word-soup": {
+     "chars": 5900,
+     "seconds": 0.007,
+     "findings": 0
+    }
+   },
+   "rss_end_mb": 97.4,
+   "peak_rss_mb": 97.4
+  },
+  {
+   "python": "3.14.7",
+   "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+   "import_s": 0.042,
+   "rss_after_import_mb": 33.8,
+   "index_load_s": 0.452,
+   "index_loaded_from": "disk",
+   "rss_after_index_mb": 97.0,
+   "first_audit_s": 0.002,
+   "articles": 18,
+   "audit_mean_s": 0.0014,
+   "audit_max_s": 0.0073,
+   "rss_after_eval_articles_mb": 97.3,
+   "worst_case": {
+    "worst:unmarked-mushaf-run": {
+     "chars": 6000,
+     "seconds": 0.024,
+     "findings": 2
+    },
+    "worst:frequent-word-soup": {
+     "chars": 5900,
+     "seconds": 0.008,
+     "findings": 0
+    }
+   },
+   "rss_end_mb": 97.6,
+   "peak_rss_mb": 97.6
+  },
+  {
+   "python": "3.14.7",
+   "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+   "import_s": 0.042,
+   "rss_after_import_mb": 34.0,
+   "index_load_s": 0.453,
+   "index_loaded_from": "disk",
+   "rss_after_index_mb": 97.2,
+   "first_audit_s": 0.003,
+   "articles": 18,
+   "audit_mean_s": 0.0016,
+   "audit_max_s": 0.009,
+   "rss_after_eval_articles_mb": 97.5,
+   "worst_case": {
+    "worst:unmarked-mushaf-run": {
+     "chars": 6000,
+     "seconds": 0.024,
+     "findings": 2
+    },
+    "worst:frequent-word-soup": {
+     "chars": 5900,
+     "seconds": 0.008,
+     "findings": 0
+    }
+   },
+   "rss_end_mb": 97.9,
+   "peak_rss_mb": 97.9
+  }
+ ]
+}

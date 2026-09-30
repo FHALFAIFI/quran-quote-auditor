@@ -1,0 +1,1030 @@
+{
+  "_about": "Frozen evaluation set for unmarked / short / misquoted Quran phrases, v1 (2026-09-30). WRITTEN AND FROZEN BEFORE ANY UNMARKED-PHRASE DETECTION CODE WAS WRITTEN OR TUNED; the SHA-256 of this file is recorded in eval/phrases_frozen.sha256 and in the freezing commit. Author-written with the same AI-assisted workflow as the other sets (not an independent sample); labels cross-checked against the Quranpedia Hafs text by eval/validate_phrases.py (which does not use the app's matching code); pending human review. Same fields as eval/cases.json, plus: case.category = exact | misquote | negative | formula; case.formulas = common formulae that are Quran text but used as everyday expressions (بسملة، حمدلة، شهادة، استرجاع، إن شاء الله): they are NOT expected to be presented as a confirmed quotation. gold.wording = correct (exact Hafs wording, diacritics optional) | wording_error (slightly misquoted; correct_text is the Hafs wording). Every gold quotation is unmarked and has no written reference. negatives = non-Quran strings (hadith, du'a, proverbs, maxims, ordinary Arabic); some deliberately share a short contiguous run with the Quran ('hard' negatives; reported by the validator). Metrics defined before tuning: unmarked detection = gold quotations overlapped >= 50% by a finding (any tier) with its source location correct (for ambiguous ones: one of the listed verses shown); false suggestion = any finding overlapping a negative or formula; false confirmed = a finding on a negative/formula shown as a confirmed candidate (detection tier 'candidate' or wording 'matched' without the 'maybe' label), a gold quotation given a wrong verse as if confirmed, or a misquoted gold quotation reported wording 'matched'.",
+  "version": 1,
+  "cases": [
+    {
+      "id": "f01-exact",
+      "category": "exact",
+      "article": "الصبر مفتاح الفرج، ونقول لكل متعب إن الله مع الصابرين مهما طال الطريق.",
+      "gold": [
+        {
+          "quote": "إن الله مع الصابرين",
+          "surah": 2,
+          "ayah_start": 153,
+          "ayah_end": 153,
+          "correct_text": "إن الله مع الصابرين",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f02-exact",
+      "category": "exact",
+      "article": "لا تعتمد على حيلتك وحدها، فكل توفيق من عند الله، وما توفيقي إلا بالله كما قال شعيب لقومه.",
+      "gold": [
+        {
+          "quote": "وما توفيقي إلا بالله",
+          "surah": 11,
+          "ayah_start": 88,
+          "ayah_end": 88,
+          "correct_text": "وما توفيقي إلا بالله",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f03-exact",
+      "category": "exact",
+      "article": "مهما طال العمر فالنهاية واحدة، وكل نفس ذائقة الموت فلنحسن العمل قبل الرحيل.",
+      "gold": [
+        {
+          "quote": "كل نفس ذائقة الموت",
+          "surah": 3,
+          "ayah_start": 185,
+          "ayah_end": 185,
+          "correct_text": "كل نفس ذائقة الموت",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f04-exact",
+      "category": "exact",
+      "article": "لا تجزع من الأزمات فإن مع العسر يسرا والفرج قريب.",
+      "gold": [
+        {
+          "quote": "فإن مع العسر يسرا",
+          "surah": 94,
+          "ayah_start": 5,
+          "ayah_end": 5,
+          "correct_text": "فإن مع العسر يسرا",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f05-exact",
+      "category": "exact",
+      "article": "من آداب المجالس ألا نتتبع العورات؛ فقد نهانا ربنا ولا تجسسوا ولا يغتب بعضكم بعضا لأن الغيبة تفسد القلوب.",
+      "gold": [
+        {
+          "quote": "ولا تجسسوا ولا يغتب بعضكم بعضا",
+          "surah": 49,
+          "ayah_start": 12,
+          "ayah_end": 12,
+          "correct_text": "ولا تجسسوا ولا يغتب بعضكم بعضا",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f06-exact",
+      "category": "exact",
+      "article": "والماء أصل الحياة في كل مخلوق، وجعلنا من الماء كل شيء حي آية على قدرة الخالق.",
+      "gold": [
+        {
+          "quote": "وجعلنا من الماء كل شيء حي",
+          "surah": 21,
+          "ayah_start": 30,
+          "ayah_end": 30,
+          "correct_text": "وجعلنا من الماء كل شيء حي",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f07-exact-vocalized",
+      "category": "exact",
+      "article": "القلب لا يهدأ بكثرة المال، أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ وتسكن النفوس.",
+      "gold": [
+        {
+          "quote": "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+          "surah": 13,
+          "ayah_start": 28,
+          "ayah_end": 28,
+          "correct_text": "ألا بذكر الله تطمئن القلوب",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium",
+            "vocalized"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f08-exact",
+      "category": "exact",
+      "article": "وحدة الصف قوة للأمة، واعتصموا بحبل الله جميعا ولا تفرقوا هكذا أوصانا ربنا.",
+      "gold": [
+        {
+          "quote": "واعتصموا بحبل الله جميعا ولا تفرقوا",
+          "surah": 3,
+          "ayah_start": 103,
+          "ayah_end": 103,
+          "correct_text": "واعتصموا بحبل الله جميعا ولا تفرقوا",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f09-exact",
+      "category": "exact",
+      "article": "والسعي أساس النجاح، وأن ليس للإنسان إلا ما سعى فلا ينتظر أحد المعجزات.",
+      "gold": [
+        {
+          "quote": "وأن ليس للإنسان إلا ما سعى",
+          "surah": 53,
+          "ayah_start": 39,
+          "ayah_end": 39,
+          "correct_text": "وأن ليس للإنسان إلا ما سعى",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f10-exact",
+      "category": "exact",
+      "article": "من طرق الطمأنينة الذكر والشكر، ففي القرآن فاذكروني أذكركم واشكروا لي وهو وعد كريم.",
+      "gold": [
+        {
+          "quote": "فاذكروني أذكركم واشكروا لي",
+          "surah": 2,
+          "ayah_start": 152,
+          "ayah_end": 152,
+          "correct_text": "فاذكروني أذكركم واشكروا لي",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f11-exact",
+      "category": "exact",
+      "article": "وفي حسن الكلام سعة، وقولوا للناس حسنا يكفيك هذا عنوانًا للحوار.",
+      "gold": [
+        {
+          "quote": "وقولوا للناس حسنا",
+          "surah": 2,
+          "ayah_start": 83,
+          "ayah_end": 83,
+          "correct_text": "وقولوا للناس حسنا",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short",
+            "very_short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f12-exact",
+      "category": "exact",
+      "article": "لكل إنسان حسابه الخاص، ولا تزر وازرة وزر أخرى فلا يحمل أحد خطأ غيره.",
+      "gold": [
+        {
+          "quote": "ولا تزر وازرة وزر أخرى",
+          "surah": 6,
+          "ayah_start": 164,
+          "ayah_end": 164,
+          "correct_text": "ولا تزر وازرة وزر أخرى",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f13-exact",
+      "category": "exact",
+      "article": "وللمحتسب الصابر أجر عظيم، ولسوف يعطيك ربك فترضى وعد يملأ القلب أملًا.",
+      "gold": [
+        {
+          "quote": "ولسوف يعطيك ربك فترضى",
+          "surah": 93,
+          "ayah_start": 5,
+          "ayah_end": 5,
+          "correct_text": "ولسوف يعطيك ربك فترضى",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f14-exact",
+      "category": "exact",
+      "article": "ردد الخطيب يا أيها الذين آمنوا اتقوا الله ثم أكمل الخطبة بالموعظة.",
+      "gold": [
+        {
+          "quote": "يا أيها الذين آمنوا اتقوا الله",
+          "surah": 2,
+          "ayah_start": 278,
+          "ayah_end": 278,
+          "correct_text": "يا أيها الذين آمنوا اتقوا الله",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium",
+            "common_formula_start"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f15-exact-vocalized",
+      "category": "exact",
+      "article": "وفي التوكل راحة البال، وَمَنْ يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ فلا خوف من الغد.",
+      "gold": [
+        {
+          "quote": "وَمَنْ يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
+          "surah": 65,
+          "ayah_start": 3,
+          "ayah_end": 3,
+          "correct_text": "ومن يتوكل على الله فهو حسبه",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium",
+            "vocalized"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f16-exact",
+      "category": "exact",
+      "article": "وعند الدخول إلى الجنة يقال لهم ادخلوها بسلام آمنين وهو أجمل استقبال.",
+      "gold": [
+        {
+          "quote": "ادخلوها بسلام آمنين",
+          "surah": 15,
+          "ayah_start": 46,
+          "ayah_end": 46,
+          "correct_text": "ادخلوها بسلام آمنين",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short",
+            "very_short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f17-exact",
+      "category": "exact",
+      "article": "وحرية الاعتقاد مبدأ أصيل: لا إكراه في الدين ولا ضغط على الضمائر.",
+      "gold": [
+        {
+          "quote": "لا إكراه في الدين",
+          "surah": 2,
+          "ayah_start": 256,
+          "ayah_end": 256,
+          "correct_text": "لا إكراه في الدين",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f18-exact",
+      "category": "exact",
+      "article": "بر الوالدين مقدم على كثير من الأعمال، وبالوالدين إحسانا وذي القربى هو النهج الذي رسمه ربنا.",
+      "gold": [
+        {
+          "quote": "وبالوالدين إحسانا وذي القربى",
+          "surah": 2,
+          "ayah_start": 83,
+          "ayah_end": 83,
+          "correct_text": "وبالوالدين إحسانا وذي القربى",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f19-exact",
+      "category": "exact",
+      "article": "وعن الغفلة عن الآخرة نتذكر تحذير كلا سوف تعلمون الذي تكرر مرتين.",
+      "gold": [
+        {
+          "quote": "كلا سوف تعلمون",
+          "surah": 102,
+          "ayah_start": 3,
+          "ayah_end": 3,
+          "correct_text": "كلا سوف تعلمون",
+          "wording": "correct",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "short",
+            "very_short"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f20-exact",
+      "category": "exact",
+      "article": "والإحسان لا يضيع عند الله، هل جزاء الإحسان إلا الإحسان سؤال يجيب عنه الواقع.",
+      "gold": [
+        {
+          "quote": "هل جزاء الإحسان إلا الإحسان",
+          "surah": 55,
+          "ayah_start": 60,
+          "ayah_end": 60,
+          "correct_text": "هل جزاء الإحسان إلا الإحسان",
+          "wording": "correct",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "exact",
+            "medium"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f21-misquote",
+      "category": "misquote",
+      "article": "وفي الإحسان بركة، ونقتدي بقوله إن الله يحب المحسنون الذين يتقنون أعمالهم.",
+      "gold": [
+        {
+          "quote": "إن الله يحب المحسنون",
+          "surah": 2,
+          "ayah_start": 195,
+          "ayah_end": 195,
+          "correct_text": "إن الله يحب المحسنين",
+          "wording": "wording_error",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "inflection"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f22-misquote",
+      "category": "misquote",
+      "article": "ومن النهي عن إيذاء النفس ولا تقتلوا أنفسكم إن الله كان بكم رحيم فلا يأس مع الحياة.",
+      "gold": [
+        {
+          "quote": "ولا تقتلوا أنفسكم إن الله كان بكم رحيم",
+          "surah": 4,
+          "ayah_start": 29,
+          "ayah_end": 29,
+          "correct_text": "ولا تقتلوا أنفسكم إن الله كان بكم رحيما",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "ending"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f23-misquote",
+      "category": "misquote",
+      "article": "ولا يتغير حال قوم دون عمل، فإن الله لا يغير ما بقوم حتى يغيروا أنفسهم كما نقرأ.",
+      "gold": [
+        {
+          "quote": "إن الله لا يغير ما بقوم حتى يغيروا أنفسهم",
+          "surah": 13,
+          "ayah_start": 11,
+          "ayah_end": 11,
+          "correct_text": "إن الله لا يغير ما بقوم حتى يغيروا ما بأنفسهم",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "dropped_words"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f24-misquote",
+      "category": "misquote",
+      "article": "وفي مواساة المصابين وبشر المؤمنين الذين إذا أصابتهم مصيبة قالوا إنا لله وإنا إليه راجعون رسالة أمل.",
+      "gold": [
+        {
+          "quote": "وبشر المؤمنين الذين إذا أصابتهم مصيبة قالوا إنا لله وإنا إليه راجعون",
+          "surah": 2,
+          "ayah_start": 155,
+          "ayah_end": 156,
+          "correct_text": "وبشر الصابرين الذين إذا أصابتهم مصيبة قالوا إنا لله وإنا إليه راجعون",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "substituted_word"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f25-misquote",
+      "category": "misquote",
+      "article": "ومن أحسن التقوى ومن يتق الله يجعل له مخرجا ويرزقه من حيث لا يحتسبون وهذا وعد.",
+      "gold": [
+        {
+          "quote": "ومن يتق الله يجعل له مخرجا ويرزقه من حيث لا يحتسبون",
+          "surah": 65,
+          "ayah_start": 2,
+          "ayah_end": 3,
+          "correct_text": "ومن يتق الله يجعل له مخرجا ويرزقه من حيث لا يحتسب",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "inflection"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f26-misquote",
+      "category": "misquote",
+      "article": "وفي الدعاء قرب من الله، وإذا سألك عبادي عني فإني قريب أجيب دعوة الداعي إذا دعاني آية عظيمة.",
+      "gold": [
+        {
+          "quote": "وإذا سألك عبادي عني فإني قريب أجيب دعوة الداعي إذا دعاني",
+          "surah": 2,
+          "ayah_start": 186,
+          "ayah_end": 186,
+          "correct_text": "وإذا سألك عبادي عني فإني قريب أجيب دعوة الداع إذا دعان",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "orthography"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f27-misquote",
+      "category": "misquote",
+      "article": "وفي الحديث عن التعلم ولقد يسرنا القرآن للذكر فهل من مذكر دعوة مفتوحة للجميع.",
+      "gold": [
+        {
+          "quote": "ولقد يسرنا القرآن للذكر فهل من مذكر",
+          "surah": 54,
+          "ayah_start": 17,
+          "ayah_end": 17,
+          "correct_text": "ولقد يسرنا القرآن للذكر فهل من مدكر",
+          "wording": "wording_error",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "orthography"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f28-misquote",
+      "category": "misquote",
+      "article": "ومن عدل الله لا تظلم نفسك؛ إن الله لا يظلم الناس شيئا ولكن الناس أنفسهم هم يظلمون كما نرى.",
+      "gold": [
+        {
+          "quote": "إن الله لا يظلم الناس شيئا ولكن الناس أنفسهم هم يظلمون",
+          "surah": 10,
+          "ayah_start": 44,
+          "ayah_end": 44,
+          "correct_text": "إن الله لا يظلم الناس شيئا ولكن الناس أنفسهم يظلمون",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "inserted_word"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f29-misquote",
+      "category": "misquote",
+      "article": "وللنعم حق الشكر، ونردد مع القارئ فبأي نعم ربكما تكذبان سؤالًا يتكرر.",
+      "gold": [
+        {
+          "quote": "فبأي نعم ربكما تكذبان",
+          "surah": 55,
+          "ayah_start": 13,
+          "ayah_end": 13,
+          "correct_text": "فبأي آلاء ربكما تكذبان",
+          "wording": "wording_error",
+          "ambiguous": true,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "substituted_word"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f30-misquote",
+      "category": "misquote",
+      "article": "والأخوة رباط متين، إنما المؤمنون إخوة فأصلحوا بين إخوانكم هكذا نفهم الإصلاح.",
+      "gold": [
+        {
+          "quote": "إنما المؤمنون إخوة فأصلحوا بين إخوانكم",
+          "surah": 49,
+          "ayah_start": 10,
+          "ayah_end": 10,
+          "correct_text": "إنما المؤمنون إخوة فأصلحوا بين أخويكم",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "substituted_word"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f31-misquote",
+      "category": "misquote",
+      "article": "والمجاهدة طريق الهداية، والذين جاهدوا فينا لنهدينهم سبيلنا وعد صادق.",
+      "gold": [
+        {
+          "quote": "والذين جاهدوا فينا لنهدينهم سبيلنا",
+          "surah": 29,
+          "ayah_start": 69,
+          "ayah_end": 69,
+          "correct_text": "والذين جاهدوا فينا لنهدينهم سبلنا",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "inflection"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f32-misquote",
+      "category": "misquote",
+      "article": "والعبادة غاية الوجود، وما خلقت الجن والإنس إلا لعبادتي كما يقول المفسرون.",
+      "gold": [
+        {
+          "quote": "وما خلقت الجن والإنس إلا لعبادتي",
+          "surah": 51,
+          "ayah_start": 56,
+          "ayah_end": 56,
+          "correct_text": "وما خلقت الجن والإنس إلا ليعبدون",
+          "wording": "wording_error",
+          "ambiguous": false,
+          "reference_text": null,
+          "reference": "missing",
+          "unmarked": true,
+          "tags": [
+            "unmarked",
+            "misquote",
+            "substituted_word"
+          ]
+        }
+      ],
+      "negatives": [],
+      "formulas": []
+    },
+    {
+      "id": "f33-hadith",
+      "category": "negative",
+      "article": "قال رسول الله ﷺ: الطهور شطر الإيمان، والكلمة الطيبة صدقة، وتبسمك في وجه أخيك صدقة.",
+      "gold": [],
+      "negatives": [
+        "الطهور شطر الإيمان",
+        "الكلمة الطيبة صدقة",
+        "تبسمك في وجه أخيك صدقة"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f34-hadith-overlap",
+      "category": "negative",
+      "article": "وجاء في الحديث: من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت.",
+      "gold": [],
+      "negatives": [
+        "من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f35-dua",
+      "category": "negative",
+      "article": "ومن الأدعية: اللهم اغفر لي ذنبي وخطئي وجهلي، اللهم اجعل القرآن ربيع قلبي، اللهم إنك عفو تحب العفو فاعف عني.",
+      "gold": [],
+      "negatives": [
+        "اللهم اغفر لي ذنبي وخطئي وجهلي",
+        "اللهم اجعل القرآن ربيع قلبي",
+        "اللهم إنك عفو تحب العفو فاعف عني"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f36-proverbs",
+      "category": "negative",
+      "article": "قالت العرب: من جد وجد، ومن سار على الدرب وصل، والجار قبل الدار، والوقت كالسيف إن لم تقطعه قطعك.",
+      "gold": [],
+      "negatives": [
+        "من جد وجد",
+        "من سار على الدرب وصل",
+        "الجار قبل الدار",
+        "الوقت كالسيف إن لم تقطعه قطعك"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f37-ordinary",
+      "category": "negative",
+      "article": "تعمل البلدية على تحسين الخدمات في الأرض المجاورة للمدينة، ومن الناس من يفضل العيش في الريف حيث الهدوء.",
+      "gold": [],
+      "negatives": [
+        "تعمل البلدية على تحسين الخدمات في الأرض المجاورة للمدينة",
+        "ومن الناس من يفضل العيش في الريف حيث الهدوء"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f38-ordinary",
+      "category": "negative",
+      "article": "سافر الوفد إلى العاصمة يوم الخميس وناقش الوزراء خطة الإصلاح الاقتصادي ومشاريع الطاقة.",
+      "gold": [],
+      "negatives": [
+        "سافر الوفد إلى العاصمة يوم الخميس",
+        "ناقش الوزراء خطة الإصلاح الاقتصادي ومشاريع الطاقة"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f39-maxims",
+      "category": "negative",
+      "article": "وفي القواعد الفقهية: الأمور بمقاصدها، واليقين لا يزول بالشك، والمشقة تجلب التيسير.",
+      "gold": [],
+      "negatives": [
+        "الأمور بمقاصدها",
+        "اليقين لا يزول بالشك",
+        "المشقة تجلب التيسير"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f40-sayings",
+      "category": "negative",
+      "article": "ويقال في الأمثال: رب أخ لك لم تلده أمك، وعلى الباغي تدور الدوائر، وخير الكلام ما قل ودل.",
+      "gold": [],
+      "negatives": [
+        "رب أخ لك لم تلده أمك",
+        "وعلى الباغي تدور الدوائر",
+        "خير الكلام ما قل ودل"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f41-hadith",
+      "category": "negative",
+      "article": "وفي حديث آخر: إنما بعثت لأتمم مكارم الأخلاق، والمسلم أخو المسلم لا يظلمه ولا يسلمه.",
+      "gold": [],
+      "negatives": [
+        "إنما بعثت لأتمم مكارم الأخلاق",
+        "المسلم أخو المسلم لا يظلمه ولا يسلمه"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f42-dua",
+      "category": "negative",
+      "article": "ويدعو الإمام: اللهم لا تجعل الدنيا أكبر همنا ولا مبلغ علمنا ولا تسلط علينا من لا يرحمنا.",
+      "gold": [],
+      "negatives": [
+        "اللهم لا تجعل الدنيا أكبر همنا ولا مبلغ علمنا ولا تسلط علينا من لا يرحمنا"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f43-ordinary-religious",
+      "category": "negative",
+      "article": "ويحرص المسلم على إقامة الصلاة وإيتاء الزكاة وصيام رمضان، ويزور المسجد يوم الجمعة مع أهله.",
+      "gold": [],
+      "negatives": [
+        "ويحرص المسلم على إقامة الصلاة وإيتاء الزكاة وصيام رمضان",
+        "ويزور المسجد يوم الجمعة مع أهله"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f44-ordinary-religious",
+      "category": "negative",
+      "article": "اجتمع الناس في المسجد بعد الصلاة، وشكر الخطيب المتطوعين على الجهد الذي بذلوه في خدمة الحي.",
+      "gold": [],
+      "negatives": [
+        "اجتمع الناس في المسجد بعد الصلاة",
+        "شكر الخطيب المتطوعين على الجهد الذي بذلوه في خدمة الحي"
+      ],
+      "formulas": []
+    },
+    {
+      "id": "f45-formula",
+      "category": "formula",
+      "article": "بسم الله الرحمن الرحيم، أما بعد فهذه كلمة موجزة عن أثر الصدقة.",
+      "gold": [],
+      "negatives": [],
+      "formulas": [
+        "بسم الله الرحمن الرحيم"
+      ]
+    },
+    {
+      "id": "f46-formula",
+      "category": "formula",
+      "article": "والحمد لله رب العالمين على ما أنعم، وسنبقى على العهد.",
+      "gold": [],
+      "negatives": [],
+      "formulas": [
+        "الحمد لله رب العالمين"
+      ]
+    },
+    {
+      "id": "f47-formula",
+      "category": "formula",
+      "article": "نشهد أن لا إله إلا الله وأن محمدًا رسول الله.",
+      "gold": [],
+      "negatives": [],
+      "formulas": [
+        "لا إله إلا الله"
+      ]
+    },
+    {
+      "id": "f48-formula",
+      "category": "formula",
+      "article": "وعند سماع الخبر المؤلم قلنا إنا لله وإنا إليه راجعون ودعونا له بالرحمة.",
+      "gold": [],
+      "negatives": [],
+      "formulas": [
+        "إنا لله وإنا إليه راجعون"
+      ]
+    },
+    {
+      "id": "f49-formula",
+      "category": "formula",
+      "article": "وسيكتمل المشروع قريبًا إن شاء الله كما خطط الفريق.",
+      "gold": [],
+      "negatives": [],
+      "formulas": [
+        "إن شاء الله"
+      ]
+    }
+  ]
+}
