@@ -1,0 +1,1214 @@
+{
+ "model": "qwen/qwen3.8-27b",
+ "prompt": "v2",
+ "calls": [
+  {
+   "reservation": 4096,
+   "case": "c01-marked-correct",
+   "http_status": 200,
+   "elapsed_ms": 705,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022661006,
+    "prompt_tokens": 587,
+    "prompt_time": 0.044181695,
+    "completion_tokens": 80,
+    "completion_time": 0.173691005,
+    "total_tokens": 667,
+    "total_time": 0.2178727
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c02-multi-verse",
+   "http_status": 200,
+   "elapsed_ms": 543,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022224881,
+    "prompt_tokens": 594,
+    "prompt_time": 0.053001519,
+    "completion_tokens": 86,
+    "completion_time": 0.195191286,
+    "total_tokens": 680,
+    "total_time": 0.248192805
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c03-wording-errors",
+   "http_status": 200,
+   "elapsed_ms": 544,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.051441741,
+    "prompt_tokens": 576,
+    "prompt_time": 0.049564515,
+    "completion_tokens": 60,
+    "completion_time": 0.124391578,
+    "total_tokens": 636,
+    "total_time": 0.173956093
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c04-wording-error-grammar",
+   "http_status": 200,
+   "elapsed_ms": 686,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.203596376,
+    "prompt_tokens": 571,
+    "prompt_time": 0.051218612,
+    "completion_tokens": 53,
+    "completion_time": 0.112304408,
+    "total_tokens": 624,
+    "total_time": 0.16352302
+   },
+   "candidates_parsed": 1,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c05-diacritics-errors",
+   "http_status": 200,
+   "elapsed_ms": 646,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.280780209,
+    "prompt_tokens": 614,
+    "prompt_time": 0.054614133,
+    "completion_tokens": 7,
+    "completion_time": 0.014704798,
+    "total_tokens": 621,
+    "total_time": 0.069318931
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c06-repeated-with-ref",
+   "http_status": 200,
+   "elapsed_ms": 509,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.024013139,
+    "prompt_tokens": 596,
+    "prompt_time": 0.054891816,
+    "completion_tokens": 91,
+    "completion_time": 0.203168576,
+    "total_tokens": 687,
+    "total_time": 0.258060392
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c07-repeated-without-ref",
+   "http_status": 200,
+   "elapsed_ms": 430,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.025113346,
+    "prompt_tokens": 560,
+    "prompt_time": 0.047559035,
+    "completion_tokens": 44,
+    "completion_time": 0.097095599,
+    "total_tokens": 604,
+    "total_time": 0.144654634
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c08-missing-refs",
+   "http_status": 200,
+   "elapsed_ms": 514,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.053046859,
+    "prompt_tokens": 552,
+    "prompt_time": 0.047367809,
+    "completion_tokens": 47,
+    "completion_time": 0.100895325,
+    "total_tokens": 599,
+    "total_time": 0.148263134
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c09-incorrect-refs",
+   "http_status": 200,
+   "elapsed_ms": 618,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.094018773,
+    "prompt_tokens": 594,
+    "prompt_time": 0.04419853,
+    "completion_tokens": 85,
+    "completion_time": 0.172608153,
+    "total_tokens": 679,
+    "total_time": 0.216806683
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c10-repeated-wrong-surah-and-partial",
+   "http_status": 200,
+   "elapsed_ms": 415,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.104513678,
+    "prompt_tokens": 565,
+    "prompt_time": 0.050691783,
+    "completion_tokens": 7,
+    "completion_time": 0.014674108,
+    "total_tokens": 572,
+    "total_time": 0.065365891
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c11-unmarked-short",
+   "http_status": 200,
+   "elapsed_ms": 323,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.023098583,
+    "prompt_tokens": 559,
+    "prompt_time": 0.044083415,
+    "completion_tokens": 7,
+    "completion_time": 0.014325028,
+    "total_tokens": 566,
+    "total_time": 0.058408443
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c12-unmarked-long-and-error",
+   "http_status": 200,
+   "elapsed_ms": 496,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022671513,
+    "prompt_tokens": 561,
+    "prompt_time": 0.050077082,
+    "completion_tokens": 57,
+    "completion_time": 0.118366539,
+    "total_tokens": 618,
+    "total_time": 0.168443621
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c13-negatives",
+   "http_status": 200,
+   "elapsed_ms": 457,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.15121137,
+    "prompt_tokens": 578,
+    "prompt_time": 0.05054529,
+    "completion_tokens": 7,
+    "completion_time": 0.014062342,
+    "total_tokens": 585,
+    "total_time": 0.064607632
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 4096,
+   "case": "c14-mixed",
+   "http_status": 429,
+   "elapsed_ms": 226,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 587,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6738, Requested 587. Please try again in 2.785714285s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 4096,
+   "case": "h01-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 322,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 548,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6699, Requested 548. Please try again in 2.117142857s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 4096,
+   "case": "h02-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 336,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 554,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6660, Requested 554. Please try again in 1.834285714s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 4096,
+   "case": "h03-negatives-and-unmarked",
+   "http_status": 429,
+   "elapsed_ms": 252,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 564,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6631, Requested 564. Please try again in 1.671428571s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 4096,
+   "case": "h04-marked-and-hadith",
+   "http_status": 429,
+   "elapsed_ms": 362,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 539,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6588, Requested 539. Please try again in 1.088571428s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 1024,
+   "case": "c01-marked-correct",
+   "http_status": 200,
+   "elapsed_ms": 676,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.023429788,
+    "prompt_tokens": 587,
+    "prompt_time": 0.046591192,
+    "completion_tokens": 80,
+    "completion_time": 0.159391264,
+    "total_tokens": 667,
+    "total_time": 0.205982456
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c02-multi-verse",
+   "http_status": 200,
+   "elapsed_ms": 587,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022582699,
+    "prompt_tokens": 594,
+    "prompt_time": 0.050699303,
+    "completion_tokens": 86,
+    "completion_time": 0.194841555,
+    "total_tokens": 680,
+    "total_time": 0.245540858
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c03-wording-errors",
+   "http_status": 200,
+   "elapsed_ms": 741,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.056556031,
+    "prompt_tokens": 576,
+    "prompt_time": 0.104930121,
+    "completion_tokens": 60,
+    "completion_time": 0.286042355,
+    "total_tokens": 636,
+    "total_time": 0.390972476
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c04-wording-error-grammar",
+   "http_status": 200,
+   "elapsed_ms": 502,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.091702795,
+    "prompt_tokens": 571,
+    "prompt_time": 0.039349062,
+    "completion_tokens": 53,
+    "completion_time": 0.11243146,
+    "total_tokens": 624,
+    "total_time": 0.151780522
+   },
+   "candidates_parsed": 1,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c05-diacritics-errors",
+   "http_status": 200,
+   "elapsed_ms": 418,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.059524994,
+    "prompt_tokens": 614,
+    "prompt_time": 0.050884772,
+    "completion_tokens": 7,
+    "completion_time": 0.017301938,
+    "total_tokens": 621,
+    "total_time": 0.06818671
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c06-repeated-with-ref",
+   "http_status": 200,
+   "elapsed_ms": 583,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.087749634,
+    "prompt_tokens": 596,
+    "prompt_time": 0.040998741,
+    "completion_tokens": 91,
+    "completion_time": 0.193629913,
+    "total_tokens": 687,
+    "total_time": 0.234628654
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c07-repeated-without-ref",
+   "http_status": 200,
+   "elapsed_ms": 407,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022425872,
+    "prompt_tokens": 560,
+    "prompt_time": 0.044070129,
+    "completion_tokens": 44,
+    "completion_time": 0.097356922,
+    "total_tokens": 604,
+    "total_time": 0.141427051
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c08-missing-refs",
+   "http_status": 200,
+   "elapsed_ms": 799,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.281793239,
+    "prompt_tokens": 552,
+    "prompt_time": 0.045337541,
+    "completion_tokens": 47,
+    "completion_time": 0.103634797,
+    "total_tokens": 599,
+    "total_time": 0.148972338
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c09-incorrect-refs",
+   "http_status": 200,
+   "elapsed_ms": 515,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.041873509,
+    "prompt_tokens": 594,
+    "prompt_time": 0.05404269,
+    "completion_tokens": 85,
+    "completion_time": 0.178888101,
+    "total_tokens": 679,
+    "total_time": 0.232930791
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c10-repeated-wrong-surah-and-partial",
+   "http_status": 200,
+   "elapsed_ms": 652,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.307524579,
+    "prompt_tokens": 565,
+    "prompt_time": 0.048589988,
+    "completion_tokens": 7,
+    "completion_time": 0.014748918,
+    "total_tokens": 572,
+    "total_time": 0.063338906
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c11-unmarked-short",
+   "http_status": 200,
+   "elapsed_ms": 339,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.020610353,
+    "prompt_tokens": 559,
+    "prompt_time": 0.04671079,
+    "completion_tokens": 7,
+    "completion_time": 0.01536418,
+    "total_tokens": 566,
+    "total_time": 0.06207497
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c12-unmarked-long-and-error",
+   "http_status": 200,
+   "elapsed_ms": 476,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.05312368,
+    "prompt_tokens": 561,
+    "prompt_time": 0.048188396,
+    "completion_tokens": 57,
+    "completion_time": 0.116764958,
+    "total_tokens": 618,
+    "total_time": 0.164953354
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c13-negatives",
+   "http_status": 200,
+   "elapsed_ms": 361,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.053350776,
+    "prompt_tokens": 578,
+    "prompt_time": 0.050090799,
+    "completion_tokens": 7,
+    "completion_time": 0.014429044,
+    "total_tokens": 585,
+    "total_time": 0.064519843
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 1024,
+   "case": "c14-mixed",
+   "http_status": 429,
+   "elapsed_ms": 288,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 587,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6712, Requested 587. Please try again in 2.562857142s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 1024,
+   "case": "h01-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 232,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 548,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6680, Requested 548. Please try again in 1.954285714s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 1024,
+   "case": "h02-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 248,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 554,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6652, Requested 554. Please try again in 1.765714285s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 1024,
+   "case": "h03-negatives-and-unmarked",
+   "http_status": 429,
+   "elapsed_ms": 365,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 564,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6607, Requested 564. Please try again in 1.465714285s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 1024,
+   "case": "h04-marked-and-hadith",
+   "http_status": 429,
+   "elapsed_ms": 267,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 539,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6578, Requested 539. Please try again in 1.002857142s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 512,
+   "case": "c01-marked-correct",
+   "http_status": 200,
+   "elapsed_ms": 1175,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.628060884,
+    "prompt_tokens": 587,
+    "prompt_time": 0.041377787,
+    "completion_tokens": 80,
+    "completion_time": 0.168372319,
+    "total_tokens": 667,
+    "total_time": 0.209750106
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c02-multi-verse",
+   "http_status": 200,
+   "elapsed_ms": 578,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.023219193,
+    "prompt_tokens": 594,
+    "prompt_time": 0.053363354,
+    "completion_tokens": 86,
+    "completion_time": 0.177921462,
+    "total_tokens": 680,
+    "total_time": 0.231284816
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c03-wording-errors",
+   "http_status": 200,
+   "elapsed_ms": 505,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.050419705,
+    "prompt_tokens": 576,
+    "prompt_time": 0.052594096,
+    "completion_tokens": 60,
+    "completion_time": 0.118391003,
+    "total_tokens": 636,
+    "total_time": 0.170985099
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c04-wording-error-grammar",
+   "http_status": 200,
+   "elapsed_ms": 423,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022851412,
+    "prompt_tokens": 571,
+    "prompt_time": 0.049315555,
+    "completion_tokens": 53,
+    "completion_time": 0.111133322,
+    "total_tokens": 624,
+    "total_time": 0.160448877
+   },
+   "candidates_parsed": 1,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c05-diacritics-errors",
+   "http_status": 200,
+   "elapsed_ms": 368,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.04614136,
+    "prompt_tokens": 614,
+    "prompt_time": 0.055032149,
+    "completion_tokens": 7,
+    "completion_time": 0.014431402,
+    "total_tokens": 621,
+    "total_time": 0.069463551
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c06-repeated-with-ref",
+   "http_status": 200,
+   "elapsed_ms": 644,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.061692001,
+    "prompt_tokens": 596,
+    "prompt_time": 0.043385715,
+    "completion_tokens": 91,
+    "completion_time": 0.193655896,
+    "total_tokens": 687,
+    "total_time": 0.237041611
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c07-repeated-without-ref",
+   "http_status": 200,
+   "elapsed_ms": 410,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.020746598,
+    "prompt_tokens": 560,
+    "prompt_time": 0.041443265,
+    "completion_tokens": 44,
+    "completion_time": 0.087247043,
+    "total_tokens": 604,
+    "total_time": 0.128690308
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c08-missing-refs",
+   "http_status": 200,
+   "elapsed_ms": 435,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.056627573,
+    "prompt_tokens": 552,
+    "prompt_time": 0.049555311,
+    "completion_tokens": 47,
+    "completion_time": 0.097102754,
+    "total_tokens": 599,
+    "total_time": 0.146658065
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c09-incorrect-refs",
+   "http_status": 200,
+   "elapsed_ms": 741,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.038105805,
+    "prompt_tokens": 594,
+    "prompt_time": 0.052714394,
+    "completion_tokens": 85,
+    "completion_time": 0.177830044,
+    "total_tokens": 679,
+    "total_time": 0.230544438
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c10-repeated-wrong-surah-and-partial",
+   "http_status": 200,
+   "elapsed_ms": 497,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.090197245,
+    "prompt_tokens": 565,
+    "prompt_time": 0.039875656,
+    "completion_tokens": 61,
+    "completion_time": 0.120706334,
+    "total_tokens": 626,
+    "total_time": 0.16058199
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c11-unmarked-short",
+   "http_status": 200,
+   "elapsed_ms": 778,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.375228467,
+    "prompt_tokens": 559,
+    "prompt_time": 0.049262686,
+    "completion_tokens": 7,
+    "completion_time": 0.017537925,
+    "total_tokens": 566,
+    "total_time": 0.066800611
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c12-unmarked-long-and-error",
+   "http_status": 200,
+   "elapsed_ms": 589,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.163781097,
+    "prompt_tokens": 561,
+    "prompt_time": 0.045650071,
+    "completion_tokens": 57,
+    "completion_time": 0.113132911,
+    "total_tokens": 618,
+    "total_time": 0.158782982
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c13-negatives",
+   "http_status": 200,
+   "elapsed_ms": 327,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.019850009,
+    "prompt_tokens": 578,
+    "prompt_time": 0.045376015,
+    "completion_tokens": 7,
+    "completion_time": 0.013845921,
+    "total_tokens": 585,
+    "total_time": 0.059221936
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 512,
+   "case": "c14-mixed",
+   "http_status": 429,
+   "elapsed_ms": 248,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 587,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6654, Requested 587. Please try again in 2.065714285s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 512,
+   "case": "h01-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 218,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 548,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6629, Requested 548. Please try again in 1.517142857s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 512,
+   "case": "h02-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 407,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 554,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6580, Requested 554. Please try again in 1.148571428s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 512,
+   "case": "h03-negatives-and-unmarked",
+   "http_status": 429,
+   "elapsed_ms": 232,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 564,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6554, Requested 564. Please try again in 1.011428571s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 512,
+   "case": "h04-marked-and-hadith",
+   "http_status": 429,
+   "elapsed_ms": 254,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 539,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6524, Requested 539. Please try again in 539.999999ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 256,
+   "case": "c01-marked-correct",
+   "http_status": 200,
+   "elapsed_ms": 700,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022592904,
+    "prompt_tokens": 587,
+    "prompt_time": 0.050697245,
+    "completion_tokens": 80,
+    "completion_time": 0.175799877,
+    "total_tokens": 667,
+    "total_time": 0.226497122
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c02-multi-verse",
+   "http_status": 200,
+   "elapsed_ms": 598,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.022096395,
+    "prompt_tokens": 594,
+    "prompt_time": 0.048526772,
+    "completion_tokens": 86,
+    "completion_time": 0.177508372,
+    "total_tokens": 680,
+    "total_time": 0.226035144
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c03-wording-errors",
+   "http_status": 200,
+   "elapsed_ms": 405,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.008889694,
+    "prompt_tokens": 576,
+    "prompt_time": 0.039250781,
+    "completion_tokens": 60,
+    "completion_time": 0.118879396,
+    "total_tokens": 636,
+    "total_time": 0.158130177
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c04-wording-error-grammar",
+   "http_status": 200,
+   "elapsed_ms": 548,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.052119377,
+    "prompt_tokens": 571,
+    "prompt_time": 0.047427785,
+    "completion_tokens": 53,
+    "completion_time": 0.112027533,
+    "total_tokens": 624,
+    "total_time": 0.159455318
+   },
+   "candidates_parsed": 1,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c05-diacritics-errors",
+   "http_status": 200,
+   "elapsed_ms": 467,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.052359545,
+    "prompt_tokens": 614,
+    "prompt_time": 0.050949856,
+    "completion_tokens": 7,
+    "completion_time": 0.016366507,
+    "total_tokens": 621,
+    "total_time": 0.067316363
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c06-repeated-with-ref",
+   "http_status": 200,
+   "elapsed_ms": 451,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.008536115,
+    "prompt_tokens": 596,
+    "prompt_time": 0.040727955,
+    "completion_tokens": 91,
+    "completion_time": 0.178995244,
+    "total_tokens": 687,
+    "total_time": 0.219723199
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c07-repeated-without-ref",
+   "http_status": 200,
+   "elapsed_ms": 405,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.009425903,
+    "prompt_tokens": 560,
+    "prompt_time": 0.044803588,
+    "completion_tokens": 44,
+    "completion_time": 0.091360983,
+    "total_tokens": 604,
+    "total_time": 0.136164571
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c08-missing-refs",
+   "http_status": 200,
+   "elapsed_ms": 602,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.021551272,
+    "prompt_tokens": 552,
+    "prompt_time": 0.045030705,
+    "completion_tokens": 47,
+    "completion_time": 0.100512062,
+    "total_tokens": 599,
+    "total_time": 0.145542767
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c09-incorrect-refs",
+   "http_status": 200,
+   "elapsed_ms": 569,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.02172103,
+    "prompt_tokens": 594,
+    "prompt_time": 0.053430633,
+    "completion_tokens": 85,
+    "completion_time": 0.174848351,
+    "total_tokens": 679,
+    "total_time": 0.228278984
+   },
+   "candidates_parsed": 3,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c10-repeated-wrong-surah-and-partial",
+   "http_status": 200,
+   "elapsed_ms": 302,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.009301216,
+    "prompt_tokens": 565,
+    "prompt_time": 0.045222643,
+    "completion_tokens": 7,
+    "completion_time": 0.01459446,
+    "total_tokens": 572,
+    "total_time": 0.059817103
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c11-unmarked-short",
+   "http_status": 200,
+   "elapsed_ms": 304,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.008795002,
+    "prompt_tokens": 559,
+    "prompt_time": 0.03808224,
+    "completion_tokens": 7,
+    "completion_time": 0.014131508,
+    "total_tokens": 566,
+    "total_time": 0.052213748
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c12-unmarked-long-and-error",
+   "http_status": 200,
+   "elapsed_ms": 692,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.127236973,
+    "prompt_tokens": 561,
+    "prompt_time": 0.039615655,
+    "completion_tokens": 57,
+    "completion_time": 0.113227344,
+    "total_tokens": 618,
+    "total_time": 0.152842999
+   },
+   "candidates_parsed": 2,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c13-negatives",
+   "http_status": 200,
+   "elapsed_ms": 309,
+   "finish_reason": "stop",
+   "usage": {
+    "queue_time": 0.008298598,
+    "prompt_tokens": 578,
+    "prompt_time": 0.040718105,
+    "completion_tokens": 7,
+    "completion_time": 0.014091989,
+    "total_tokens": 585,
+    "total_time": 0.054810094
+   },
+   "candidates_parsed": 0,
+   "otpm_requested": null,
+   "error": null
+  },
+  {
+   "reservation": 256,
+   "case": "c14-mixed",
+   "http_status": 429,
+   "elapsed_ms": 224,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 587,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6800, Requested 587. Please try again in 3.317142857s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 256,
+   "case": "h01-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 209,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 548,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6775, Requested 548. Please try again in 2.768571428s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 256,
+   "case": "h02-unmarked-short",
+   "http_status": 429,
+   "elapsed_ms": 222,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 554,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6750, Requested 554. Please try again in 2.605714285s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  },
+  {
+   "reservation": 256,
+   "case": "h03-negatives-and-unmarked",
+   "http_status": 429,
+   "elapsed_ms": 228,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 564,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6723, Requested 564. Please try again in 2.46s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settin"
+  },
+  {
+   "reservation": 256,
+   "case": "h04-marked-and-hadith",
+   "http_status": 429,
+   "elapsed_ms": 215,
+   "finish_reason": null,
+   "usage": null,
+   "candidates_parsed": null,
+   "otpm_requested": 539,
+   "error": "Rate limit reached for model `qwen/qwen3.8-27b` in organization `org_<redacted>` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Used 6698, Requested 539. Please try again in 2.031428571s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com"
+  }
+ ]
+}

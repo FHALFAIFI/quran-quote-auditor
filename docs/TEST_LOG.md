@@ -242,3 +242,28 @@ Full tables: `docs/EVALUATION.md`, "Experiment". Labels unchanged (`git diff eva
 - 18:3x ordinary `vercel deploy --prod` from the main checkout, clean tree, commit `3273078` →
   **`dpl_9HzjDrVyKBmLBy8UAw2bUfZs3Qbf` BLOCKED** again, although the GitHub connection is confirmed. Findings and a
   support message are prepared (local, `submission/VERCEL_SUPPORT.md`). Live still serves `71769ae` (prompt v1, no key).
+
+## 2026-09-30 (19:0x UTC+3) — completion-token reservation experiment (pre-challenge)
+
+Question: does a smaller `max_completion_tokens` avoid the 429 seen at 17:43 (*OTPM: Limit 1000, Requested 1457*)?
+`max_completion_tokens` is now configurable (`GROQ_MAX_COMPLETION_TOKENS`, default unchanged at 4096).
+`eval/experiments/token_reservation.py 4096 1024 512 256`: qwen + v2, all 14 labelled + 6 held-out cases sent
+back-to-back, 65 s between reservations. Raw: `eval/experiments/raw/20260930-190941-reservation-qwen_qwen3.8-27b-v2.json`.
+
+| Reservation | 200 OK | finish `stop` + JSON parses | Max real output | First 429 | Limit in the 429 body |
+|---|---|---|---|---|---|
+| 4096 | 13 (≈7 s) | 13/13 | 91 tokens | c14 | **ITPM** 7,000 (used ≈6,700, requested 587) |
+| 1024 | 13 | 13/13 | 91 | c14 | ITPM |
+| 512 | 13 | 13/13 | 91 | c14 | ITPM |
+| 256 | 13 | 13/13 | 91 | c14 | ITPM |
+
+- **No OTPM 429 in any run, including 4096**: 13 calls in about 7 s, 631 real output tokens. The limit hit was
+  **input** tokens per minute (each audit sends ≈550–615 prompt tokens, so ≈11–12 audits per minute).
+  The smaller reservation made no difference, so the hypothesis is **not supported** today. The 17:43 OTPM body was
+  not saved (only the text in this log), so the difference cannot be re-examined.
+- Complete, schema-valid JSON came back at every size down to 256 on these short articles. Real output reached
+  91 tokens; an article at the 6,000-character limit with many quotations could need more, so a small reservation
+  risks `finish_reason: length`, which the app treats as a failure. **Default kept at 4096.**
+- The 6 held-out cases were not reached at any size (all 429). One case (c10) returned 2 candidates at 512 and
+  0 at the other sizes, although `temperature` is 0: output is not fully deterministic.
+- `pytest` → 126 passed.

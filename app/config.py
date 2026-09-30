@@ -32,6 +32,8 @@ class Settings:
     groq_model: str = os.environ.get("GROQ_MODEL", "qwen/qwen3.8-27b").strip()
     # "" = send "none" for qwen/ models only; "omit" = never send; or low/medium/high/none/default
     groq_reasoning_effort: str = os.environ.get("GROQ_REASONING_EFFORT", "").strip().lower()
+    # Groq reserves output tokens per request against the free tier's 1,000 output-tokens/minute limit.
+    groq_max_completion_tokens: int = _int("GROQ_MAX_COMPLETION_TOKENS", 4096)
     extraction_prompt: str = os.environ.get("EXTRACTION_PROMPT", "v2").strip().lower()  # see app/extraction/prompts.py
     gemini_model: str = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash").strip()
     gemini_fallback_models: tuple[str, ...] = tuple(m.strip() for m in os.environ.get("GEMINI_FALLBACK_MODELS", "").split(",") if m.strip())

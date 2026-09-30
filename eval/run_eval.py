@@ -5,6 +5,8 @@
                                                  # only valid if the AI actually responded on EVERY case
     python eval/run_eval.py --mode ai --cases eval/heldout.json --tag heldout-v2   # other case file / file-name tag
     (the model and prompt come from GROQ_MODEL / GROQ_REASONING_EFFORT / EXTRACTION_PROMPT, and are recorded)
+    python eval/run_eval.py --mode ai --url https://<deployment> --pace 30   # audit through a deployed /api/audit;
+                                                 # the provider and prompt are the server's, read from each response
 
 Writes eval/results/<mode>-<timestamp>.json and prints a summary. "Uncertain"
 answers are counted as abstentions, separately from wrong verdicts. The most
@@ -93,10 +95,28 @@ def main() -> int:
     ap.add_argument("--mode", choices=["fallback", "ai"], required=True)
     ap.add_argument("--cases", default=str(ROOT / "eval" / "cases.json"), help="labelled case file (never edited by this script)")
     ap.add_argument("--tag", default="", help="added to the result file name")
+    ap.add_argument("--url", default="", help="send each article to <url>/api/audit instead of running in-process")
     ap.add_argument("--pace", type=float, default=0.0, help="seconds to wait between AI cases (Groq free tier: 8,000 tokens/min)")
     args = ap.parse_args()
     ai_quotes: dict[str, list] = {}
-    if args.mode == "fallback":
+    if args.url:
+        import httpx
+
+        base = args.url.rstrip("/")
+        health = httpx.get(base + "/api/health", timeout=90).json()
+        print(f"Remote {base}: mode {health.get('mode')}, provider {health.get('provider')}")
+        if args.mode == "ai" and not health.get("ai_configured"):
+            print("NOT AN AI RUN: the server has no AI provider configured. Nothing recorded.")
+            return 2
+
+        def remote_audit(article: str) -> dict:
+            r = httpx.post(base + "/api/audit", json={"article": article}, timeout=90)
+            if r.status_code != 200:
+                return {"mode": "http_error", "findings": [], "ai": {"responded": False, "outcome": f"http_{r.status_code}",
+                                                                      "error": r.text[:200]}}
+            return r.json()
+        audit.run_audit = remote_audit
+    elif args.mode == "fallback":
         audit.get_provider = lambda: None
     else:
         provider = audit.get_provider()
@@ -133,7 +153,7 @@ def main() -> int:
                   "Not retrying and not recording an AI result.")
             print(json.dumps(ai_log, ensure_ascii=False, indent=1))
             stop = ROOT / "eval" / "results" / f"stopped-{datetime.now().strftime('%Y%m%d-%H%M%S')}{'-' + args.tag if args.tag else ''}.json"
-            stop.write_text(json.dumps({"stopped_at": case["id"], "cases_file": str(cases_path.relative_to(ROOT)),
+            stop.write_text(json.dumps({"stopped_at": case["id"], "cases_file": str(cases_path.relative_to(ROOT)), "url": args.url or None,
                                         "prompt": prompt_version(), "ai_calls": ai_log}, ensure_ascii=False, indent=1), encoding="utf-8")
             print(f"saved {stop.relative_to(ROOT)} (not an AI result)")
             return 2
@@ -181,7 +201,8 @@ def main() -> int:
     summary = {
         "mode": args.mode,
         "cases_file": str(cases_path.relative_to(ROOT)),
-        "prompt": prompt_version() if args.mode == "ai" else None,
+        "url": args.url or None,
+        "prompt": (None if args.url else prompt_version()) if args.mode == "ai" else None,
         "reasoning_effort": settings.groq_reasoning_effort or "(default)" if args.mode == "ai" else None,
         "modes_observed": dict(modes),
         "when": datetime.now(timezone.utc).isoformat(timespec="seconds"),

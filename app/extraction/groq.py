@@ -72,7 +72,7 @@ def build_request(model: str, article: str) -> dict:
             {"role": "user", "content": "<article>\n" + article + "\n</article>"},
         ],
         "temperature": 0,
-        "max_completion_tokens": 4096,
+        "max_completion_tokens": settings.groq_max_completion_tokens,
         "response_format": {
             "type": "json_schema",
             "json_schema": {"name": "quran_quote_candidates", "strict": True, "schema": RESPONSE_SCHEMA},
