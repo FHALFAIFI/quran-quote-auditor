@@ -43,7 +43,9 @@ The commits are listed in `CHANGELOG.md` under "Pre-challenge work".
   - Editor workflow: source-backed correction proposals, approve/reject per change, before/after preview, copy of the revised article, unresolved quotations marked, print-friendly review record.
   - Correction-safety scoring in the evaluation, browser end-to-end script, more tests.
   - Presentation and video-script drafts updated.
-- Still **not** verified before the challenge: real AI extraction (no successful Gemini call; no Groq key yet).
+- 30 Sep: first real Groq calls (local): the service responds; prompt v2 becomes the default after a small, single-run gain
+  (26/28 and 4/6 vs 25/28 and 3/6). Completion-token reservation experiment (inconclusive, default kept). Render deployment
+  files prepared. Still not done before the challenge: AI extraction on the live site; no successful Gemini call.
 
 ## How to see challenge-period changes
 

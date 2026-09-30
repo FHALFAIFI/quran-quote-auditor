@@ -7,12 +7,13 @@
 > work. Only work committed during 4–6 October 2026 counts as challenge work.
 > See [BASELINE.md](BASELINE.md) and [CHANGELOG.md](CHANGELOG.md).
 >
-> **AI status (30 Sep 2026): service verified; small benefit observed locally.** Groq (`qwen/qwen3.8-27b`) answered
+> **AI status (30 Sep 2026): the Groq service responds; a small benefit was observed locally.** Groq (`qwen/qwen3.8-27b`) answered
 > on every labelled case. With the original prompt it found nothing the deterministic path had missed. With prompt v2
 > (now the default) it found one more unmarked quotation on the labelled set (26/28, unmarked 2/4) and one on a new
 > held-out set (4/6 vs 3/6), with no false "matched" verdicts or false fixes. These are single runs on small
-> author-written sets. Not yet live: `GROQ_API_KEY` is not set on Vercel. See [docs/EVALUATION.md](docs/EVALUATION.md)
-> and [docs/TEST_LOG.md](docs/TEST_LOG.md).
+> author-written sets, and short unmarked quotations are still missed. Not yet live: `GROQ_API_KEY` is not set on
+> Vercel, and the Render deployment is prepared ([docs/RENDER_DEPLOY.md](docs/RENDER_DEPLOY.md)) but not created.
+> See [docs/EVALUATION.md](docs/EVALUATION.md) and [docs/TEST_LOG.md](docs/TEST_LOG.md).
 
 **AI Challenge Serving Islamic Content 2026 — Track 4: knowledge and verification tools.**
 
@@ -46,6 +47,18 @@ ordinary Arabic, interpret verses, translate, or issue religious rulings.
 
 دور الذكاء الاصطناعي محصور في **اقتراح مواضع الاقتباس** فقط. لا يُعتمد عليه مصدرًا لنص القرآن
 ولا حكمًا على الصحة. وكل مطابقة تقريبية تُعلَّم «يحتاج مراجعة»، ولا توصف أبدًا بأنها «مطابقة».
+
+### What "verified" means here
+
+- **Verified** refers only to a quotation's **wording** and **reference**, checked by deterministic code
+  against the Hafs text from Quranpedia. Every Quran word, surah/ayah number and correction shown comes
+  from that text.
+- **AI only proposes candidate quotations** (where a quotation might be). It never supplies Quran text, a
+  reference or a verdict, and a candidate that is not literally in the article is discarded.
+- **AI status is reported per audit.** If the model does not respond (rate limit 429, timeout, bad key or
+  bad JSON), the result says so, the deterministic fallback is used, and nothing is labelled as found by AI.
+  "Configured" (a key is set) is never presented as "working".
+- An approximate (fuzzy) match is never called verified. The app never says the whole article is verified.
 
 ---
 
@@ -149,6 +162,12 @@ node --test tests/revision.test.mjs      # the revision engine alone
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs http://localhost:8000 ./shots
 python scripts/e2e_check.py http://localhost:8000   # API checks, samples, files that must not be served
 ```
+
+## Deploy to Render (prepared, not yet created)
+
+Exact settings, environment-variable names and the steps to deploy commit `3273078`:
+[docs/RENDER_DEPLOY.md](docs/RENDER_DEPLOY.md). Build `pip install -r requirements.txt`, start
+`uvicorn app.main:app --host 0.0.0.0 --port $PORT`, health check `/api/health`, Python 3.12 from `.python-version`.
 
 ## Deploy to Vercel
 
@@ -279,8 +298,8 @@ so no other changes are needed.
   retried; the next fallback model is tried instead. After a failure the instance skips AI
   for 60 s (120 s after a quota error), so a demo is never stuck waiting twice. Measured with
   a hanging endpoint: first audit 12.0 s, then immediate. Quranpedia calls time out after 20 s.
-  Malformed model JSON raises a handled error. In every AI failure the app falls back to
-  marked-only extraction with a notice.
+  Malformed model JSON raises a handled error. In every AI failure (including 429) the app falls back to
+  marked quotations plus verbatim runs of 5+ words, shows a warning in the result, and tags no finding as AI.
   These limits may cut off a slow but working Gemini response; that has not been observed
   yet, because no real Gemini call has succeeded (see docs/TEST_LOG.md).
 - Articles are processed in memory and never written to disk or logged. Error handlers log
@@ -290,11 +309,12 @@ so no other changes are needed.
 
 ## Known limitations
 
-- **No general accuracy claims.** A small author-written labelled set has been run in fallback
-  mode only: 25/28 detected, 0 false "matched" verdicts, and 0 corrections proposed for correct
-  quotes or references. See [docs/EVALUATION.md](docs/EVALUATION.md) for its limits. AI-mode results
-  do not exist yet, because no real AI call has succeeded (Gemini 503/429; Groq key not yet set).
-- Without working AI extraction, **short unmarked quotations (under 5 words) are missed**.
+- **No general accuracy claims.** On a small author-written labelled set (single runs, local): without AI,
+  25/28 detected; with Groq `qwen/qwen3.8-27b` + prompt v2, 26/28, and 4/6 vs 3/6 on a held-out set.
+  Both had 0 false "matched" verdicts and 0 corrections proposed for correct quotes or references.
+  See [docs/EVALUATION.md](docs/EVALUATION.md) for its limits. No real Gemini call has succeeded (503/429).
+- **Short unmarked quotations are still missed**: without AI all of them (under 5 words), and with AI
+  most of them (4 of 7 across both sets were still missed).
 - Automatic corrections are deliberately conservative: a short fuzzy quote, or a phrase found in
   several verses, gets review information but no replacement.
 - The source is Quranpedia's Hafs text in standard (imla'i) spelling with full diacritics.
@@ -331,6 +351,8 @@ docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
 docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)
 docs/EVALUATION.md   labelled evaluation: method, fallback results, limits
 docs/TEST_LOG.md     dated end-to-end observations (local + live)
+docs/RENDER_DEPLOY.md Render settings and deploy steps (prepared, not yet used)
+render.yaml          optional Render Blueprint with the same settings
 eval/                labelled cases, label validator, scorer, raw results
 SOURCES.md           sources, licences and attribution record
 BASELINE.md          pre-challenge baseline declaration
@@ -349,7 +371,7 @@ Each contains some deliberately wrong quotations or references so every status c
 - [ ] Final PDF/PPT presentation (organizer template or matching identity)
 - [x] Labelled evaluation, fallback mode (docs/EVALUATION.md)
 - [x] Editor workflow: proposals, approve/reject, revised article, review record (local, browser-tested)
-- [ ] Labelled evaluation, AI mode — only after a real successful AI call on every case
+- [x] Labelled evaluation, AI mode (Groq, local, 14/14 responded; single runs, docs/EVALUATION.md)
 - [ ] Human review of the evaluation labels (docs/LABEL_REVIEW.md)
 
 ## Licence

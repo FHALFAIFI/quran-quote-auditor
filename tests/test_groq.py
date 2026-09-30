@@ -194,3 +194,24 @@ def test_prompt_version_default_and_override(monkeypatch):
     assert groq.build_request("m", "مقال")["messages"][0]["content"] == prompts.PROMPTS["v1"]
     monkeypatch.setattr(prompts, "settings", dataclasses.replace(prompts.settings, extraction_prompt="nope"))
     assert prompts.prompt_version() == "v2"
+
+
+def test_rate_limit_is_a_visible_fallback_never_an_ai_result(use_source, monkeypatch):
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        return httpx.Response(429, json={"error": {"message": "Rate limit reached ... (ITPM)", "type": "tokens"}})
+
+    patch_client(monkeypatch, handler)
+    monkeypatch.setattr(audit, "get_provider", lambda: groq.GroqProvider())
+    article = "قال تعالى: ﴿اقرأ باسم ربك الذي خلق﴾ [العلق: 1]"
+    for _ in range(2):  # the second audit falls in the cooldown and makes no call
+        res = audit.run_audit(article)
+        assert res["mode"] == "ai_failed"
+        assert res["ai"]["responded"] is False and res["ai"]["outcome"] == "failed" and res["ai"]["proposed"] == 0
+        assert all("ai" not in f["detected_by"] for f in res["findings"])
+        assert any(n["level"] == "warning" and "تفوت" in n["text"] for n in res["notices"])
+        assert res["findings"][0]["wording"]["status"] == "matched"  # deterministic path still verifies
+    assert len(calls) == 1
+    assert res["ai"]["http_status"] == 429

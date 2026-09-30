@@ -247,7 +247,7 @@ Full tables: `docs/EVALUATION.md`, "Experiment". Labels unchanged (`git diff eva
 
 Question: does a smaller `max_completion_tokens` avoid the 429 seen at 17:43 (*OTPM: Limit 1000, Requested 1457*)?
 `max_completion_tokens` is now configurable (`GROQ_MAX_COMPLETION_TOKENS`, default unchanged at 4096).
-`eval/experiments/token_reservation.py 4096 1024 512 256`: qwen + v2, all 14 labelled + 6 held-out cases sent
+`eval/experiments/token_reservation.py 4096 1024 512 256`: qwen + v2, all 14 labelled + 4 held-out cases (18 per size, 72 calls) sent
 back-to-back, 65 s between reservations. Raw: `eval/experiments/raw/20260930-190941-reservation-qwen_qwen3.8-27b-v2.json`.
 
 | Reservation | 200 OK | finish `stop` + JSON parses | Max real output | First 429 | Limit in the 429 body |
@@ -264,6 +264,29 @@ back-to-back, 65 s between reservations. Raw: `eval/experiments/raw/20260930-190
 - Complete, schema-valid JSON came back at every size down to 256 on these short articles. Real output reached
   91 tokens; an article at the 6,000-character limit with many quotations could need more, so a small reservation
   risks `finish_reason: length`, which the app treats as a failure. **Default kept at 4096.**
-- The 6 held-out cases were not reached at any size (all 429). One case (c10) returned 2 candidates at 512 and
+- c14 and the 4 held-out cases (6 quotations) got HTTP 429 at every size: 5 failures per size, 20 of 72 calls in total, all ITPM. They were not scored and no held-out output exists from this experiment. One case (c10) returned 2 candidates at 512 and
   0 at the other sizes, although `temperature` is 0: output is not fully deterministic.
 - `pytest` → 126 passed.
+
+**Conclusion (reviewed 30 Sep, 20:3x; no further Groq calls).** Re-tabulated from the raw file: 72/72 calls recorded.
+At every size, the 13 cases that returned 200 had `finish_reason: stop`, JSON the app parses, and the same candidate
+count as at 4096. The one difference, c10 at 512 (2 candidates vs 0), is a *gain*, and it is attributed to
+call-to-call variation rather than to the reservation. So no size lost a candidate. The evidence is still **inconclusive for choosing a smaller value**:
+- The reservation had no effect on the 429s, so a smaller value has no benefit today.
+- Every test article is 70–228 characters, under 4% of the 6,000-character limit. Real output was 7 tokens for an empty list
+  plus 18–46 tokens per candidate. At the cap of 40 candidates that is roughly 700–1,850 tokens, which can exceed
+  1,024 and would far exceed 256 or 512.
+- The 5 rate-limited cases per size, including all held-out cases, were never observed.
+- Each size ran once.
+
+**`GROQ_MAX_COMPLETION_TOKENS` stays at 4096.** Revisit only with long articles and repeated runs.
+- Also added (offline): `test_rate_limit_is_a_visible_fallback_never_an_ai_result`. A 429 gives `mode: ai_failed`,
+  a visible warning, and no finding tagged `ai`. The next audit is skipped during the cooldown. `pytest` → 127 passed.
+
+
+## 2026-09-30 (20:3x UTC+3) — Render start command, local (pre-challenge; no Render service yet)
+
+Clean `git archive 3273078` in a temp dir, Python 3.12.13 (from `.python-version` `3.12`), `requirements.txt`
+installed into a fresh venv (uv), then the Render start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+with `PORT=10000`, `AI_PROVIDER=none`, no keys: `/api/health` 200 (`mode: reduced`), `/` 200, `POST /api/audit`
+with sample 2 → 200, 7 quotations, 3 need review, source available. No Groq call. Steps for tomorrow: `docs/RENDER_DEPLOY.md`.

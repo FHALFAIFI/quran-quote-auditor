@@ -1,0 +1,23 @@
+# Render Blueprint (optional). The same values are entered by hand in docs/RENDER_DEPLOY.md.
+# No secret is stored here: GROQ_API_KEY uses sync: false, so Render asks for it once in the dashboard.
+services:
+  - type: web
+    name: quran-quote-auditor
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeployTrigger: "off"  # deploy a chosen commit manually
+    envVars:
+      - key: AI_PROVIDER
+        value: groq
+      - key: GROQ_MODEL
+        value: qwen/qwen3.8-27b
+      - key: EXTRACTION_PROMPT
+        value: v2
+      - key: GROQ_API_KEY
+        sync: false
+      - key: QURANPEDIA_CONTACT
+        sync: false

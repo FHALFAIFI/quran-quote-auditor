@@ -34,7 +34,7 @@ Last reviewed: 2026-09-29 (pre-challenge work; Groq provider added).
 | Data | "Your Data in GroqCloud" (https://console.groq.com/docs/your-data, read 2026-09-29): by default inference data is not retained, except up to 30 days for reliability/abuse monitoring; Zero Data Retention can be enabled per organization. Check the current terms before processing real content. |
 | Role | Identical to Gemini's: proposes candidate spans and nearby reference strings only. **Never a source of Quran text, verdicts or corrections.** |
 | Key | `GROQ_API_KEY`, supplied by the deployer; not in this repository. |
-| Verification status | **Unverified** — no real Groq call has been made yet (no key configured). See docs/TEST_LOG.md. |
+| Status | **Responds (local, 30 Sep 2026):** real calls returned HTTP 200 on 14/14 labelled cases. Prompt v2: 26/28 and 4/6 vs 25/28 and 3/6 without AI (single runs). Free tier hit 429 at 7,000 input tokens/minute. Not yet live (no key on the deployed app). See docs/TEST_LOG.md, docs/EVALUATION.md. |
 
 ## 3. Fonts and design
 

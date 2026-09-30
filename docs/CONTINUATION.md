@@ -1,7 +1,8 @@
 # Continuation plan
 
 Everything in the repository today is **pre-challenge work** (see `BASELINE.md`). This file lists what is
-planned, separated into the scored challenge days and later work. Nothing here is done yet.
+planned, separated into the scored challenge days and later work. Items marked *pre-challenge* were done
+before 4 October and are not challenge work; everything else is not done yet.
 
 ## A. During the challenge (4–6 October 2026) — realistic scope
 
@@ -9,8 +10,8 @@ Each item must be committed during 4–6 October and listed in `CHANGELOG.md` un
 
 | Priority | Change | Done when |
 |---|---|---|
-| 1 | **Verify real AI extraction** with the Groq key: one minimal call, then the three samples, then `eval/run_eval.py --mode ai`. | A real response is logged in `docs/TEST_LOG.md` (model, status, time, candidates, discarded), and the AI-mode evaluation either completes on all 14 cases or is reported as failed. |
-| 2 | Report AI vs fallback **detection of unmarked quotes** (1/4 in fallback) with the false-"matched" and false-fix counts, on the same unchanged labels. | `docs/EVALUATION.md` has both columns, clearly labelled as a small author-written set. |
+| 1 | **Live AI extraction** on the deployed app (Render, `docs/RENDER_DEPLOY.md`) with the Groq key. *Local verification is pre-challenge: 14/14 responded, 30 Sep.* | `/api/health` and one real audit on the live URL are logged in `docs/TEST_LOG.md` (commit, model, status, candidates, discarded). |
+| 2 | Repeat the AI-mode evaluation (three runs, paced under Groq's 7,000 input tokens/minute) to check repeatability. *Single runs are pre-challenge: 26/28 and 4/6 vs 25/28 and 3/6.* | Mean and range in `docs/EVALUATION.md`; every run, including rate-limited ones, listed. |
 | 3 | Human review of the labels by an Arabic reader/specialist using `docs/LABEL_REVIEW.md`; log any correction with reason and source. | Checklist ticked; corrections log filled; evaluation re-run. |
 | 4 | Handle quotations with an ellipsis («…») as two excerpts in the correction logic, so the omitted part is not flagged as missing words. | Tests for «…» inside ﴿﴾ pass; no automatic insertion of omitted words. |
 | 5 | Uthmani-script input: map common Uthmani spellings (e.g. «الصلوة», small alef) so correct Uthmani quotes are not shown as differences. | Tests with Uthmani quotes; no new false fixes on the labelled set. |
