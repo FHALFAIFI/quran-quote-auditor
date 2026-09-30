@@ -202,3 +202,40 @@ reply draft, filter, review record, reload, markup safety, mobile, no console er
   **Blocked**: «the commit author doesn't have permission to create deployments for this project». The commit author is
   `281715064+FHALFAIFI@users.noreply.github.com`. No workaround was used. The live site still serves `2860743` (28 Sep),
   so the editor workflow was **not** tested on the live URL.
+
+## 2026-09-30 (evening) — short unmarked quotations experiment (pre-challenge)
+
+Full tables: `docs/EVALUATION.md`, "Experiment". Labels unchanged (`git diff eval/cases.json` empty).
+
+- 17:40 raw probe, qwen + v1, c11/c12: both `{"candidates": []}` (HTTP 200, 1514 / 304 ms).
+- 17:41 new held-out set `eval/heldout.json` written and validated (`validate_labels.py eval/heldout.json` → labels OK)
+  before any prompt or model change was run. Fallback baselines: labelled 25/28, held-out 3/6.
+- 17:41 raw probe, qwen + v2, c11/c12: c11 `[]`; c12 both quotations including «ادعوني أستجيب لكم».
+- 17:41 qwen + v2 full run → **stopped at c03, HTTP 429** (not saved; the runner saved stopped runs only from 17:43).
+- 17:43 qwen + v2, 10 s pacing → stopped at c02, 429 (`stopped-20260930-174303-qwen-v2.json`).
+- **Cause of the 429s:** the Groq error body says *output tokens per minute (OTPM): Limit 1000, Requested 1457*.
+  Groq counts an *expected* output per request (≈1,300–1,450 here, while the real output was ≈80 tokens), so
+  requests close together are rejected. The same request succeeds when spaced out. `x-ratelimit-*` headers show only
+  the 8,000 tokens/min and 1,000 requests limits, not this one. **Live impact:** two audits within about a minute
+  can make the second fall back (announced in the UI as a quota error). Not fixed; lowering `max_completion_tokens`
+  was not tested.
+- 17:52 qwen + v2, 30 s pacing → 14/14 responded: **26/28, unmarked 2/4** (`ai-20260930-175238-qwen-v2.json`).
+- 17:53 raw probe, gpt-oss-120b + v2 (`reasoning_effort` low): c11 «وافعَلوا الخير» (diacritic added), c12 only the Nahl quote.
+- 18:00 gpt-oss-120b + v2 → 14/14: **26/28, unmarked 2/4** (`ai-20260930-180026-gptoss120b-v2.json`).
+- 18:01–18:05 held-out: qwen v1 stopped (429, h02); qwen v2 stopped (429, h03); gpt-oss v2 → 3/6.
+- 18:10 held-out qwen v1, 65 s pacing → 3/6, 0 candidates. 18:14 qwen v2, 65 s → stopped (429, h04).
+- 18:24 held-out qwen v2, 120 s pacing → **4/6, unmarked 3/5**.
+- Chosen: qwen + v2, now the default. `pytest` → 126 passed.
+
+## 2026-09-30 — Vercel deployment block: diagnosis
+
+- GitHub attributes `71769ae` and `f51bbc3` to **FHALFAIFI** (id 281715064). The author address is
+  `281715064+FHALFAIFI@users.noreply.github.com`, the ID-based private address format. The Settings → Emails page itself
+  could not be read (the CLI token lacks the `user` scope).
+- The Vercel project is owned by user `fhalfaifi` (Hobby, OWNER of team `fahad-dce3`). The project has no Git link.
+  The owner confirmed that GitHub **FHALFAIFI is already connected** under that Vercel login.
+- Pattern across the last 10 production deployments: every **BLOCKED** one carried git metadata with the noreply
+  author, and every **READY** one had no git metadata.
+- 17:48 deploy of committed `71769ae` from a clean git worktree → `dpl_7m3aDYoWRPCKfnAMi9iq4meH1ZY1` **READY**.
+  But the CLI attached **no git metadata** from the worktree, so this deploy **did not go through the author check**.
+  It does not show the block is fixed. Live now serves `71769ae`, reduced mode (`GROQ_API_KEY` not set).

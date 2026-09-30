@@ -1,0 +1,44 @@
+[
+ {
+  "case": "c11-unmarked-short",
+  "http_status": 200,
+  "elapsed_ms": 1514,
+  "model": "qwen/qwen3.8-27b",
+  "prompt": "v1",
+  "reasoning_effort": "none",
+  "finish_reason": "stop",
+  "content": "{\"candidates\": []}",
+  "reasoning": null,
+  "usage": {
+   "queue_time": 1.146340968,
+   "prompt_tokens": 368,
+   "prompt_time": 0.033034067,
+   "completion_tokens": 7,
+   "completion_time": 0.014651704,
+   "total_tokens": 375,
+   "total_time": 0.047685771
+  },
+  "error": null
+ },
+ {
+  "case": "c12-unmarked-long-and-error",
+  "http_status": 200,
+  "elapsed_ms": 304,
+  "model": "qwen/qwen3.8-27b",
+  "prompt": "v1",
+  "reasoning_effort": "none",
+  "finish_reason": "stop",
+  "content": "{\"candidates\": []}",
+  "reasoning": null,
+  "usage": {
+   "queue_time": 0.011843417,
+   "prompt_tokens": 370,
+   "prompt_time": 0.028775233,
+   "completion_tokens": 7,
+   "completion_time": 0.015445882,
+   "total_tokens": 377,
+   "total_time": 0.044221115
+  },
+  "error": null
+ }
+]

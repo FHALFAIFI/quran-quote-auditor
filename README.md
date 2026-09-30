@@ -7,10 +7,12 @@
 > work. Only work committed during 4–6 October 2026 counts as challenge work.
 > See [BASELINE.md](BASELINE.md) and [CHANGELOG.md](CHANGELOG.md).
 >
-> **AI status (30 Sep 2026): responds, adds nothing yet.** Groq (`qwen/qwen3.8-27b`) answered on all
-> 3 samples and all 14 labelled cases, but proposed no quotation that the deterministic path had not already
-> found (unmarked quotes still 1/4). Not yet live: the Vercel deploy is blocked and `GROQ_API_KEY` is not
-> set there. See [docs/TEST_LOG.md](docs/TEST_LOG.md) and [docs/EVALUATION.md](docs/EVALUATION.md).
+> **AI status (30 Sep 2026): service verified; small benefit observed locally.** Groq (`qwen/qwen3.8-27b`) answered
+> on every labelled case. With the original prompt it found nothing the deterministic path had missed. With prompt v2
+> (now the default) it found one more unmarked quotation on the labelled set (26/28, unmarked 2/4) and one on a new
+> held-out set (4/6 vs 3/6), with no false "matched" verdicts or false fixes. These are single runs on small
+> author-written sets. Not yet live: `GROQ_API_KEY` is not set on Vercel. See [docs/EVALUATION.md](docs/EVALUATION.md)
+> and [docs/TEST_LOG.md](docs/TEST_LOG.md).
 
 **AI Challenge Serving Islamic Content 2026 — Track 4: knowledge and verification tools.**
 

@@ -3,7 +3,7 @@
 Independent of the app's verifier: it uses its own minimal normalization and
 only reads the source text (fetched live from Quranpedia, cached per machine).
 
-    python eval/validate_labels.py
+    python eval/validate_labels.py [cases-file]     # default eval/cases.json
 """
 
 from __future__ import annotations
@@ -41,7 +41,8 @@ def within(needle: str, hay: str) -> bool:
 
 
 def main() -> int:
-    data = json.loads((Path(__file__).parent / "cases.json").read_text(encoding="utf-8"))
+    path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent / "cases.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
     idx = source.get()
     by_surah: dict[int, list] = {}
     for (s, n), a in idx.ayahs.items():

@@ -184,3 +184,13 @@ def test_health_distinguishes_configured_from_responded(use_source, monkeypatch)
     assert h["ai_configured"] is True and h["provider_name"] == "groq"
     assert h["ai_last_call"]["outcome"] == "never_called"
     assert "gsk_test" not in json.dumps(h)
+
+
+def test_prompt_version_default_and_override(monkeypatch):
+    from app.extraction import prompts
+    assert prompts.prompt_version() == "v2"
+    assert groq.build_request("m", "مقال")["messages"][0]["content"] == prompts.PROMPTS["v2"]
+    monkeypatch.setattr(prompts, "settings", dataclasses.replace(prompts.settings, extraction_prompt="v1"))
+    assert groq.build_request("m", "مقال")["messages"][0]["content"] == prompts.PROMPTS["v1"]
+    monkeypatch.setattr(prompts, "settings", dataclasses.replace(prompts.settings, extraction_prompt="nope"))
+    assert prompts.prompt_version() == "v2"

@@ -6,7 +6,7 @@
 - The articles were written by the project author for this test, using the same AI-assisted workflow that built the app. They are not an independent sample of real articles.
 - A human reviewer still needs to confirm the labels (checklist: `docs/LABEL_REVIEW.md`).
 - The results show how the pipeline behaves on the listed case types. They are **not** a general accuracy figure.
-- **AI mode (Groq, 30 Sep 2026) responded on every case but added no detections**; see "Results — AI mode".
+- **AI mode (Groq, 30 Sep 2026):** with the original prompt it responded on every case but added no detections; with prompt v2 it added one quotation on each set (see "Experiment").
 
 ## Labelled set (`eval/cases.json`, v1)
 
@@ -125,6 +125,62 @@ empty list for c11 and c12, the unmarked short quotes that AI extraction is mean
 cases. On this set, AI extraction with the current prompt and model therefore **adds nothing** over fallback. The good
 news is that it also added no false findings. Whether a different prompt, `reasoning_effort` or model does better is
 untested; any change must be re-run on these same labels and reported as a separate run.
+
+## Experiment — short unmarked quotations (2026-09-30)
+
+Goal: can AI extraction find the short unmarked quotations that fallback misses (c11 ×2, c12 «ادعوني أستجيب لكم»)?
+Rules: labels and scoring unchanged; one prompt revision; at most one other Groq model; every run logged;
+a held-out set written **before** any change was tried, used only for the final choice. Quranpedia remains the
+only authority for wording and references; the model only points at substrings.
+
+**Diagnosis (v1).** Raw responses (`eval/experiments/raw/20260930-174033-qwen_qwen3.8-27b-v1.json`): `{"candidates": []}`
+for both c11 and c12, HTTP 200, finish `stop`. The model is answering, but chooses nothing when there are no
+brackets or reference.
+
+**Prompt v2** (`app/extraction/prompts.py`): v1 plus a paragraph on where unmarked quotes hide (inside a sentence,
+after «والله يقول»/«قوله», or with no introduction; ≥ 3 words), one positive and one negative example that are not in
+either evaluation file, and the statement that a missed quotation is worse than a candidate the server later
+rejects. Rules 1–6 unchanged.
+
+**Other model:** `openai/gpt-oss-120b`, `reasoning_effort: "low"`, with prompt v2.
+
+### Labelled set (`eval/cases.json`, 14 cases, 28 quotations — unchanged)
+
+| Version | Detected | Unmarked | Short | False "matched" | False fixes | Non-Quran hits | Candidates / discarded | Raw result |
+|---|---|---|---|---|---|---|---|---|
+| Fallback (no AI) | 25/28 | 1/4 | 0/3 | 0 | 0 | 0/5 | — | `fallback-20260930-174118-cases-check.json` |
+| qwen3.8-27b + v1 | 25/28 | 1/4 | 0/3 | 0 | 0 | 0/5 | 16 / 0 | `ai-20260930-165858.json` |
+| qwen3.8-27b + **v2** | **26/28** | **2/4** | 1/3 | 0 | 0 | 0/5 | 21 / 0 | `ai-20260930-175238-qwen-v2.json` |
+| gpt-oss-120b + v2 | 26/28 | 2/4 | 1/3 | 0 | 0 | 0/5 | 24 / 0 | `ai-20260930-180026-gptoss120b-v2.json` |
+
+- qwen + v2 adds c12 «ادعوني أستجيب لكم» (graded *difference*, correctly: the mushaf has «أستجب»; review only, no
+  automatic fix). c11 is still empty. Every other row is identical to v1.
+- gpt-oss + v2 adds c11 «وافعلوا الخير لعلكم تفلحون» instead, and misses «ادعوني». Mean 1.33 s per article (max 3.5 s)
+  against ≈ 0.4 s for qwen. In a separate probe of the same c11 input it returned «وافعَلوا الخير» (a diacritic
+  not in the article), so output varies between calls even at temperature 0.
+- «ولا تنسوا الفضل بينكم» (c11) was found by no version.
+
+### Held-out set (`eval/heldout.json`, 4 cases, 6 quotations of which 5 unmarked, 4 non-Quran negatives)
+
+| Version | Detected | Unmarked | False "matched" | False fixes | Non-Quran hits | Candidates / discarded | Raw result |
+|---|---|---|---|---|---|---|---|
+| Fallback (no AI) | 3/6 | 2/5 | 0 | 0 | 0/4 | — | `fallback-20260930-174118-heldout.json` |
+| qwen3.8-27b + v1 | 3/6 | 2/5 | 0 | 0 | 0/4 | 0 / 0 | `ai-20260930-181015-heldout-qwen-v1.json` |
+| qwen3.8-27b + **v2** | **4/6** | **3/5** | 0 | 0 | 0/4 | 2 / 0 | `ai-20260930-182414-heldout-qwen-v2.json` |
+| gpt-oss-120b + v2 | 3/6 | 2/5 | 0 | 0 | 0/4 | 3 / 1 | `ai-20260930-180534-heldout-gptoss120b-v2.json` |
+
+- qwen + v2 adds «رب زدني علما» (h01). Missed by all: «وتعاونوا على البر والتقوى», «ادعوا ربكم تضرعا وخفية».
+- gpt-oss proposed «لا يكلف الله نفسا إلا وسهها», a misspelling that is not in the article; the server discarded it,
+  as designed. Its other proposals were already found by fallback.
+- Four runs stopped on HTTP 429 and were **not** counted (`eval/results/stopped-*.json`, plus one at 17:41 before
+  stopped runs were saved). See the rate-limit note in `TEST_LOG.md`.
+
+### Choice
+
+**qwen3.8-27b + prompt v2** is now the default (`EXTRACTION_PROMPT=v2`). It is the only version that gained on
+both sets (+1 quotation each), is the fastest, and kept every safety count at zero. The gain is small and each number comes from one
+run on author-written sets, with visible call-to-call variation. So this is **"a small observed benefit on these
+sets"**, not a measured detection rate. Most short unmarked quotations (4 of 7 across both sets) are still missed.
 
 ## Next steps
 

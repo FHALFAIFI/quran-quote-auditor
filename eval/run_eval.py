@@ -3,6 +3,8 @@
     python eval/run_eval.py --mode fallback      # no AI (reduced mode), deterministic
     python eval/run_eval.py --mode ai            # uses the configured provider (GROQ_API_KEY / GEMINI_API_KEY);
                                                  # only valid if the AI actually responded on EVERY case
+    python eval/run_eval.py --mode ai --cases eval/heldout.json --tag heldout-v2   # other case file / file-name tag
+    (the model and prompt come from GROQ_MODEL / GROQ_REASONING_EFFORT / EXTRACTION_PROMPT, and are recorded)
 
 Writes eval/results/<mode>-<timestamp>.json and prints a summary. "Uncertain"
 answers are counted as abstentions, separately from wrong verdicts. The most
@@ -26,6 +28,8 @@ sys.path.insert(0, str(ROOT))
 import app.audit as audit  # noqa: E402
 from app import arabic  # noqa: E402
 from app.references import Reference, parse_reference  # noqa: E402
+from app.config import settings  # noqa: E402
+from app.extraction.prompts import prompt_version  # noqa: E402
 from app.verifier import verify  # noqa: E402
 
 REF_EXPECT = {"correct": "matched", "incorrect": "incorrect", "out_of_range": "incorrect", "missing": "missing", "partial": "uncertain"}
@@ -87,7 +91,11 @@ def grade(actual: str, expected: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["fallback", "ai"], required=True)
+    ap.add_argument("--cases", default=str(ROOT / "eval" / "cases.json"), help="labelled case file (never edited by this script)")
+    ap.add_argument("--tag", default="", help="added to the result file name")
+    ap.add_argument("--pace", type=float, default=0.0, help="seconds to wait between AI cases (Groq free tier: 8,000 tokens/min)")
     args = ap.parse_args()
+    ai_quotes: dict[str, list] = {}
     if args.mode == "fallback":
         audit.get_provider = lambda: None
     else:
@@ -95,23 +103,39 @@ def main() -> int:
         if provider is None:
             print("NOT AN AI RUN: no AI provider is configured (set GROQ_API_KEY or GEMINI_API_KEY). Nothing recorded.")
             return 2
-        print(f"AI provider: {provider.label}")
+        print(f"AI provider: {provider.label}, prompt {prompt_version()}")
+        extract = provider.extract
 
-    data = json.loads((ROOT / "eval" / "cases.json").read_text(encoding="utf-8"))
+        def logged_extract(article: str):  # keep what the model proposed, for diagnosis
+            out = extract(article)
+            ai_quotes[article] = [{"quote": s.quote, "reference_text": s.reference_text} for s in out]
+            return out
+        provider.extract = logged_extract
+        audit.get_provider = lambda: provider
+
+    cases_path = Path(args.cases).resolve()
+    data = json.loads(cases_path.read_text(encoding="utf-8"))
     rows, neg_hits, extra_findings, modes, timings, ai_log = [], [], [], Counter(), [], []
-    for case in data["cases"]:
+    for n_case, case in enumerate(data["cases"]):
         art = case["article"]
+        if args.mode == "ai" and args.pace and n_case:
+            time.sleep(args.pace)
         t = time.monotonic()
         res = audit.run_audit(art)
         timings.append(time.monotonic() - t)
         modes[res["mode"]] += 1
         ai = res.get("ai") or {}
         ai_log.append({"case": case["id"], "mode": res["mode"], **{k: ai.get(k) for k in (
-            "provider", "model", "responded", "outcome", "http_status", "elapsed_ms", "proposed", "located", "discarded", "error")}})
+            "provider", "model", "responded", "outcome", "http_status", "elapsed_ms", "proposed", "located", "discarded", "error")},
+                       "model_quotes": ai_quotes.get(art)})
         if args.mode == "ai" and not ai.get("responded"):
             print(f"STOP: case {case['id']} fell back ({ai.get('outcome')}: {ai.get('error')}). "
                   "Not retrying and not recording an AI result.")
             print(json.dumps(ai_log, ensure_ascii=False, indent=1))
+            stop = ROOT / "eval" / "results" / f"stopped-{datetime.now().strftime('%Y%m%d-%H%M%S')}{'-' + args.tag if args.tag else ''}.json"
+            stop.write_text(json.dumps({"stopped_at": case["id"], "cases_file": str(cases_path.relative_to(ROOT)),
+                                        "prompt": prompt_version(), "ai_calls": ai_log}, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"saved {stop.relative_to(ROOT)} (not an AI result)")
             return 2
         used = set()
         for g in case["gold"]:
@@ -156,6 +180,9 @@ def main() -> int:
     det = [r for r in rows if r["detected"]]
     summary = {
         "mode": args.mode,
+        "cases_file": str(cases_path.relative_to(ROOT)),
+        "prompt": prompt_version() if args.mode == "ai" else None,
+        "reasoning_effort": settings.groq_reasoning_effort or "(default)" if args.mode == "ai" else None,
         "modes_observed": dict(modes),
         "when": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "cases": len(data["cases"]),
@@ -196,7 +223,8 @@ def main() -> int:
 
     out_dir = ROOT / "eval" / "results"
     out_dir.mkdir(exist_ok=True)
-    out = out_dir / f"{args.mode}-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
+    tag = f"-{args.tag}" if args.tag else ""
+    out = out_dir / f"{args.mode}-{datetime.now().strftime('%Y%m%d-%H%M%S')}{tag}.json"
     out.write_text(json.dumps({"summary": summary, "ai_calls": ai_log, "rows": rows, "negative_hits": neg_hits, "extra_findings": extra_findings}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     for r in rows:

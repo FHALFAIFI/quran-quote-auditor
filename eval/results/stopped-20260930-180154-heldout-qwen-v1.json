@@ -1,0 +1,37 @@
+{
+ "stopped_at": "h02-unmarked-short",
+ "cases_file": "eval/heldout.json",
+ "prompt": "v1",
+ "ai_calls": [
+  {
+   "case": "h01-unmarked-short",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 562,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": []
+  },
+  {
+   "case": "h02-unmarked-short",
+   "mode": "ai_failed",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": false,
+   "outcome": "failed",
+   "http_status": 429,
+   "elapsed_ms": 280,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا",
+   "model_quotes": null
+  }
+ ]
+}

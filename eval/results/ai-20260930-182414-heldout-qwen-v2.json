@@ -1,0 +1,263 @@
+{
+ "summary": {
+  "mode": "ai",
+  "cases_file": "eval/heldout.json",
+  "prompt": "v2",
+  "reasoning_effort": "(default)",
+  "modes_observed": {
+   "ai": 4
+  },
+  "when": "2026-09-30T15:24:14+00:00",
+  "cases": 4,
+  "gold_quotations": 6,
+  "detected": 4,
+  "detection_by_tag": {
+   "marked": "1/1",
+   "missing_ref": "3/5",
+   "short": "3/5",
+   "unmarked": "3/5"
+  },
+  "wording": {
+   "correct": 4
+  },
+  "reference": {
+   "correct": 4
+  },
+  "location_ok": {
+   "True": 4
+  },
+  "false_verified_wording": 0,
+  "false_verified_reference": 0,
+  "negative_hits": 0,
+  "other_extra_findings": 0,
+  "seconds_per_article_max": 1.13,
+  "seconds_per_article_mean": 0.8,
+  "corrections": {
+   "wording_errors_detected": 0,
+   "wording_fix_ok": 0,
+   "wording_fix_wrong": 0,
+   "wording_errors_review_only": 0,
+   "reference_issues_detected": 0,
+   "reference_fix_ok": 0,
+   "reference_fix_wrong": 0,
+   "reference_issues_review_only": 0,
+   "FALSE_wording_fix_on_correct_quote": 0,
+   "FALSE_reference_fix_on_correct_reference": 0
+  },
+  "ai_models": [
+   "qwen/qwen3.8-27b"
+  ],
+  "ai_candidates_proposed": 2,
+  "ai_candidates_discarded": 0
+ },
+ "ai_calls": [
+  {
+   "case": "h01-unmarked-short",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 669,
+   "proposed": 2,
+   "located": 2,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": [
+    {
+     "quote": "ومن يتق الله يجعل له مخرجا",
+     "reference_text": null
+    },
+    {
+     "quote": "رب زدني علما",
+     "reference_text": null
+    }
+   ]
+  },
+  {
+   "case": "h02-unmarked-short",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 510,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": []
+  },
+  {
+   "case": "h03-negatives-and-unmarked",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 418,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": []
+  },
+  {
+   "case": "h04-marked-and-hadith",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 1111,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": []
+  }
+ ],
+ "rows": [
+  {
+   "case": "h01-unmarked-short",
+   "quote": "ومن يتق الله يجعل له مخرجا",
+   "tags": [
+    "unmarked",
+    "short",
+    "missing_ref"
+   ],
+   "detected": true,
+   "detected_by": [
+    "ai",
+    "scan"
+   ],
+   "wording_expected": "matched",
+   "wording_actual": "matched",
+   "wording_level": "diacritics",
+   "wording_grade": "correct",
+   "false_verified_wording": false,
+   "reference_expected": "missing",
+   "reference_actual": "missing",
+   "reference_grade": "correct",
+   "false_verified_reference": false,
+   "location_ok": true,
+   "needs_review": false,
+   "correction_status": "none_needed",
+   "wording_fix": null,
+   "reference_fix": null,
+   "false_fix": false,
+   "false_reference_fix": false
+  },
+  {
+   "case": "h01-unmarked-short",
+   "quote": "وقل رب زدني علما",
+   "tags": [
+    "unmarked",
+    "short",
+    "missing_ref"
+   ],
+   "detected": true,
+   "detected_by": [
+    "ai"
+   ],
+   "wording_expected": "matched",
+   "wording_actual": "matched",
+   "wording_level": "diacritics",
+   "wording_grade": "correct",
+   "false_verified_wording": false,
+   "reference_expected": "missing",
+   "reference_actual": "missing",
+   "reference_grade": "correct",
+   "false_verified_reference": false,
+   "location_ok": true,
+   "needs_review": false,
+   "correction_status": "none_needed",
+   "wording_fix": null,
+   "reference_fix": null,
+   "false_fix": false,
+   "false_reference_fix": false
+  },
+  {
+   "case": "h02-unmarked-short",
+   "quote": "وتعاونوا على البر والتقوى",
+   "tags": [
+    "unmarked",
+    "short",
+    "missing_ref"
+   ],
+   "detected": false
+  },
+  {
+   "case": "h02-unmarked-short",
+   "quote": "لا يكلف الله نفسا إلا وسعها",
+   "tags": [
+    "unmarked",
+    "short",
+    "missing_ref"
+   ],
+   "detected": true,
+   "detected_by": [
+    "scan"
+   ],
+   "wording_expected": "matched",
+   "wording_actual": "matched",
+   "wording_level": "diacritics",
+   "wording_grade": "correct",
+   "false_verified_wording": false,
+   "reference_expected": "missing",
+   "reference_actual": "missing",
+   "reference_grade": "correct",
+   "false_verified_reference": false,
+   "location_ok": true,
+   "needs_review": false,
+   "correction_status": "none_needed",
+   "wording_fix": null,
+   "reference_fix": null,
+   "false_fix": false,
+   "false_reference_fix": false
+  },
+  {
+   "case": "h03-negatives-and-unmarked",
+   "quote": "ادعوا ربكم تضرعا وخفية",
+   "tags": [
+    "unmarked",
+    "short",
+    "missing_ref"
+   ],
+   "detected": false
+  },
+  {
+   "case": "h04-marked-and-hadith",
+   "quote": "قل هو الله أحد",
+   "tags": [
+    "marked"
+   ],
+   "detected": true,
+   "detected_by": [
+    "marked"
+   ],
+   "wording_expected": "matched",
+   "wording_actual": "matched",
+   "wording_level": "diacritics",
+   "wording_grade": "correct",
+   "false_verified_wording": false,
+   "reference_expected": "matched",
+   "reference_actual": "matched",
+   "reference_grade": "correct",
+   "false_verified_reference": false,
+   "location_ok": true,
+   "needs_review": false,
+   "correction_status": "none_needed",
+   "wording_fix": null,
+   "reference_fix": null,
+   "false_fix": false,
+   "false_reference_fix": false
+  }
+ ],
+ "negative_hits": [],
+ "extra_findings": []
+}

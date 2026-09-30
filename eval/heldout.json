@@ -1,0 +1,140 @@
+{
+ "_about": "Held-out set, v1 (2026-09-30). Written before any prompt or model change was tried, and not used to design them; used only to check a chosen version generalises beyond c11/c12. Same fields and rules as eval/cases.json. Author-written with the same AI-assisted workflow; labels checked against Quranpedia by eval/validate_labels.py; pending human review.",
+ "version": 1,
+ "cases": [
+  {
+   "id": "h01-unmarked-short",
+   "article": "إذا ضاقت بك السبل فتذكر ومن يتق الله يجعل له مخرجا، واطلب المزيد من المعرفة داعيًا وقل رب زدني علما.",
+   "gold": [
+    {
+     "quote": "ومن يتق الله يجعل له مخرجا",
+     "surah": 65,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "ومن يتق الله يجعل له مخرجا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "unmarked",
+      "short",
+      "missing_ref"
+     ]
+    },
+    {
+     "quote": "وقل رب زدني علما",
+     "surah": 20,
+     "ayah_start": 114,
+     "ayah_end": 114,
+     "correct_text": "وقل رب زدني علما",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "unmarked",
+      "short",
+      "missing_ref"
+     ]
+    }
+   ],
+   "negatives": []
+  },
+  {
+   "id": "h02-unmarked-short",
+   "article": "العمل الجماعي أساس المجتمع، وتعاونوا على البر والتقوى كما أُمرنا، ولا تحمّل أحدًا فوق طاقته، لا يكلف الله نفسا إلا وسعها.",
+   "gold": [
+    {
+     "quote": "وتعاونوا على البر والتقوى",
+     "surah": 5,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "وتعاونوا على البر والتقوى",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "unmarked",
+      "short",
+      "missing_ref"
+     ]
+    },
+    {
+     "quote": "لا يكلف الله نفسا إلا وسعها",
+     "surah": 2,
+     "ayah_start": 286,
+     "ayah_end": 286,
+     "correct_text": "لا يكلف الله نفسا إلا وسعها",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "unmarked",
+      "short",
+      "missing_ref"
+     ]
+    }
+   ],
+   "negatives": []
+  },
+  {
+   "id": "h03-negatives-and-unmarked",
+   "article": "قال رسول الله ﷺ: «إنما الأعمال بالنيات»، وقالت العرب: من جد وجد. ومن أدعية السلف: اللهم إني أسألك العفو والعافية. والله يقول ادعوا ربكم تضرعا وخفية.",
+   "gold": [
+    {
+     "quote": "ادعوا ربكم تضرعا وخفية",
+     "surah": 7,
+     "ayah_start": 55,
+     "ayah_end": 55,
+     "correct_text": "ادعوا ربكم تضرعا وخفية",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "unmarked",
+      "short",
+      "missing_ref"
+     ]
+    }
+   ],
+   "negatives": [
+    "إنما الأعمال بالنيات",
+    "من جد وجد",
+    "اللهم إني أسألك العفو والعافية"
+   ]
+  },
+  {
+   "id": "h04-marked-and-hadith",
+   "article": "قال تعالى: ﴿قل هو الله أحد﴾ (الإخلاص: 1). وفي الحديث: «الدين النصيحة».",
+   "gold": [
+    {
+     "quote": "قل هو الله أحد",
+     "surah": 112,
+     "ayah_start": 1,
+     "ayah_end": 1,
+     "correct_text": "قل هو الله أحد",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الإخلاص: 1",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "marked"
+     ]
+    }
+   ],
+   "negatives": [
+    "الدين النصيحة"
+   ]
+  }
+ ]
+}

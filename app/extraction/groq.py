@@ -21,7 +21,8 @@ import httpx
 
 from ..config import groq_api_key, settings
 from .base import ExtractionError, ExtractionProvider, RawSuggestion
-from .gemini import SYSTEM_PROMPT, parse_model_json
+from .gemini import parse_model_json
+from .prompts import system_prompt
 from .status import CallTracker
 
 ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
@@ -67,7 +68,7 @@ def build_request(model: str, article: str) -> dict:
     body = {
         "model": model,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt()},
             {"role": "user", "content": "<article>\n" + article + "\n</article>"},
         ],
         "temperature": 0,

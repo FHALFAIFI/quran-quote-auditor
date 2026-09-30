@@ -1,0 +1,44 @@
+[
+ {
+  "case": "c11-unmarked-short",
+  "http_status": 200,
+  "elapsed_ms": 341,
+  "model": "qwen/qwen3.8-27b",
+  "prompt": "v2",
+  "reasoning_effort": "none",
+  "finish_reason": "stop",
+  "content": "{\"candidates\": []}",
+  "reasoning": null,
+  "usage": {
+   "queue_time": 0.00989412,
+   "prompt_tokens": 559,
+   "prompt_time": 0.047080834,
+   "completion_tokens": 7,
+   "completion_time": 0.01467707,
+   "total_tokens": 566,
+   "total_time": 0.061757904
+  },
+  "error": null
+ },
+ {
+  "case": "c12-unmarked-long-and-error",
+  "http_status": 200,
+  "elapsed_ms": 445,
+  "model": "qwen/qwen3.8-27b",
+  "prompt": "v2",
+  "reasoning_effort": "none",
+  "finish_reason": "stop",
+  "content": "{\"candidates\": [{\"quote\": \"إن الله يأمر بالعدل والإحسان وإيتاء ذي القربى\", \"reference_text\": \"النحل: 90\"}, {\"quote\": \"ادعوني أستجيب لكم\", \"reference_text\": \"\"}]}",
+  "reasoning": null,
+  "usage": {
+   "queue_time": 0.010899808,
+   "prompt_tokens": 561,
+   "prompt_time": 0.039553361,
+   "completion_tokens": 57,
+   "completion_time": 0.114163351,
+   "total_tokens": 618,
+   "total_time": 0.153716712
+  },
+  "error": null
+ }
+]

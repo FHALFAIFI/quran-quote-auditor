@@ -1,0 +1,46 @@
+{
+ "stopped_at": "c02-multi-verse",
+ "cases_file": "eval/cases.json",
+ "prompt": "v2",
+ "ai_calls": [
+  {
+   "case": "c01-marked-correct",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 1264,
+   "proposed": 2,
+   "located": 2,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": [
+    {
+     "quote": "إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنْفُسِهِمْ",
+     "reference_text": "[الرعد: 11]"
+    },
+    {
+     "quote": "وتعاونوا على البر والتقوى",
+     "reference_text": "(المائدة: 2)"
+    }
+   ]
+  },
+  {
+   "case": "c02-multi-verse",
+   "mode": "ai_failed",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": false,
+   "outcome": "failed",
+   "http_status": 429,
+   "elapsed_ms": 218,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا",
+   "model_quotes": null
+  }
+ ]
+}

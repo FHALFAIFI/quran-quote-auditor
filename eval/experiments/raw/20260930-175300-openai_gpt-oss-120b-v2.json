@@ -1,0 +1,50 @@
+[
+ {
+  "case": "c11-unmarked-short",
+  "http_status": 200,
+  "elapsed_ms": 1793,
+  "model": "openai/gpt-oss-120b",
+  "prompt": "v2",
+  "reasoning_effort": "low",
+  "finish_reason": "stop",
+  "content": "{\n  \"candidates\": [\n    {\n      \"quote\": \"وافعَلوا الخير\",\n      \"reference_text\": \"\"\n    }\n  ]\n}",
+  "reasoning": "We need to find Quran quotes. Text: \"والله يقول وافعلوا الخير لعلكم تفلحون.\" Quranic phrase? \"وافعَلُوا الخَيْرَ\" appears in Quran (Surah Al-Baqarah 2:195 \"فَإِذَا قُضِيَتِ الصَّلَاةُ فَانْتَشُرُوا فِي الْأَرْضِ وَابْتَغُوا مِن فَضْلِ اللَّهِ\". Not). Actually \"وافعَلوا الخير\" appears in Quran 2:177 \"وَلَكُمْ فِي الْأَرْضِ ...\". There's verse 2:177 includes \"وَأَنْفِقُوا فِي سَبِيلِ اللَّهِ\". Not. There's verse 2:195 \"فَانْفِقُوا\". There's phrase \"وافعَلوا الخير\" appears in Quran 2:177? Let's recall: \"وَالَّذِينَ يُقِيمُونَ الصَّلَاةَ وَيُؤْتُونَ الزَّكَاةَ وَمَا ...\". Not. Actually phrase \"وافعَلوا الخير\" is in Quran 2:177? I think verse 2:177 includes \"... وَالْمُؤْمِنُونَ وَالْمُقِيمُونَ الصَّلَاةَ وَمَا\". No. There is verse 2:177 includes \"وَالَّذِينَ يُقِيمُونَ الصَّلَاةَ وَيُؤْتُونَ الزَّكَاةَ\". Not.\n\nBut phrase \"وافعَلوا الخير\" appears in Quran 2:177? I'm not sure. However it's a known Quranic phrase \"وافعَلوا الخير\". It appears in Surah Al-Baqarah 2:177? Quick check memory: Verse 2:177: \"لَا يُؤْمِنُ ...\". Not.\n\nActually phrase appears in Surah Al-Baqarah 2:195? No.\n\nIt appears in Surah Al-Ma'idah 5:9 \"وَاللَّهُ يَحْكُمُ بَيْنَكُمْ فِي مَا أَصَبْتُم\". Not.\n\nMaybe it's in Surah Al-Baqarah 2:177? I'm uncertain. But likely it's Quranic. So we include quote \"وافعَلوا الخير\". Reference none.\n\nAlso \"فالعلاقات أبقى من الخصومات\" not Quran.\n\nThus output one candidate.",
+  "usage": {
+   "queue_time": 0.29811159,
+   "prompt_tokens": 723,
+   "prompt_time": 0.033383717,
+   "completion_tokens": 579,
+   "completion_time": 1.215189853,
+   "total_tokens": 1302,
+   "total_time": 1.24857357,
+   "completion_tokens_details": {
+    "reasoning_tokens": 536
+   }
+  },
+  "error": null
+ },
+ {
+  "case": "c12-unmarked-long-and-error",
+  "http_status": 200,
+  "elapsed_ms": 693,
+  "model": "openai/gpt-oss-120b",
+  "prompt": "v2",
+  "reasoning_effort": "low",
+  "finish_reason": "stop",
+  "content": "{\n  \"candidates\": [\n    {\n      \"quote\": \"إن الله يأمر بالعدل والإحسان وإيتاء ذي القربى\",\n      \"reference_text\": \"(النحل: 90)\"\n    }\n  ]\n}",
+  "reasoning": "We need extract Quran quotes. Text: \"أمرنا ربنا بقوله إن الله يأمر بالعدل والإحسان وإيتاء ذي القربى (النحل: 90)، وهو القائل ادعوني أستجيب لكم فلا ييأس داعٍ.\"\n\nPotential quote: \"إن الله يأمر بالعدل والإحسان وإيتاء ذي القربى\". That's Quran 16:90. So include that as quote. reference_text is \"(النحل: 90)\". Provide JSON.",
+  "usage": {
+   "queue_time": 0.052453985,
+   "prompt_tokens": 725,
+   "prompt_time": 0.033540442,
+   "completion_tokens": 168,
+   "completion_time": 0.357278533,
+   "total_tokens": 893,
+   "total_time": 0.390818975,
+   "completion_tokens_details": {
+    "reasoning_tokens": 107
+   }
+  },
+  "error": null
+ }
+]

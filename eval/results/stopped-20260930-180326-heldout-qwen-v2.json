@@ -1,0 +1,61 @@
+{
+ "stopped_at": "h03-negatives-and-unmarked",
+ "cases_file": "eval/heldout.json",
+ "prompt": "v2",
+ "ai_calls": [
+  {
+   "case": "h01-unmarked-short",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 580,
+   "proposed": 2,
+   "located": 2,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": [
+    {
+     "quote": "ومن يتق الله يجعل له مخرجا",
+     "reference_text": null
+    },
+    {
+     "quote": "رب زدني علما",
+     "reference_text": null
+    }
+   ]
+  },
+  {
+   "case": "h02-unmarked-short",
+   "mode": "ai",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": true,
+   "outcome": "ok",
+   "http_status": 200,
+   "elapsed_ms": 382,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": null,
+   "model_quotes": []
+  },
+  {
+   "case": "h03-negatives-and-unmarked",
+   "mode": "ai_failed",
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "responded": false,
+   "outcome": "failed",
+   "http_status": 429,
+   "elapsed_ms": 277,
+   "proposed": 0,
+   "located": 0,
+   "discarded": 0,
+   "error": "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا",
+   "model_quotes": null
+  }
+ ]
+}
