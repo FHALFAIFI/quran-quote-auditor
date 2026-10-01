@@ -66,6 +66,15 @@ ordinary Arabic, interpret verses, translate, or issue religious rulings.
   from that text.
 - **AI only proposes candidate quotations** (where a quotation might be). It never supplies Quran text, a
   reference or a verdict, and a candidate that is not literally in the article is discarded.
+- **A model's proposal is not evidence that a span is a Quran quotation.** A span that only the model proposed
+  is graded with the same deterministic rules as an unmarked span found by the phrase search: an exact,
+  distinctive phrase is a "candidate"; a short or common phrase, a formula, a phrase whose words differ from the
+  text, or ordinary prose is only a "possible quotation", shown with no replacement text until the editor confirms
+  it. It counts as established only when the writer's own reference points at the matched verse or a lead-in such as
+  «قال تعالى» comes right before it. The model never raises a tier the phrase search already assigned.
+- **Provenance is per finding.** "Proposed by the model alone" is shown only for a finding that would be absent
+  without the model; when a marker or the phrase search found the same span, the card says the model proposed it
+  too, and the audit banner counts both numbers (`ai.added_only`, `ai.also_found`).
 - **AI status is reported per audit.** If the model does not respond (rate limit 429, timeout, bad key or
   bad JSON), the result says so, the deterministic fallback is used, and nothing is labelled as found by AI.
   "Configured" (a key is set) is never presented as "working".
@@ -185,7 +194,8 @@ node --test tests/revision.test.mjs      # the revision engine alone
 
 # browser end-to-end (Playwright installed in any scratch dir, not a project dependency)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs http://localhost:8000 ./shots
-NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs http://localhost:8000 ./shots   # unmarked-phrase workflow (use AI_PROVIDER=none)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --shots ./shots   # unmarked-phrase workflow: starts its own server with AI off (no Groq call possible)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --live-ai https://<service> # opt-in: properties that must hold with the model on; ONE audit = one Groq call; exit 2 = model did not answer
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_boundary_e2e.mjs http://localhost:8000 ./shots   # uncertain-boundary workflow (use AI_PROVIDER=none; wait 60 s between browser scripts: rate limit)
 python scripts/measure_resources.py [--server]       # startup time and peak memory in fresh processes (needs a cached Quran text)
 python eval/validate_phrases.py                       # the frozen phrase set against the Hafs text
@@ -379,7 +389,8 @@ tests/               verifier, references, normalization, pipeline, source, Gemi
                      revision-engine (Node) tests
 scripts/e2e_check.py end-to-end API check of a running instance (samples, errors, files not served)
 scripts/ui_e2e.mjs   Playwright browser check of the editor workflow, desktop + mobile
-scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirming a verse, manual selection
+scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirming a verse, manual selection (own AI-off server);
+                     `--live-ai URL`: model-on assertions that do not assume a finding count
 scripts/measure_resources.py startup time and peak memory (in-process and real uvicorn server)
 docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
 docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)

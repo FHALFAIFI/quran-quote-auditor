@@ -9,10 +9,10 @@ from .corrections import build_changes
 from .config import settings
 from .extraction import Candidate, ExtractionError, get_provider
 from .extraction.marked import extract_marked
-from .phrases import ends_with_quran_cue, find_phrases
+from .phrases import ends_with_quran_cue, find_phrases, grade_approximate, grade_exact, quran_cue, span_mass
 from .quran_source import MUSHAF_URL, QuranIndex, SourceUnavailable, source
 from .references import Reference, find_references
-from .verifier import unavailable_result, verify
+from .verifier import MIN_WORDS, unavailable_result, verify
 
 REF_AFTER_CHARS, REF_AFTER_WORDS = 40, 3
 REF_BEFORE_CHARS, REF_BEFORE_WORDS = 60, 6
@@ -30,6 +30,8 @@ TIER_REASON = {
     "approximate": "مطابقة تقريبية: بعض كلمات العبارة تختلف عن المصحف، وليست تحققًا.",
     "formula": "عبارة شائعة الاستعمال (بسملة أو حمدلة أو ذكر…) وقد لا يُقصد بها اقتباس آية.",
     "non_quran_cue": "سبقتها إشارة إلى حديث أو دعاء أو مثل، فقد تكون من غير القرآن.",
+    "ai_only": "اقترحه نموذج الذكاء الاصطناعي وحده ولم يجده البحث الآلي، واقتراح النموذج ليس دليلًا على أنه اقتباس قرآني؛ فقد يكون من كلام الكاتب.",
+    "no_match": "لا تدعم مقارنتُه بنص المصحف أنه اقتباس قرآني.",
 }
 END_UNCERTAIN_MESSAGE = ("نهاية المقطع غير محسومة: ما قبل هذه الكلمة مطابق للمصحف، لكن الكلمة التالية في المقال تختلف عن كلمة الآية التالية "
                          "ولا يغلق المقطعَ علامةٌ ولا إحالة، فلا يُعرف أهي كلام الكاتب بعد الاقتباس أم خطأ في آخر الاقتباس.")
@@ -124,19 +126,66 @@ def _line_col(article: str, pos: int) -> tuple[int, int]:
     return line, col
 
 
-def _detection(c: Candidate) -> dict:
-    """How the span was found and how sure we are that the writer meant a Quran quotation."""
+def _grade_span(article: str, index: QuranIndex | None, c: Candidate, result: dict) -> tuple[str, list[str]]:
+    """Tier and reason codes of an unmarked span that the AI proposed.
+
+    The model's proposal is never evidence that a span is a Quran quotation, so the span is graded exactly as the phrase
+    search grades its own hits (``phrases.grade_exact`` / ``grade_approximate``) and the AI can neither raise nor lower
+    that tier: an exact, distinctive phrase is a "candidate"; a short or common one, a formula, one that follows a
+    hadith/du'a cue, one whose words differ from the text, and one that matches nothing are only "possible".
+    (A span only the model proposed is "stated" instead when the writer's own reference or lead-in backs it: see
+    ``_corroboration``.)
+    """
+    if index is None:
+        return "possible", ["no_match"]
+    cue = quran_cue(article, c.start)
+    folded = tuple(t.fold for t in arabic.tokenize(c.text))
+    if result["occurrences"] and len(folded) >= MIN_WORDS:
+        graded = grade_exact(folded, span_mass(index, folded), cue)
+        return graded if graded else ("possible", ["common"])
+    if result["wording"].get("level") == "fuzzy":
+        return grade_approximate(cue)
+    return "possible", ["common"] if result["occurrences"] else ["no_match"]
+
+
+def _corroboration(article: str, c: Candidate, result: dict, ref: Reference | None) -> str | None:
+    """Evidence from the writer, not the model, that this span is meant as a quotation (None if there is none).
+
+    "reference": a written reference with an ayah number points at the very verse the span was matched to.
+    "lead_in": a lead-in such as «قال تعالى» comes right before the span.
+    """
+    src = result["source"]
+    if ref is not None and ref.valid and ref.ayah_start is not None and src is not None and ref.surah == src["surah"]:
+        if ref.ayah_start <= src["ayah_end"] and src["ayah_start"] <= (ref.ayah_end or ref.ayah_start):
+            return "reference"
+    return "lead_in" if ends_with_quran_cue(article[max(0, c.start - 80):c.start]) else None
+
+
+def _detection(article: str, index: QuranIndex | None, c: Candidate, result: dict, ref: Reference | None) -> dict:
+    """How the span was found, how sure we are that the writer meant a Quran quotation, and what the AI contributed.
+
+    ``ai_role`` is "only" when the model proposed a span nothing else found (it would be absent without the model),
+    "also" when it proposed a span that a marker or the phrase search had found too, and None when it took no part.
+    """
+    ai_role = None if "ai" not in c.sources else "only" if c.sources == {"ai"} else "also"
     if "manual" in c.sources:
-        return {"kind": "manual", "tier": "manual", "label": "حدّدتَ هذا المقطع بنفسك", "codes": ["manual"], "reasons": [], "unconfirmed": False}
+        return {"kind": "manual", "tier": "manual", "label": "حدّدتَ هذا المقطع بنفسك", "codes": ["manual"], "reasons": [], "unconfirmed": False, "ai_role": ai_role}
     if "marked" in c.sources:
-        return {"kind": "marked", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False}
+        return {"kind": "marked", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role}
     if "ai" in c.sources:
-        return {"kind": "ai", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False}
-    hit = c.phrase
-    codes = list(hit.reasons) or ["candidate"]
-    return {"kind": "phrase", "tier": hit.tier, "label": TIER_LABEL[hit.tier], "codes": codes,
-            "reasons": [TIER_REASON[k] for k in codes if k in TIER_REASON], "unconfirmed": hit.tier == "possible",
-            "exact": hit.exact, "occurrences": len(hit.spans) if hit.exact else None}
+        info = {"exact": bool(result["occurrences"]), "occurrences": result["occurrences"] or None}
+        basis = _corroboration(article, c, result, ref) if ai_role == "only" else None
+        if basis:
+            return {"kind": "ai", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role, "basis": basis, **info}
+        tier, codes = _grade_span(article, index, c, result)
+        if ai_role == "only":
+            codes = ["ai_only", *codes]
+    else:
+        tier, codes = c.phrase.tier, list(c.phrase.reasons)
+        info = {"exact": c.phrase.exact, "occurrences": len(c.phrase.spans) if c.phrase.exact else None}
+    codes = codes or ["candidate"]
+    return {"kind": "phrase" if c.phrase is not None else "ai", "tier": tier, "label": TIER_LABEL.get(tier), "codes": codes,
+            "reasons": [TIER_REASON[k] for k in codes if k in TIER_REASON], "unconfirmed": tier == "possible", "ai_role": ai_role, **info}
 
 
 def _choices(index: QuranIndex, finding: dict) -> list[dict]:
@@ -155,11 +204,11 @@ def _choices(index: QuranIndex, finding: dict) -> list[dict]:
 def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: Reference | None, pin: Reference | None = None) -> dict:
     """Verify one candidate and assemble the finding (with its proposed changes) the interface shows."""
     words = [t.raw for t in arabic.tokenize(c.text)]
-    phrase_only = c.sources == {"phrase"} and c.phrase is not None
+    phrase_found = c.phrase is not None and not ({"marked", "manual"} & c.sources)
     if index is None:
         result = unavailable_result(ref)
     else:
-        result = verify(index, words, ref, pin=pin, hints=list(c.phrase.spans) if phrase_only else None)
+        result = verify(index, words, ref, pin=pin, hints=list(c.phrase.spans) if phrase_found else None)
     line, col = _line_col(article, c.start)
     finding = {
         "id": n,
@@ -170,7 +219,7 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
         "quote": c.text,
         "detected_by": sorted(c.sources, key=lambda x: PRIORITY[x]),
         "marker": c.marker,
-        "detection": _detection(c),
+        "detection": _detection(article, index, c, result, ref),
         **result,
     }
     start_b = _start_boundary(article, c, finding, ref) if index is not None else None
@@ -200,14 +249,14 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
         finding.pop("proposal", None)
         finding["changes"] = changes
         finding["correction"] = summary
-        if det["kind"] == "phrase":
+        if det["kind"] in ("phrase", "ai"):
             finding["review_reasons"] = list(dict.fromkeys([*det["reasons"], *finding["review_reasons"]]))
         if end_unc:
             # Nothing may be offered that depends on where the quotation ends (a reference goes after its last word).
             finding["changes"] = [ch for ch in finding["changes"] if ch["kind"] != "reference_add"]
         if boundary_unc and finding["correction"]["status"] == "none_needed":
             finding["correction"] = {"status": "review_only", "reason": boundary_msg}
-    finding["choices"] = _choices(index, finding) if index is not None and det["kind"] in ("phrase", "manual") else []
+    finding["choices"] = _choices(index, finding) if index is not None and (det["kind"] in ("phrase", "manual") or det["unconfirmed"]) else []
     return finding
 
 
@@ -347,6 +396,8 @@ def run_audit(article: str) -> dict:
         "error": None,
         "error_body": None,
         "generation_failure": False,
+        "added_only": 0,
+        "also_found": 0,
     }
     discarded = 0
     if provider:
@@ -387,6 +438,10 @@ def run_audit(article: str) -> dict:
 
     findings = [_finding(article, index, n, c, ref) for n, (c, ref) in enumerate(zip(candidates, attached), start=1)]
     _drop_overlapping_changes(findings)
+    if provider:
+        # What the model added: spans only it proposed (absent without it) vs. spans something else had found too.
+        ai["added_only"] = sum(f["detection"]["ai_role"] == "only" for f in findings)
+        ai["also_found"] = sum(f["detection"]["ai_role"] == "also" for f in findings)
 
     phrase_info = None
     if scan is not None:

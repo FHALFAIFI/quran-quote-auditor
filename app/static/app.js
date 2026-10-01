@@ -48,7 +48,13 @@ const REF = {
   incorrect: ["إحالة خاطئة", "bad"],
   uncertain: ["إحالة غير محسومة", "warn"],
 };
-const DETECTED = { marked: "معلَّم بأقواس أو علامات", ai: "استخراج بالذكاء الاصطناعي", phrase: "بحث آلي عن عبارة مطابقة للمصحف", manual: "حدّدته بنفسك" };
+const DETECTED = { marked: "معلَّم بأقواس أو علامات", phrase: "بحث آلي عن عبارة مطابقة للمصحف", manual: "حدّدته بنفسك" };
+// The model only proposes places. "Only" is reserved for a finding that would be absent without it; when a marker or the
+// phrase search found the span too, the model merely proposed the same one (it added nothing for this finding).
+const AI_ROLE = { only: "اقترحه الذكاء الاصطناعي وحده (لم يجده البحث الآلي)", also: "اقترح الذكاء الاصطناعي المقطع نفسه أيضًا" };
+// A result restored from an older session has no ai_role: say only what is known, never "alone" or "also".
+const detectedChip = (f, d) => chip(d === "ai" ? (AI_ROLE[f.detection?.ai_role] || "اقترح الذكاء الاصطناعي هذا المقطع") : (DETECTED[d] || d), "src");
+const aiShare = (ai) => (ai.added_only === undefined ? "" : ` ومن النتائج ${ai.added_only} لم يجدها غير النموذج، و${ai.also_found} اقترح فيها المقطع نفسه الذي وجدته وسيلة أخرى.`);
 const TIER_CLASS = { candidate: "cand", possible: "maybe", manual: "manual" };
 const COVERAGE = { full: "آية كاملة", partial: "جزء من آية", "multi-partial": "أجزاء من آيات متتالية" };
 const KIND = {
@@ -188,6 +194,7 @@ function aiNotice(data) {
   if (data.mode === "ai" && ai.responded) {
     return el("div", { class: "notice info" }, "استجاب نموذج الذكاء الاصطناعي ", el("bdi", { dir: "ltr", text: ai.model || data.provider_model || data.provider }),
       ` في هذا التدقيق (${toArabicDigits(((ai.elapsed_ms || 0) / 1000).toFixed(1))} ث): اقترح ${toArabicDigits(ai.proposed)} مقطعًا، وُجد منها في المقال ${toArabicDigits(ai.located)}، واستُبعد ${toArabicDigits(ai.discarded)}. `,
+      toArabicDigits(aiShare(ai)) + " ",
       "ثم حُكم على كل اقتباس بمقارنته بنص المصحف فقط.");
   }
   return null;
@@ -373,7 +380,7 @@ function renderFinding(f) {
       sourceBox(f.source)));
   }
 
-  if (det.reasons?.length && det.kind === "phrase") {
+  if (det.reasons?.length && ["phrase", "ai"].includes(det.kind)) {
     body.append(el("div", { class: `detect-note ${det.tier}` }, el("b", { text: det.label + ": " }), det.reasons.join(" ")));
   }
 
@@ -423,7 +430,7 @@ function renderFinding(f) {
         el("span", { class: "quran", text: a.source.matched_text }),
         a.similarity < 1 ? el("span", { class: "muted", text: ` (${toArabicDigits(Math.round(a.similarity * 100))}٪)` }) : null)))));
   }
-  body.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => chip(DETECTED[d] || d, "src"))));
+  body.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => detectedChip(f, d))));
 
   return el("li", { id: `finding-${f.id}`, class: `finding ${f.needs_review ? "review" : ""} ${weak ? "weak" : ""}` }, head, body);
 }
@@ -474,7 +481,7 @@ function selectFindingInArticle(f) {
 function choicesBox(f) {
   const choices = f.choices || [];
   const det = f.detection || {};
-  if (!choices.length || !(det.unconfirmed || f.needs_choice || (!f.source && ["manual", "phrase"].includes(det.kind)))) return null;
+  if (!choices.length || !(det.unconfirmed || f.needs_choice || (!f.source && ["manual", "phrase", "ai"].includes(det.kind)))) return null;
   const single = choices.length === 1;
   const box = el("div", { class: "confirm-box" },
     el("div", { class: "row-label", text: single ? "هل هذا اقتباس قرآني؟" : "اختر الموضع المقصود من المصحف" }),
@@ -529,7 +536,7 @@ async function checkSelection() {
   const sel = selectedSpan();
   if (!sel || !lastResult) return;
   const hit = (lastResult.findings || []).filter((f) => f.start < sel.end && sel.start < f.end);
-  const fixed = hit.find((f) => !["phrase", "manual"].includes(f.detection?.kind));
+  const fixed = hit.find((f) => !["phrase", "manual"].includes(f.detection?.kind) && !f.detection?.unconfirmed);
   if (fixed) { setStatus(`هذا الموضع مشمول بالفعل بالنتيجة رقم ${toArabicDigits(fixed.id)} (رُصد بالعلامات أو بالذكاء الاصطناعي).`, true); focusFinding(fixed.id); return; }
   const id = hit.length ? hit[0].id : Math.max(0, ...(lastResult.findings || []).map((f) => f.id)) + 1;
   await requestPhrase(sel.start, sel.end, null, id);
@@ -627,7 +634,7 @@ function showTab(which) {
 function aiRecordText(data) {
   const ai = data.ai || {};
   if (!ai.configured) return "لم يُستخدم الذكاء الاصطناعي (وضع مخفّض): فُحصت الاقتباسات المعلَّمة والعبارات المطابقة لنص المصحف دون علامات، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.";
-  if (ai.responded) return `نعم — استجاب النموذج ${ai.model} (${ai.provider}) في هذا التدقيق خلال ${((ai.elapsed_ms || 0) / 1000).toFixed(1)} ث؛ اقترح ${ai.proposed} مقطعًا، وُجد منها في المقال ${ai.located}، واستُبعد ${ai.discarded}. دوره اقتراح المواضع فقط.`;
+  if (ai.responded) return `نعم — استجاب النموذج ${ai.model} (${ai.provider}) في هذا التدقيق خلال ${((ai.elapsed_ms || 0) / 1000).toFixed(1)} ث؛ اقترح ${ai.proposed} مقطعًا، وُجد منها في المقال ${ai.located}، واستُبعد ${ai.discarded}.${aiShare(ai)} دوره اقتراح المواضع فقط.`;
   return `لا — كان ${ai.provider} مُعَدًّا لكنه لم يستجب في هذا التدقيق (${ai.error || ai.outcome})، فاستُخدم الوضع الاحتياطي الحتمي، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
 }
 

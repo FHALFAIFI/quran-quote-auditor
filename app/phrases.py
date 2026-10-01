@@ -326,35 +326,56 @@ class _Searcher:
     # -- tiers ------------------------------------------------------------------------------------
     def classify(self, h: PhraseHit) -> bool:
         """Set the tier and reasons; False if the hit is too common to report."""
-        words = tuple(self.af[h.first:h.last])
-        cue = self._cue(h)
+        cue = quran_cue(self.article, self.tokens[h.first].start)
         if h.exact:
-            if h.mass < MASS_FLOOR:
+            graded = grade_exact(tuple(self.af[h.first:h.last]), h.mass, cue)
+            if graded is None:
                 return False
-            reasons: list[str] = []
-            if any(_contains(words, f) for f in _FORMULA_SET):
-                if cue != "quran":
-                    return False  # an everyday formula with nothing saying "this is a verse": not reported
-                reasons.append("formula")
-            if cue == "non_quran":
-                reasons.append("non_quran_cue")
-            if not (h.words >= 4 and h.mass >= MASS_CANDIDATE) and not (h.words >= 5 and h.mass >= MASS_FLOOR + 4):
-                reasons.append("common")
-            h.reasons = reasons
-            h.tier = "candidate" if not reasons else "possible"
+            h.tier, h.reasons = graded
         else:
-            h.tier, h.reasons = "possible", ["approximate"] + (["non_quran_cue"] if cue == "non_quran" else [])
+            h.tier, h.reasons = grade_approximate(cue)
         return True
 
-    def _cue(self, h: PhraseHit) -> str | None:
-        """"quran" if the sentence so far says a verse follows, "non_quran" if it says a hadith/du'a/proverb does."""
-        start = self.tokens[h.first].start
-        window = self.article[max(0, start - 70):start]
-        cut = max(window.rfind(ch) for ch in ".!؟?\n")
-        words = _fold_phrase(window[cut + 1:] if cut >= 0 else window)
-        if any(_contains(words, c) for c in _QURAN):
-            return "quran"
-        return "non_quran" if any(_contains(words, c) for c in _NON_QURAN) else None
+
+def quran_cue(article: str, start: int) -> str | None:
+    """"quran" if the sentence so far says a verse follows, "non_quran" if it says a hadith/du'a/proverb does."""
+    window = article[max(0, start - 70):start]
+    cut = max(window.rfind(ch) for ch in ".!؟?\n")
+    words = _fold_phrase(window[cut + 1:] if cut >= 0 else window)
+    if any(_contains(words, c) for c in _QURAN):
+        return "quran"
+    return "non_quran" if any(_contains(words, c) for c in _NON_QURAN) else None
+
+
+def grade_exact(words: tuple[str, ...], mass: float, cue: str | None) -> tuple[str, list[str]] | None:
+    """Tier and reasons of an exact (folded) Quran phrase, or None if it is too common to report.
+
+    One rule for every unmarked span, whoever proposed it: the phrase search grades the hits it finds with it,
+    and the audit grades a span that only the AI proposed with the same function.
+    """
+    if mass < MASS_FLOOR:
+        return None
+    reasons: list[str] = []
+    if any(_contains(words, f) for f in _FORMULA_SET):
+        if cue != "quran":
+            return None  # an everyday formula with nothing saying "this is a verse": not reported
+        reasons.append("formula")
+    if cue == "non_quran":
+        reasons.append("non_quran_cue")
+    if not (len(words) >= 4 and mass >= MASS_CANDIDATE) and not (len(words) >= 5 and mass >= MASS_FLOOR + 4):
+        reasons.append("common")
+    return ("candidate" if not reasons else "possible"), reasons
+
+
+def grade_approximate(cue: str | None) -> tuple[str, list[str]]:
+    """An unmarked phrase whose words differ from the text is never more than "possible"."""
+    return "possible", ["approximate"] + (["non_quran_cue"] if cue == "non_quran" else [])
+
+
+def span_mass(index: QuranIndex, words: tuple[str, ...]) -> float:
+    """Rarity mass of folded words: sum of ln(ayahs / ayahs containing the word), as in ``_Searcher.idf``."""
+    total = max(1, index.ayah_count)
+    return sum(math.log(total / index.doc_freq[w]) if index.doc_freq.get(w) else math.log(total) for w in words)
 
 
 def _contains(words: tuple[str, ...], sub: tuple[str, ...]) -> bool:
