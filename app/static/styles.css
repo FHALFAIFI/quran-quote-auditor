@@ -272,3 +272,4 @@ details.alts ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: .92rem
 
 .copy-note { min-height: 1.4em; margin: 8px 0 0; font-size: .9rem; color: #0B6B4F; font-weight: 500; }
 .copy-note.copy-bad { color: #9A1B1B; }
+.notice bdi { white-space: nowrap; }  /* a model name such as qwen/qwen3.8-27b must not break across lines */

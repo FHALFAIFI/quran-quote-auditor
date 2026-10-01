@@ -54,7 +54,9 @@ const DETECTED = { marked: "معلَّم بأقواس أو علامات", phrase
 const AI_ROLE = { only: "اقترحه الذكاء الاصطناعي وحده (لم يجده البحث الآلي)", also: "اقترح الذكاء الاصطناعي المقطع نفسه أيضًا" };
 // A result restored from an older session has no ai_role: say only what is known, never "alone" or "also".
 const detectedChip = (f, d) => chip(d === "ai" ? (AI_ROLE[f.detection?.ai_role] || "اقترح الذكاء الاصطناعي هذا المقطع") : (DETECTED[d] || d), "src");
-const aiShare = (ai) => (ai.added_only === undefined ? "" : ` ومن النتائج ${ai.added_only} لم يجدها غير النموذج، و${ai.also_found} اقترح فيها المقطع نفسه الذي وجدته وسيلة أخرى${ai.overlapped ? `، و${ai.overlapped} اقترح فيها مقطعًا مختلفًا يتداخل معها فبقي الحكم لما وجده البرنامج` : ""}.`);
+// "مقطعًا" after a number: the counted noun is plural for 3–10 («٣ مقاطع»), singular accusative from 11 («١١ مقطعًا»)
+const maqatiAr = (n) => (n === 1 ? "مقطعًا واحدًا" : n === 2 ? "مقطعين" : `${toArabicDigits(n)} ${n <= 10 ? "مقاطع" : "مقطعًا"}`);
+const aiShare = (ai) => (ai.added_only === undefined || !ai.proposed ? "" : ` ومن النتائج ${ai.added_only} لم يجدها غير النموذج، و${ai.also_found} اقترح فيها المقطع نفسه الذي وجدته وسيلة أخرى${ai.overlapped ? `، و${ai.overlapped} اقترح فيها مقطعًا مختلفًا يتداخل معها فبقي الحكم لما وجده البرنامج` : ""}.`);
 // A model span that overlaps a finding the program made: shown beside it, never in its place.
 const AI_RELATION = { wider: "أوسع منه", narrower: "أضيق منه", shifted: "يتداخل معه جزئيًا" };
 function aiSpanNote(f) {
@@ -201,7 +203,10 @@ function aiNotice(data) {
   }
   if (data.mode === "ai" && ai.responded) {
     return el("div", { class: "notice info" }, "استجاب نموذج الذكاء الاصطناعي ", el("bdi", { dir: "ltr", text: ai.model || data.provider_model || data.provider }),
-      ` في هذا التدقيق (${toArabicDigits(((ai.elapsed_ms || 0) / 1000).toFixed(1))} ث): اقترح ${toArabicDigits(ai.proposed)} مقطعًا، وُجد منها في المقال ${toArabicDigits(ai.located)}، واستُبعد ${toArabicDigits(ai.discarded)}. `,
+      ` في هذا التدقيق (${toArabicDigits(((ai.elapsed_ms || 0) / 1000).toFixed(1))} ث)`,
+      ai.proposed
+        ? `: اقترح ${maqatiAr(ai.proposed)}، وُجد منها في المقال ${toArabicDigits(ai.located)}، واستُبعد ${toArabicDigits(ai.discarded)}. `
+        : ": لم يقترح أي مقطع، فاعتمد الرصد على العلامات والبحث الآلي في المصحف. ",
       toArabicDigits(aiShare(ai)) + " ",
       "ثم حُكم على كل اقتباس بمقارنته بنص المصحف فقط.");
   }
