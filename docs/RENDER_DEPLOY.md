@@ -1,7 +1,7 @@
 # Deploying on Render (prepared 30 Sep 2026, not yet done)
 
 No Render service exists yet. This guide creates one by hand in the dashboard and deploys the **latest `main` commit**
-(`git log -1`; since 1 Oct 2026 it includes the end-of-quotation fix, so the two known false "matched" verdicts are gone; `3273078` is only the commit the guide was first written for). `render.yaml` holds the same values for a Blueprint, but the manual
+(`git log -1`; since 1 Oct 2026 it includes the end-of-quotation fix (the two known false "matched" verdicts are gone) and the matching start-of-quotation rule (a possibly wrong first word reads "uncertain", never "matched"); `3273078` is only the commit the guide was first written for). `render.yaml` holds the same values for a Blueprint, but the manual
 route below is the one to follow: it lets you choose the commit.
 
 Checked locally on 30 Sep for `3273078` (re-checked on 1 Oct for the latest commit: see `docs/TEST_LOG.md`): a clean `git archive` build with Python 3.12.13 and

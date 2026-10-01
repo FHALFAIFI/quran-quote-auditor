@@ -417,5 +417,7 @@ False "matched" wording stays 0 on every set. Why so few moves: most correct fro
 The comma case (f07: «…المال، ألا بذكر…») is the most common real-world form and the rule leaves it "uncertain" on purpose, to stay symmetric with the end rule and not tune against the frozen set; the editor settles it with one click.
 Not measured: there is no labelled wrong-FIRST-word case in the frozen set (f21 and f29 are missed, not matched), so the rule is tested on synthetic and real-text regression cases only, not on an evaluation set. AI mode was not rerun.
 
+The three demo samples (`app/static/samples`, fallback mode): sample 1 and 2 unchanged (4/5 and 6/7 "matched"); sample 3, the one without brackets, 2 → 1 "matched" (uncertain 2 → 3). Expect more yellow cards on unbracketed text.
+
 **Interface.** An uncertain finding says «غير محسوم — حدود الاقتباس» and «يحتاج مراجعة», explains that this means the quotation boundary could not be established (not that the wording is wrong), shows the neighbouring words, and offers
 «حدود الاقتباس صحيحة» (re-checks the same span as the editor's own highlight, with the proposed verse) and «عدّل الحدود بنفسك» (selects the span in the article box, ready for «افحص المقطع المحدَّد»). A note under the summary counts them.
