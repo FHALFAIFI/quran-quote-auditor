@@ -31,6 +31,25 @@ You paste an Arabic article or post. The app:
 
 Optionally a language model (Groq) proposes *where* quotations may be. It is never a source of Quran text, references or verdicts.
 
+## Try it (about two minutes)
+
+1. Open https://quran-quote-auditor.onrender.com. **Render Free sleeps when idle**: if the page takes up to a minute, wait for it, and expect the first audit afterwards to take a few seconds more (the Quran text is downloaded once).
+2. Paste this post into the text box (or pick a sample from «مثال جاهز») and press «دقّق الاقتباسات»:
+
+```
+الصبر والعمل الصالح مفتاح الفرج.
+
+قال تعالى: ﴿وافعلوا الشر لعلكم تفلحون﴾ [الحج: 77]
+
+وقال سبحانه: ﴿فإن مع العسر يسرا﴾ [الشرح: 6]
+
+وتذكّر قول الله تعالى إن الله مع الصابرين.
+```
+
+3. Expected (deterministic, with or without the model): three findings, all marked «يحتاج مراجعة». (1) «الشر» is not in the verse: the card shows the closest verse, the word difference and a proposed replacement «الخير» taken from the source. (2) The reference «الشرح: 6» does not match the quoted verse; the proposed fix is «الشرح: 5». (3) «إن الله مع الصابرين» «may be a quotation» and occurs in two verses (البقرة: 153, الأنفال: 46), so **no correction is proposed until you choose the verse** with «هذا هو الموضع».
+4. Approve the proposals you accept, look at the before/after preview, and press «نسخ المقال المعدّل». Nothing changes without your approval.
+5. A notice at the top of the results says whether the AI model responded. If Groq's free tier answered 429 it says so and the audit continues without the model. On the live demo the model sometimes proposes nothing for this post; the notice then says so, and the result is the deterministic one.
+
 ## What it does not claim
 
 - It does **not** say an article or post is "verified" or ready to publish. It checks only the quotations it found.
@@ -40,9 +59,9 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 - **No measured accuracy.** The only numbers are from small, author-written, labelled sets (below). They are not independent measurements, and the labels are still awaiting review by an Arabic specialist ([docs/LABEL_REVIEW.md](docs/LABEL_REVIEW.md)).
 - **No measured AI benefit.** On the live demo sample the model proposed the same 7 quotations that the deterministic path found without it. In the labelled sets, with the phrase search in place, it added one quotation (a 3-word misquotation) in one run on one set, and none on the other two.
 
-## Results observed so far (all pre-challenge, no AI, current code `801051f`)
+## Results observed so far (all pre-challenge, no AI; audit code as of `801051f`, unchanged since)
 
-Rerun on 2 October 2026 with `eval/run_eval.py --mode fallback`; labels unchanged, frozen-set checksum verified, detection identical to the previous logged run. Raw files in `eval/results/`.
+Rerun on 2 October 2026 with `eval/run_eval.py --mode fallback` (later commits changed only the interface and the manual-check path, which the evaluation does not use); labels unchanged, frozen-set checksum verified, detection identical to the previous logged run. Raw files in `eval/results/`.
 
 | Set (author-written, small) | Quotations | Found | Notes |
 |---|---|---|---|
