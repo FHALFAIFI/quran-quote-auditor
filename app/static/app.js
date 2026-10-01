@@ -556,7 +556,9 @@ async function requestPhrase(start, end, choice, findingId) {
   if (!lastResult) return;
   setStatus("جارٍ فحص المقطع ومقارنته بنص المصحف…", false, true);
   try {
-    const body = { article: lastArticle, start, end, finding_id: findingId };
+    // the other findings' spans, so a reference that belongs to a neighbouring quotation is not taken by this span
+    const others = (lastResult.findings || []).filter((g) => g.start >= end || g.end <= start).map((g) => [g.start, g.end]).slice(0, 200);
+    const body = { article: lastArticle, start, end, finding_id: findingId, others };
     if (choice) Object.assign(body, { surah: choice.surah, ayah_start: choice.ayah_start, ayah_end: choice.ayah_end });
     const res = await fetch("/api/phrase", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     let data;

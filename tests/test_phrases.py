@@ -466,3 +466,37 @@ def test_offsets_hold_on_random_articles(use_source, lenient):
                 taken.append((c["start"], c["end"]))
                 if c["kind"] in ("wording", "diacritics", "vocalize"):
                     assert f["start"] <= c["start"] and c["end"] <= f["end"]
+
+
+# --- a manual check must not take a reference that belongs to the neighbouring quotation ------------------------------
+
+NEIGHBOUR = "قال تعالى: ﴿فإن مع العسر يسرا﴾ [الشرح: 6]\n\nوتذكّر قول الله تعالى إن الله مع الصابرين."
+
+
+def test_manual_check_does_not_take_the_reference_of_a_neighbouring_marked_quote(use_source):
+    """In a full audit the reference after a marked quotation belongs to it. The manual path used to see only the
+    highlighted span, so the phrase two paragraphs later 'owned' «[الشرح: 6]», was reported with a wrong reference and
+    got a change that overlaps the neighbour's own reference change."""
+    start = NEIGHBOUR.index("إن الله مع الصابرين")
+    end = start + len("إن الله مع الصابرين")
+    first = run_phrase(NEIGHBOUR, start, end)["finding"]
+    assert first["reference"]["status"] == "missing" and first["changes"] == []
+    pick = next(c for c in first["choices"] if c["label"] == "الأنفال: 46")
+    g = run_phrase(NEIGHBOUR, start, end, pick["surah"], pick["ayah_start"], pick["ayah_end"])["finding"]
+    assert g["reference"]["status"] == "missing"
+    assert all(c["kind"] != "reference" or c["start"] >= start for c in g["changes"])  # never the neighbour's «[الشرح: 6]»
+    assert not any("الشرح" in (c.get("original") or "") for c in g["changes"])
+
+
+def test_manual_check_with_the_editor_listed_neighbours_does_not_take_their_reference(use_source):
+    """Spans of the other findings (for example a short phrase the editor selected earlier, or a quotation only the model
+    proposed) are sent by the browser; the server cannot rebuild those, because the search does not report them."""
+    article = "والصبر مع الصابرين [الأنفال: 46] وقال لهم كونوا مع الصابرين دائما"
+    first = article.index("مع الصابرين")
+    other = (first, first + len("مع الصابرين"))
+    second = article.index("مع الصابرين", first + 1)
+    span = (second, second + len("مع الصابرين"))
+    without = run_phrase(article, *span)["finding"]
+    with_others = run_phrase(article, *span, others=[other])["finding"]
+    assert without["reference"]["status"] != "missing"  # alone, the server has no way to know the neighbour owns it
+    assert with_others["reference"]["status"] == "missing"

@@ -508,8 +508,34 @@ def run_audit(article: str) -> dict:
     }
 
 
+def _manual_reference(article: str, index: QuranIndex, cand: Candidate, others) -> Reference | None:
+    """The reference that belongs to a manually checked span.
+
+    In a full audit every reference goes to at most one quotation, so one written after another quotation is not taken
+    by a phrase that merely follows it. A manual check sees only the highlighted span, so the other quotations are
+    rebuilt first (marked ones and the phrase search, both deterministic, no AI) and the browser adds the spans of
+    the findings it shows (``others``, for example one only the model proposed). Spans that overlap the highlighted
+    one are dropped: the manual span replaces them.
+    """
+    refs = find_references(article)
+    tokens = arabic.tokenize(article)
+    neighbours = extract_marked(article, refs)
+    for h in find_phrases(article, tokens, index).hits:
+        neighbours.append(_span_candidate(article, tokens, h.first, h.last, "phrase"))
+    for pair in others or ():
+        try:
+            s, e = int(pair[0]), int(pair[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if 0 <= s < e <= len(article):
+            neighbours.append(Candidate(s, e, article[s:e], {"ai"}))  # lowest merge rank: it only reserves its reference
+    neighbours = [n for n in merge(neighbours) if n.end <= cand.start or n.start >= cand.end]
+    everyone = sorted(neighbours + [cand], key=lambda c: c.start)
+    return attach_references(article, everyone, refs)[everyone.index(cand)]
+
+
 def run_phrase(article: str, start: int, end: int, surah: int | None = None, ayah_start: int | None = None,
-               ayah_end: int | None = None, finding_id: int = 1) -> dict:
+               ayah_end: int | None = None, finding_id: int = 1, others: list | tuple = ()) -> dict:
     """Check a span the editor highlighted by hand (code-point offsets), optionally with a verse they chose.
 
     No AI is involved and nothing is guessed: the span is verified like any quotation, the editor's verse (if any)
@@ -527,7 +553,7 @@ def run_phrase(article: str, start: int, end: int, surah: int | None = None, aya
         raise InputError(f"المقطع المحدَّد أطول من {MANUAL_MAX_WORDS} كلمة.")
     s0, e0 = chosen[0].start, chosen[-1].end
     cand = Candidate(s0, e0, article[s0:e0], {"manual"})
-    ref = attach_references(article, [cand], find_references(article))[0]
+    ref = _manual_reference(article, index, cand, others)
     pin = None
     if surah is not None:
         a1 = ayah_end or ayah_start

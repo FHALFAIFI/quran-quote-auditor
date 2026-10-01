@@ -47,6 +47,8 @@ class PhraseRequest(BaseModel):
     ayah_start: int | None = Field(None, ge=1, le=286)
     ayah_end: int | None = Field(None, ge=1, le=286)
     finding_id: int = Field(1, ge=1, le=10_000)
+    # spans (start, end) of the other findings the browser shows, so a reference they own is not taken by this span
+    others: list[tuple[int, int]] = Field(default_factory=list, max_length=200)
 
 
 # --- tiny in-memory rate limiter (per instance, best effort) ---------------
@@ -140,7 +142,7 @@ def phrase(body: PhraseRequest, request: Request):
     if _rate_limited(_client_ip(request)):
         return JSONResponse({"error": "عدد الطلبات كبير؛ حاول بعد دقيقة."}, status_code=429)
     try:
-        return run_phrase(body.article, body.start, body.end, body.surah, body.ayah_start, body.ayah_end, body.finding_id)
+        return run_phrase(body.article, body.start, body.end, body.surah, body.ayah_start, body.ayah_end, body.finding_id, body.others)
     except InputError as exc:
         return JSONResponse({"error": str(exc)}, status_code=400)
     except SourceUnavailable:
