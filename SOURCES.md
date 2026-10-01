@@ -82,3 +82,24 @@ Node.js built-in test runner for `tests/revision.test.mjs`.
 
 MIT licence (see `LICENSE`). Development was assisted by Claude Code, an AI coding
 assistant, under the author's direction. It was not used at runtime.
+
+## 6. Existing tools compared in the presentation (read 30 Sep and 2 Oct 2026; not used or copied)
+
+| Tool | What the deck says | Read |
+|---|---|---|
+| quran-validator (https://github.com/yazinsai/quran-validator) | validates verses in LLM output, can detect untagged quotes, auto-corrects, checks explicit references | README read 2 Oct 2026 |
+| Mizan playground (https://mizan.rollingcatsoftware.com/playground) | letter/word counting and Abjad values for an entered verse or Arabic text | page read 2 Oct 2026 |
+| Qalam (https://qalam.ai/faq/userGuide) | an Arabic proofreader whose guide describes verifying/formatting highlighted Quran text | read 30 Sep 2026; on 2 Oct only a search snippet of the same guide was seen |
+
+The deck states that these exist and does not claim to be the first; no code or text from them is used.
+
+## 7. Submission materials kept outside the repository
+
+The presentation, the demo video, the screenshots and the build scripts live in a git-ignored local folder and are not part of this repository.
+
+| Item | Rights note |
+|---|---|
+| Presentation | Built on the organizer's PowerPoint template and logos, used as the organizer's guide allows for submissions; the template itself is not published here. Fonts Readex Pro and Urbanist are embedded by that template (SIL OFL). |
+| Screenshots | Captured by the author from this project's own live page; they contain no keys or private data. |
+| Demo video | A real screen recording of the live page with **synthetic Arabic narration generated with the macOS «Majed» voice** and burned-in captions. No music, no stock footage. I did not verify Apple's terms for publishing speech generated with that voice; the captions carry the full content, so the narration can be dropped or replaced by the author's own voice. |
+

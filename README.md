@@ -55,6 +55,7 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 - It does **not** say an article or post is "verified" or ready to publish. It checks only the quotations it found.
 - **Detection is not complete.** Short unmarked misquotations may be only «possible» or missed; ordinary prose can reuse Quran words and be shown as «possible»; the start or end of an unmarked quotation may need the editor's confirmation (shown as «غير محسوم — حدود الاقتباس»); a model can fail (see "AI use"). The editor can highlight any phrase and check it by hand.
 - A «possible» phrase is **not** a verified quotation, and gets no replacement text until the editor confirms it and picks the verse.
+- **Uthmani-script quotations are not matched yet.** The source text is in standard (imla'i) spelling. In a 2 October 2026 probe, 3 of 3 correct quotations written in Uthmani script (e.g. «ٱلَّذِينَ ءَامَنُوا۟») were shown as a «difference» or «uncertain» needing review, and one of them got a proposed wording change that the editor can reject ([docs/TEST_LOG.md](docs/TEST_LOG.md)). Plain-spelling quotations are unaffected. This is the planned first improvement ([docs/CONTINUATION.md](docs/CONTINUATION.md)).
 - It does not proofread Arabic, interpret verses, translate, or give religious rulings.
 - **No measured accuracy.** The only numbers are from small, author-written, labelled sets (below). They are not independent measurements, and the labels are still awaiting review by an Arabic specialist ([docs/LABEL_REVIEW.md](docs/LABEL_REVIEW.md)).
 - **No measured AI benefit.** On the live demo sample the model proposed the same 7 quotations that the deterministic path found without it. In the labelled sets, with the phrase search in place, it added one quotation (a 3-word misquotation) in one run on one set, and none on the other two.
@@ -233,7 +234,7 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 ### Tests
 
 ```bash
-python -m pytest -q                      # 238 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
+python -m pytest -q                      # 240 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
                                          # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
 node --test tests/revision.test.mjs      # the revision engine alone
 
@@ -279,7 +280,7 @@ A first Vercel deployment (pre-challenge baseline) was blocked from deploying ne
   visible warning. Otherwise every quotation is marked *uncertain — source unavailable*.
   The app never substitutes AI-generated or hard-coded Quran text.
 - **Actual limits on Render Free (and any hosting without shared storage):** memory and the temp directory belong to one instance and disappear when it restarts or sleeps. In practice:
-  - every cold instance fetches the full text once (locally: about 1.2 s including the index build; Render's cold start, including waking the service, measured up to about 9 s for the first audit) and warm requests reuse it;
+  - every cold instance fetches the full text once (locally: about 1.2 s including the index build; on Render, one measurement after 18 idle minutes took 23 s for the first page, and the first audit after that adds the one-time download, a few seconds) and warm requests reuse it;
   - the 24 h refresh and the 7-day fallback only apply while the same instance stays alive;
   - a cold instance that cannot reach Quranpedia reports the source as unavailable rather than guessing.
 
