@@ -54,7 +54,15 @@ const DETECTED = { marked: "معلَّم بأقواس أو علامات", phrase
 const AI_ROLE = { only: "اقترحه الذكاء الاصطناعي وحده (لم يجده البحث الآلي)", also: "اقترح الذكاء الاصطناعي المقطع نفسه أيضًا" };
 // A result restored from an older session has no ai_role: say only what is known, never "alone" or "also".
 const detectedChip = (f, d) => chip(d === "ai" ? (AI_ROLE[f.detection?.ai_role] || "اقترح الذكاء الاصطناعي هذا المقطع") : (DETECTED[d] || d), "src");
-const aiShare = (ai) => (ai.added_only === undefined ? "" : ` ومن النتائج ${ai.added_only} لم يجدها غير النموذج، و${ai.also_found} اقترح فيها المقطع نفسه الذي وجدته وسيلة أخرى.`);
+const aiShare = (ai) => (ai.added_only === undefined ? "" : ` ومن النتائج ${ai.added_only} لم يجدها غير النموذج، و${ai.also_found} اقترح فيها المقطع نفسه الذي وجدته وسيلة أخرى${ai.overlapped ? `، و${ai.overlapped} اقترح فيها مقطعًا مختلفًا يتداخل معها فبقي الحكم لما وجده البرنامج` : ""}.`);
+// A model span that overlaps a finding the program made: shown beside it, never in its place.
+const AI_RELATION = { wider: "أوسع منه", narrower: "أضيق منه", shifted: "يتداخل معه جزئيًا" };
+function aiSpanNote(f) {
+  const spans = f.detection?.ai_spans;
+  if (!spans?.length) return null;
+  return el("div", { class: "source-meta muted ai-overlap" }, "اقترح الذكاء الاصطناعي مقطعًا مختلفًا يتداخل مع هذا الموضع (لم يغيّر هذا الحكم المبني على نص المصحف): ",
+    ...spans.map((x) => el("span", {}, el("span", { class: "quran", text: x.quote }), ` (${AI_RELATION[x.relation] || "مختلف"}) `)));
+}
 const TIER_CLASS = { candidate: "cand", possible: "maybe", manual: "manual" };
 const COVERAGE = { full: "آية كاملة", partial: "جزء من آية", "multi-partial": "أجزاء من آيات متتالية" };
 const KIND = {
@@ -431,6 +439,8 @@ function renderFinding(f) {
         a.similarity < 1 ? el("span", { class: "muted", text: ` (${toArabicDigits(Math.round(a.similarity * 100))}٪)` }) : null)))));
   }
   body.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => detectedChip(f, d))));
+  const aiNote = aiSpanNote(f);
+  if (aiNote) body.append(aiNote);
 
   return el("li", { id: `finding-${f.id}`, class: `finding ${f.needs_review ? "review" : ""} ${weak ? "weak" : ""}` }, head, body);
 }

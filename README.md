@@ -75,6 +75,11 @@ ordinary Arabic, interpret verses, translate, or issue religious rulings.
 - **Provenance is per finding.** "Proposed by the model alone" is shown only for a finding that would be absent
   without the model; when a marker or the phrase search found the same span, the card says the model proposed it
   too, and the audit banner counts both numbers (`ai.added_only`, `ai.also_found`).
+- **A model span never replaces a finding the program made.** If it overlaps a marked quotation, the editor's own
+  selection or a phrase-search hit without being the same span (wider, narrower or shifted), that finding keeps its
+  span, tier, verdict and proposed changes exactly as without the model, and the model's span is shown beside it
+  (`detection.ai_role: "overlap"`, `detection.ai_spans`, `ai.overlapped`). A model span that overlaps nothing the
+  program found is still its own "possible" finding.
 - **AI status is reported per audit.** If the model does not respond (rate limit 429, timeout, bad key or
   bad JSON), the result says so, the deterministic fallback is used, and nothing is labelled as found by AI.
   "Configured" (a key is set) is never presented as "working".

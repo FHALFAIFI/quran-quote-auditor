@@ -16,7 +16,10 @@ from .verifier import MIN_WORDS, unavailable_result, verify
 
 REF_AFTER_CHARS, REF_AFTER_WORDS = 40, 3
 REF_BEFORE_CHARS, REF_BEFORE_WORDS = 60, 6
-PRIORITY = {"manual": 0, "marked": 0, "ai": 1, "phrase": 2}
+PRIORITY = {"manual": 0, "marked": 0, "ai": 1, "phrase": 2}  # order in which a finding's methods are listed
+# Who keeps an overlapping span: what the program established from the text (a marker, the writer's own selection, a
+# literal phrase match) always outranks the model's proposal, which is only a place to look.
+MERGE_PRIORITY = {"manual": 0, "marked": 0, "phrase": 1, "ai": 2}
 MANUAL_MAX_WORDS = 60
 
 # Detection (is this a Quran quotation?) is reported separately from verification (does it match the text?).
@@ -61,14 +64,38 @@ def _span_candidate(article: str, tokens: list[arabic.Token], i: int, j: int, sr
     return Candidate(s, e, article[s:e], {src})
 
 
+def _relation(c: Candidate, k: Candidate) -> str:
+    """How the model's span ``c`` lies against the kept span ``k``: wider, narrower, or shifted (a partial overlap)."""
+    if c.start <= k.start and k.end <= c.end:
+        return "wider"
+    if k.start <= c.start and c.end <= k.end:
+        return "narrower"
+    return "shifted"
+
+
 def merge(cands: list[Candidate]) -> list[Candidate]:
-    """Keep non-overlapping candidates, preferring manual/marked > ai > phrase; record agreeing sources."""
+    """Keep non-overlapping candidates. A span found by a marker, the writer or the phrase search is never replaced,
+    shrunk, widened or dropped by a model proposal that overlaps it (marked/manual > phrase > ai).
+
+    The model's overlapping proposal is kept as evidence instead: the same span only adds "ai" to the sources
+    (the model agreed), a different span is recorded in ``ai_spans`` and the kept span's tier and verdict stay its own.
+    """
     kept: list[Candidate] = []
-    for c in sorted(cands, key=lambda c: (min(PRIORITY[x] for x in c.sources), c.start, -(c.end - c.start))):
-        overlap = next((k for k in kept if c.start < k.end and k.start < c.end), None)
-        if overlap is None:
+    for c in sorted(cands, key=lambda c: (min(MERGE_PRIORITY[x] for x in c.sources), c.start, -(c.end - c.start))):
+        overlaps = [k for k in kept if c.start < k.end and k.start < c.end]
+        if not overlaps:
             kept.append(c)
+        elif c.sources == {"ai"}:
+            for k in overlaps:
+                k.reference_hint = k.reference_hint or c.reference_hint
+                if k.sources == {"ai"}:
+                    continue  # two model proposals for one place: the first stands
+                if (k.start, k.end) == (c.start, c.end):
+                    k.sources.add("ai")
+                else:
+                    k.ai_spans.append({"start": c.start, "end": c.end, "quote": c.text, "relation": _relation(c, k)})
         else:
+            overlap = overlaps[0]
             overlap.sources |= c.sources
             overlap.reference_hint = overlap.reference_hint or c.reference_hint
             overlap.phrase = overlap.phrase or c.phrase
@@ -165,14 +192,21 @@ def _detection(article: str, index: QuranIndex | None, c: Candidate, result: dic
     """How the span was found, how sure we are that the writer meant a Quran quotation, and what the AI contributed.
 
     ``ai_role`` is "only" when the model proposed a span nothing else found (it would be absent without the model),
-    "also" when it proposed a span that a marker or the phrase search had found too, and None when it took no part.
+    "also" when it proposed the same span a marker or the phrase search had found, "overlap" when it proposed a different
+    span that overlaps one the program found (that span, its tier and its verdict stay the program's; the model's span
+    is listed in ``ai_spans``), and None when it took no part.
     """
-    ai_role = None if "ai" not in c.sources else "only" if c.sources == {"ai"} else "also"
+    ai_role = "overlap" if c.ai_spans and "ai" not in c.sources else None if "ai" not in c.sources else "only" if c.sources == {"ai"} else "also"
+    spans = {"ai_spans": [dict(s) for s in c.ai_spans]} if c.ai_spans else {}
     if "manual" in c.sources:
-        return {"kind": "manual", "tier": "manual", "label": "حدّدتَ هذا المقطع بنفسك", "codes": ["manual"], "reasons": [], "unconfirmed": False, "ai_role": ai_role}
+        return {"kind": "manual", "tier": "manual", "label": "حدّدتَ هذا المقطع بنفسك", "codes": ["manual"], "reasons": [], "unconfirmed": False, "ai_role": ai_role, **spans}
     if "marked" in c.sources:
-        return {"kind": "marked", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role}
-    if "ai" in c.sources:
+        return {"kind": "marked", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role, **spans}
+    if c.phrase is not None:
+        # Found by the phrase search: its tier is the search's own, whatever the model did or did not propose.
+        tier, codes = c.phrase.tier, list(c.phrase.reasons)
+        info = {"exact": c.phrase.exact, "occurrences": len(c.phrase.spans) if c.phrase.exact else None}
+    else:
         info = {"exact": bool(result["occurrences"]), "occurrences": result["occurrences"] or None}
         basis = _corroboration(article, c, result, ref) if ai_role == "only" else None
         if basis:
@@ -180,12 +214,9 @@ def _detection(article: str, index: QuranIndex | None, c: Candidate, result: dic
         tier, codes = _grade_span(article, index, c, result)
         if ai_role == "only":
             codes = ["ai_only", *codes]
-    else:
-        tier, codes = c.phrase.tier, list(c.phrase.reasons)
-        info = {"exact": c.phrase.exact, "occurrences": len(c.phrase.spans) if c.phrase.exact else None}
     codes = codes or ["candidate"]
     return {"kind": "phrase" if c.phrase is not None else "ai", "tier": tier, "label": TIER_LABEL.get(tier), "codes": codes,
-            "reasons": [TIER_REASON[k] for k in codes if k in TIER_REASON], "unconfirmed": tier == "possible", "ai_role": ai_role, **info}
+            "reasons": [TIER_REASON[k] for k in codes if k in TIER_REASON], "unconfirmed": tier == "possible", "ai_role": ai_role, **info, **spans}
 
 
 def _choices(index: QuranIndex, finding: dict) -> list[dict]:
@@ -398,6 +429,7 @@ def run_audit(article: str) -> dict:
         "generation_failure": False,
         "added_only": 0,
         "also_found": 0,
+        "overlapped": 0,
     }
     discarded = 0
     if provider:
@@ -442,6 +474,7 @@ def run_audit(article: str) -> dict:
         # What the model added: spans only it proposed (absent without it) vs. spans something else had found too.
         ai["added_only"] = sum(f["detection"]["ai_role"] == "only" for f in findings)
         ai["also_found"] = sum(f["detection"]["ai_role"] == "also" for f in findings)
+        ai["overlapped"] = sum(f["detection"]["ai_role"] == "overlap" for f in findings)
 
     phrase_info = None
     if scan is not None:

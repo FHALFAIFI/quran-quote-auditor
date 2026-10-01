@@ -24,6 +24,7 @@ class Candidate:
     marker: str | None = None  # e.g. "﴿﴾", "{}", "«»"
     reference_hint: str | None = None  # reference text proposed by the AI
     phrase: object | None = None  # the app.phrases.PhraseHit that found this span, if any
+    ai_spans: list = field(default_factory=list)  # model proposals that overlap this (non-AI) span without being the same span
 
 
 @dataclass

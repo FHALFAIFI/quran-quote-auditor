@@ -166,11 +166,22 @@ def test_full_text_model_agreement_never_upgrades_an_approximate_phrase(use_full
 
 
 @full
-@pytest.mark.parametrize("prose", ["كونوا مع الصابرين", "لا تحزن إن الله معنا دائما", "إن الله مع المتقين دائما", "اصبروا على الأذى"])
+@pytest.mark.parametrize("prose", ["كونوا مع الصابرين", "إن الله مع المتقين دائما", "اصبروا على الأذى"])
 def test_full_text_prose_is_not_established(use_full, monkeypatch, prose):
     res = audit_with(monkeypatch, f"وقال لهم {prose} في كل حال.", prose)
     assert res["findings"] and all(f["detection"]["unconfirmed"] and f["changes"] == [] for f in res["findings"])
     assert res["stats"]["matched"] == 0
+
+
+@full
+def test_full_text_prose_the_search_itself_reports_is_the_searchs_finding_not_the_models(use_full, monkeypatch):
+    """«لا تحزن إن الله معنا» is five literal words of التوبة: 40, so the phrase search reports it with no model at all.
+    A wider model span («… دائما») used to replace that finding with a weaker «possible» one; now it can only sit beside it."""
+    article = "وقال لهم لا تحزن إن الله معنا دائما في كل حال."
+    (alone,) = audit_with(monkeypatch, article)["findings"]
+    (f,) = audit_with(monkeypatch, article, "لا تحزن إن الله معنا دائما")["findings"]
+    assert (f["start"], f["end"], f["detection"]["tier"], f["changes"], f["wording"]) == (alone["start"], alone["end"], alone["detection"]["tier"], alone["changes"], alone["wording"])
+    assert f["detected_by"] == ["phrase"] and f["detection"]["ai_role"] == "overlap" and f["wording"]["status"] != "matched"
 
 
 @full
