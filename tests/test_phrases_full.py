@@ -94,3 +94,27 @@ def test_frozen_end_misquotations_are_not_matched(monkeypatch, article, quoted, 
     assert f["wording"]["status"] == "uncertain" and f["needs_review"]
     assert f["continuation"] == {"quran": quran_next, "article": article_next}
     assert f["reference"]["status"] == "missing" and res["stats"]["matched"] == 0
+
+
+# --- the start-of-quotation rule on real frozen/held-out text -------------------------------------------------------
+# Correct quotations that begin in the middle of a verse and follow ordinary prose were "matched" before the start rule.
+# Reported as "uncertain": prose before a correct quotation and a wrong first word look the same.
+
+@pytest.mark.parametrize("article, quoted, quran_prev, article_prev", [
+    ("القلب لا يهدأ بكثرة المال، أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ وتسكن النفوس.",           # frozen f07
+     "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", "الله", "المال"),
+    ("إذا ضاقت بك السبل فتذكر ومن يتق الله يجعل له مخرجا، واطلب المزيد.",                            # held-out h01
+     "ومن يتق الله يجعل له مخرجا", "الآخر", "فتذكر"),
+])
+def test_correct_quotations_after_prose_are_uncertain_not_matched(monkeypatch, article, quoted, quran_prev, article_prev):
+    import app.audit as audit
+    from tests.conftest import FakeSource
+
+    monkeypatch.setattr(audit, "source", FakeSource(INDEX))
+    monkeypatch.setattr(audit, "get_provider", lambda: None)
+    res = audit.run_audit(article)
+    (f,) = res["findings"]
+    assert f["quote"] == quoted                                                     # detected as before
+    assert f["wording"]["status"] == "uncertain" and f["needs_review"]
+    assert f["lead_in"] == {"quran": quran_prev, "article": article_prev}
+    assert f["reference"]["status"] == "missing" and res["stats"]["matched"] == 0

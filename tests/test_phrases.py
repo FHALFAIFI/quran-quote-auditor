@@ -267,6 +267,107 @@ def test_stated_ends_are_not_questioned(use_source, lenient, monkeypatch):
     assert ai["detected_by"] == ["ai", "phrase"] and ai["wording"]["status"] == "uncertain"
 
 
+# --- start of the span: the mirror of the end rule ----------------------------------------------------------------
+# The fixture verse 3:103 is «واعتصموا بحبل الله جميعا ولا تفرقوا ۚ واذكروا نعمت الله عليكم إذ كنتم أعداء فألف بين قلوبكم …».
+# A quotation that begins in the middle of a verse has a word before it in the verse; if the article's word there differs
+# and nothing marks the start, "the writer's prose" and "a wrong first word" cannot be told apart.
+
+MID = "نعمت الله عليكم إذ كنتم أعداء فألف بين قلوبكم"      # begins at the 2nd sentence of the verse (after «واذكروا»)
+LEAD_IN_QURAN = "واذكروا"
+
+
+def test_wrong_first_word_is_not_matched(use_source, lenient):
+    """The search starts at the first word that matches, so a wrong first word looks like prose before the quotation."""
+    f, res = _one(f"وهنا وتأملوا {MID}. وانتهى الكلام.")
+    assert f["quote"] == MID and f["detection"]["tier"] == "candidate"                        # the candidate is still reported
+    assert f["wording"]["status"] == "uncertain" and f["needs_review"]
+    assert f["start_boundary"] == {"status": "uncertain", "basis": "adjacent_word", "quran": LEAD_IN_QURAN, "article": "وتأملوا"}
+    assert f["lead_in"] == {"quran": LEAD_IN_QURAN, "article": "وتأملوا"}
+    assert f["end_boundary"]["status"] == "settled" and f["continuation"] is None              # only the start is in question
+    assert f["reference"]["status"] == "missing"                                              # the reference verdict is its own
+    assert f["wording"]["message"] == audit.START_UNCERTAIN_MESSAGE and audit.START_UNCERTAIN_MESSAGE in f["review_reasons"]
+    assert res["stats"]["matched"] == 0 and res["stats"]["uncertain"] == 1 and res["stats"]["candidates"] == 1
+    assert f["correction"]["status"] == "review_only"
+
+
+def test_a_correct_quotation_preceded_by_ordinary_prose_is_flagged_not_matched(use_source, lenient):
+    """Prose that touches the span cannot be told from a wrong first word: the candidate stays, the editor decides."""
+    f, res = _one(f"كتب الباحث أن الأمة تحتاج {MID}. وانتهى الكلام.")
+    assert f["quote"] == MID and f["detection"]["tier"] == "candidate"
+    assert f["wording"]["status"] == "uncertain" and f["needs_review"] and f["lead_in"] == {"quran": LEAD_IN_QURAN, "article": "تحتاج"}
+    assert res["stats"]["matched"] == 0 and res["stats"]["uncertain"] == 1
+    # a comma does not settle it (it is how prose and a quotation are usually joined, and the search reads through commas)
+    g, _ = _one(f"كتب الباحث أن الأمة تحتاج، {MID}. وانتهى الكلام.")
+    assert g["wording"]["status"] == "uncertain"
+
+
+def test_a_correct_quotation_stays_matched_when_something_opens_it(use_source, lenient):
+    for article, basis in [
+        (f"كتب الباحث أن الأمة تحتاج. {MID}. وانتهى الكلام.", "punctuation"),
+        (f"كتب الباحث أن الأمة تحتاج:\n{MID}. وانتهى الكلام.", "punctuation"),
+        (f"كتب الباحث أن الأمة تحتاج: «{MID}». وانتهى الكلام.", "punctuation"),
+        (f"كتب الباحث وقال تعالى {MID}. وانتهى الكلام.", "lead_in"),
+        (f"كتب الباحث في القرآن الكريم {MID}. وانتهى الكلام.", "lead_in"),
+        (f"كتب الباحث في سورة آل عمران: 103 {MID}. وانتهى الكلام.", "reference"),
+        (f"{MID}. وانتهى الكلام.", "article_start"),
+    ]:
+        f, res = _one(article)
+        assert f["wording"]["status"] == "matched" and not f["needs_review"], article
+        assert f["start_boundary"] == {"status": "settled", "basis": basis} and f["lead_in"] is None, article
+        assert res["stats"]["matched"] == 1
+
+
+def test_a_quotation_that_begins_where_its_verse_begins_is_settled(use_source, lenient):
+    f, _ = _one("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا. وانتهى الكلام.")
+    assert f["wording"]["status"] == "matched" and f["start_boundary"] == {"status": "settled", "basis": "verse_start"}
+
+
+def test_a_lead_in_must_touch_the_span(use_source, lenient):
+    """«قال تعالى» settles the start only when the quotation begins right after it, not when another word intervenes."""
+    f, _ = _one(f"قال تعالى كما نعلم {MID}. وانتهى الكلام.")
+    assert f["wording"]["status"] == "uncertain" and f["start_boundary"]["status"] == "uncertain"
+
+
+def test_start_and_end_both_uncertain_say_so(use_source, lenient):
+    f, res = _one(f"كتب الباحث أن الأمة تحتاج نعمت الله عليكم إذ كنتم أعداء فألف بين قلوبكم وكذلك نختم المقال")
+    assert f["start_boundary"]["status"] == "uncertain" and f["end_boundary"]["status"] == "uncertain"
+    assert f["lead_in"] and f["continuation"]
+    assert f["wording"]["status"] == "uncertain" and f["wording"]["message"] == audit.BOTH_UNCERTAIN_MESSAGE
+    assert res["stats"]["matched"] == 0
+
+
+def test_wording_and_reference_verdicts_stay_separate_at_the_start(use_source, lenient):
+    f, res = _one(f"كتب الباحث في سورة آل عمران: 103 كما نرى جميعا {MID}. وانتهى الكلام.")
+    assert f["reference"]["status"] == "matched" and f["wording"]["status"] == "uncertain"    # a right reference does not settle the start
+    assert res["stats"]["ref_matched"] == 1 and res["stats"]["matched"] == 0
+    # ...and a settled start does not make a missing reference "matched" either
+    g, _ = _one(f"{MID}. وانتهى الكلام.")
+    assert g["wording"]["status"] == "matched" and g["reference"]["status"] == "missing"
+
+
+def test_stated_starts_are_not_questioned(use_source, lenient, monkeypatch):
+    marked, _ = _one(f"كتب الباحث أن الأمة تحتاج ﴿{MID}﴾ كما نرى.")
+    assert marked["wording"]["status"] == "matched" and marked["start_boundary"] is None
+    article = f"كتب الباحث أن الأمة تحتاج {MID} وانتهى الكلام."
+    manual = run_phrase(article, article.index("نعمت"), article.index(" وانتهى"), 3, 103, 103)["finding"]
+    assert manual["wording"]["status"] == "matched" and manual["start_boundary"] is None and manual["end_boundary"] is None
+    # a start chosen by the AI is not stated by the writer, so it is held to the same rule
+    monkeypatch.setattr(audit, "get_provider", lambda: FakeProvider([RawSuggestion(MID)]))
+    (ai,) = run_audit(f"كتب الباحث أن الأمة تحتاج {MID}. وانتهى الكلام.")["findings"]
+    assert ai["detected_by"] == ["ai", "phrase"] and ai["wording"]["status"] == "uncertain" and ai["start_boundary"]["status"] == "uncertain"
+
+
+def test_confirming_the_highlighted_boundaries_turns_uncertain_into_matched(use_source, lenient):
+    """The UI's «الحدود صحيحة» button re-sends the same span as a manual highlight with the verse already proposed."""
+    article = f"كتب الباحث أن الأمة تحتاج {MID}. وانتهى الكلام."
+    (f,) = run_audit(article)["findings"]
+    assert f["wording"]["status"] == "uncertain"
+    (choice,) = f["choices"]
+    done = run_phrase(article, f["start"], f["end"], choice["surah"], choice["ayah_start"], choice["ayah_end"])["finding"]
+    assert (done["start"], done["end"]) == (f["start"], f["end"])
+    assert done["wording"]["status"] == "matched" and done["detection"]["kind"] == "manual" and done["start_boundary"] is None
+
+
 def test_phrase_hits_do_not_steal_references_from_marked_quotes(use_source, lenient):
     article = "واعتصموا بحبل الله جميعا ولا تفرقوا ثم قال تعالى ﴿اقرأ باسم ربك الذي خلق﴾ [العلق: 1]"
     res = run_audit(article)

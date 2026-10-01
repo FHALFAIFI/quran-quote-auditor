@@ -225,6 +225,12 @@ function renderSummary(data) {
     tile(s.needs_review, "تحتاج مراجعة بشرية", "review"),
     tile(allChanges().filter((c) => !c.optional).length, "تصحيحات مقترحة من المصدر", "fix"),
   );
+  const unsure = (data.findings || []).filter((f) => f.lead_in || f.continuation).length;
+  const note = $("boundary-note");
+  note.hidden = !unsure;
+  note.replaceChildren(...(unsure ? [el("b", { text: `${toArabicDigits(unsure)} من الاقتباسات «غير محسومة» لأن حدودها لم تتحدد. ` }),
+    "هذا لا يعني أن الألفاظ خاطئة: الأداة لا تعرف هل الكلمة المجاورة للمقطع من الاقتباس أم من كلامك. ",
+    "في بطاقة كل اقتباس منها زرّان: «حدود الاقتباس صحيحة» لتأكيد المقطع كما هو، و«عدّل الحدود بنفسك» ليُحدَّد المقطع في مربع المقال فتعدّله."] : []));
 }
 
 function renderArticle(findings) {
@@ -346,6 +352,8 @@ function renderFinding(f) {
   const det = f.detection || {};
   const weak = !!det.unconfirmed;  // found only as a possible quotation: the match to the text is shown, but not as a verdict
   let [wl, wc] = wordingChip(w);
+  const boundaryUnsure = !!(f.lead_in || f.continuation);  // wording was held back because the quotation's boundary is not settled
+  if (boundaryUnsure && w.status === "uncertain") wl = "غير محسوم — حدود الاقتباس";
   if (weak) { wl = "إن كان اقتباسًا: " + wl; wc = "muted-chip"; }
   const [rl, rc] = REF[r.status] || ["—", "muted-chip"];
   const tierChip = det.label ? chip(det.label, TIER_CLASS[det.tier] || "src") : null;
@@ -397,11 +405,8 @@ function renderFinding(f) {
   if (changes.length) {
     body.append(el("div", { class: "changes" }, el("div", { class: "row-label", text: "تصحيحات مقترحة من نص المصحف — لا يُغيَّر شيء إلا بعد اعتمادك" }), ...changes.map(changeCard)));
   }
-  if (f.continuation) {
-    body.append(el("p", { class: "muted small continuation" }, "بعد هذا المقطع في المصحف: ", el("b", { class: "quran", text: f.continuation.quran }),
-      "، وبعده في المقال: ", el("b", { text: f.continuation.article }),
-      ". لا تستطيع الأداة معرفة أين ينتهي الاقتباس عندك؛ إن كانت هذه الكلمة منه فراجعها."));
-  }
+  const boundary = boundaryBox(f);
+  if (boundary) body.append(boundary);
   const confirm = choicesBox(f);
   if (confirm) body.append(confirm);
   if (f.correction?.status === "unconfirmed") {
@@ -421,6 +426,48 @@ function renderFinding(f) {
   body.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => chip(DETECTED[d] || d, "src"))));
 
   return el("li", { id: `finding-${f.id}`, class: `finding ${f.needs_review ? "review" : ""} ${weak ? "weak" : ""}` }, head, body);
+}
+
+// ---------------------------------------------------------------- uncertain boundaries: explanation + easy manual highlighting
+const UNCERTAIN_EXPLAIN = "«غير محسوم» هنا لا يعني أن الألفاظ خاطئة، بل أن الأداة لم تستطع تحديد أين يبدأ الاقتباس أو أين ينتهي، فلم تحكم بأنه «مطابق». "
+  + "حدّد أنت الحدود: إمّا أن تؤكد أن المقطع المعروض هو الاقتباس كله، أو تعدّل التحديد بنفسك.";
+
+function boundaryBox(f) {
+  if (!f.lead_in && !f.continuation) return null;
+  const box = el("div", { class: "boundary-box" }, el("div", { class: "row-label", text: "لماذا «غير محسوم»؟ حدود الاقتباس لم تتحدد" }),
+    el("p", { text: UNCERTAIN_EXPLAIN }));
+  if (f.lead_in) {
+    box.append(el("p", { class: "small" }, "قبل هذا المقطع في المصحف: ", el("b", { class: "quran", text: f.lead_in.quran }),
+      "، وقبله في المقال: ", el("b", { text: f.lead_in.article }), ". إن كانت هذه الكلمة من اقتباسك فابدأ التحديد منها."));
+  }
+  if (f.continuation) {
+    box.append(el("p", { class: "small continuation" }, "بعد هذا المقطع في المصحف: ", el("b", { class: "quran", text: f.continuation.quran }),
+      "، وبعده في المقال: ", el("b", { text: f.continuation.article }), ". إن كانت هذه الكلمة من اقتباسك فمدّ التحديد حتى تشملها."));
+  }
+  const src = f.source;
+  box.append(el("div", { class: "boundary-actions" },
+    src ? el("button", { type: "button", class: "btn small primary-ish", "data-act": "confirm-bounds",
+      title: "يُعتمد المقطع كما هو، بحدوده وبموضعه في المصحف كما في هذه البطاقة",
+      onclick: () => requestPhrase(f.start, f.end, { surah: src.surah, ayah_start: src.ayah_start, ayah_end: src.ayah_end }, f.id) }, "حدود الاقتباس صحيحة") : null,
+    el("button", { type: "button", class: "btn small", "data-act": "adjust-bounds", onclick: () => selectFindingInArticle(f),
+      title: "يُحدَّد المقطع في مربع المقال لتعدّل التحديد بالماوس أو بـ Shift + الأسهم" }, "عدّل الحدود بنفسك")));
+  return box;
+}
+
+// Offsets from the server are Unicode code points; a textarea wants UTF-16 units.
+const utf16Offset = (text, cp) => Array.from(text).slice(0, cp).join("").length;
+
+function selectFindingInArticle(f) {
+  const ta = $("article");
+  if (!lastResult || ta.value.replace(/\r\n?/g, "\n") !== lastArticle) {
+    setStatus("تغيّر النص بعد آخر تدقيق؛ أعد التدقيق أولًا ثم عدّل التحديد.", true);
+    return;
+  }
+  ta.focus({ preventScroll: true });
+  ta.setSelectionRange(utf16Offset(lastArticle, f.start), utf16Offset(lastArticle, f.end));
+  ta.scrollIntoView({ behavior: "smooth", block: "center" });
+  updateSelectionButton();
+  setStatus("حُدِّد المقطع في مربع المقال. عدّل التحديد بالماوس (أو Shift + الأسهم) ليشمل الاقتباس كله وحده، ثم اضغط «افحص المقطع المحدَّد».");
 }
 
 // ---------------------------------------------------------------- confirming a possible quotation / choosing a verse / manual selection

@@ -9,7 +9,7 @@ from .corrections import build_changes
 from .config import settings
 from .extraction import Candidate, ExtractionError, get_provider
 from .extraction.marked import extract_marked
-from .phrases import find_phrases
+from .phrases import ends_with_quran_cue, find_phrases
 from .quran_source import MUSHAF_URL, QuranIndex, SourceUnavailable, source
 from .references import Reference, find_references
 from .verifier import unavailable_result, verify
@@ -33,6 +33,10 @@ TIER_REASON = {
 }
 END_UNCERTAIN_MESSAGE = ("نهاية المقطع غير محسومة: ما قبل هذه الكلمة مطابق للمصحف، لكن الكلمة التالية في المقال تختلف عن كلمة الآية التالية "
                          "ولا يغلق المقطعَ علامةٌ ولا إحالة، فلا يُعرف أهي كلام الكاتب بعد الاقتباس أم خطأ في آخر الاقتباس.")
+START_UNCERTAIN_MESSAGE = ("بداية المقطع غير محسومة: ما بعد هذه الكلمة مطابق للمصحف، لكن الكلمة التي قبله في المقال تختلف عن كلمة الآية التي قبله "
+                           "ولا يفتتح المقطعَ علامةٌ ولا إحالة ولا عبارة تمهيد، فلا يُعرف أهي كلام الكاتب قبل الاقتباس أم خطأ في أول الاقتباس.")
+BOTH_UNCERTAIN_MESSAGE = ("حدود المقطع غير محسومة: الكلمة قبل المقطع والكلمة بعده في المقال تختلفان عن كلمتي الآية المجاورتين، "
+                          "ولا علامة ولا إحالة تحدّد أين يبدأ الاقتباس وأين ينتهي، فلا يُعرف أهما كلام الكاتب أم خطأ في أول الاقتباس وآخره.")
 UNCONFIRMED_REASON = "لم يتأكد أن هذا المقطع اقتباس قرآني، فلا تُقترح عليه تصحيحات. إن كان اقتباسًا فأكّد ذلك واختر موضعه ليظهر التصحيح المقترح."
 
 
@@ -169,15 +173,20 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
         "detection": _detection(c),
         **result,
     }
-    boundary = _end_boundary(article, c, finding, ref) if index is not None else None
-    finding["end_boundary"] = boundary
-    finding["continuation"] = {"quran": boundary["quran"], "article": boundary["article"]} if boundary and boundary["status"] == "uncertain" else None
-    if boundary and boundary["status"] == "uncertain":
+    start_b = _start_boundary(article, c, finding, ref) if index is not None else None
+    end_b = _end_boundary(article, c, finding, ref) if index is not None else None
+    finding["start_boundary"], finding["end_boundary"] = start_b, end_b
+    start_unc, end_unc = bool(start_b and start_b["status"] == "uncertain"), bool(end_b and end_b["status"] == "uncertain")
+    finding["lead_in"] = {"quran": start_b["quran"], "article": start_b["article"]} if start_unc else None
+    finding["continuation"] = {"quran": end_b["quran"], "article": end_b["article"]} if end_unc else None
+    boundary_msg = BOTH_UNCERTAIN_MESSAGE if start_unc and end_unc else START_UNCERTAIN_MESSAGE if start_unc else END_UNCERTAIN_MESSAGE
+    boundary_unc = start_unc or end_unc
+    if boundary_unc:
         # Keep wording and reference verdicts apart: only the wording verdict is held back, and only for "matched".
         if finding["wording"]["status"] == "matched":
-            finding["wording"] = {**finding["wording"], "status": "uncertain", "message": END_UNCERTAIN_MESSAGE}
+            finding["wording"] = {**finding["wording"], "status": "uncertain", "message": boundary_msg}
             finding["needs_review"] = True
-        finding["review_reasons"] = list(dict.fromkeys([END_UNCERTAIN_MESSAGE, *finding["review_reasons"]]))
+        finding["review_reasons"] = list(dict.fromkeys([boundary_msg, *finding["review_reasons"]]))
     det = finding["detection"]
     if det["unconfirmed"]:
         # Detection is weak: show it, but offer no replacement text until the editor says it is a Quran quotation.
@@ -193,13 +202,45 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
         finding["correction"] = summary
         if det["kind"] == "phrase":
             finding["review_reasons"] = list(dict.fromkeys([*det["reasons"], *finding["review_reasons"]]))
-        if boundary and boundary["status"] == "uncertain":
+        if end_unc:
             # Nothing may be offered that depends on where the quotation ends (a reference goes after its last word).
             finding["changes"] = [ch for ch in finding["changes"] if ch["kind"] != "reference_add"]
-            if finding["correction"]["status"] == "none_needed":
-                finding["correction"] = {"status": "review_only", "reason": END_UNCERTAIN_MESSAGE}
+        if boundary_unc and finding["correction"]["status"] == "none_needed":
+            finding["correction"] = {"status": "review_only", "reason": boundary_msg}
     finding["choices"] = _choices(index, finding) if index is not None and det["kind"] in ("phrase", "manual") else []
     return finding
+
+
+def _start_boundary(article: str, c: Candidate, finding: dict, ref: Reference | None) -> dict | None:
+    """Is the START of the identified span settled, or could the quotation really begin earlier (a wrong first word)?
+
+    The mirror of ``_end_boundary``. Only spans whose start was chosen by the program or by the AI are in question;
+    brackets, quotation marks and a highlight made by the editor state the start themselves (``None``). The start is
+    settled when the span begins at the start of its verse, when punctuation / a line break / the start of the article
+    precedes it, when a lead-in such as «قال تعالى» or the reference that belongs to it comes just before it. Otherwise
+    the previous article word touches the span and the verse says something else there: a wrong first word and
+    ordinary prose before a correct quotation look identical, so the start is "uncertain".
+    """
+    if {"marked", "manual"} & c.sources:
+        return None
+    src = finding.get("source")
+    if not src or not src.get("segments"):
+        return None
+    first = src["segments"][0]
+    if first["from"] <= 0:
+        return {"status": "settled", "basis": "verse_start"}
+    if ref is not None and ref.end <= c.start and not arabic.tokenize(article[ref.end:c.start]):
+        return {"status": "settled", "basis": "reference"}
+    window = article[max(0, c.start - 80):c.start]
+    prev = arabic.tokenize(window)
+    if not prev:
+        return {"status": "settled", "basis": "article_start"}
+    gap = window[prev[-1].end:]
+    if "\n" in gap or gap.strip(" \t\u00a0،,؛;") != "":
+        return {"status": "settled", "basis": "punctuation"}
+    if ends_with_quran_cue(window):
+        return {"status": "settled", "basis": "lead_in"}
+    return {"status": "uncertain", "basis": "adjacent_word", "quran": arabic.letters(first["words"][first["from"] - 1]), "article": prev[-1].raw}
 
 
 def _end_boundary(article: str, c: Candidate, finding: dict, ref: Reference | None) -> dict | None:

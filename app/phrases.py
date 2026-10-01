@@ -362,6 +362,12 @@ def _contains(words: tuple[str, ...], sub: tuple[str, ...]) -> bool:
     return n > 0 and any(words[i:i + n] == sub for i in range(len(words) - n + 1))
 
 
+def ends_with_quran_cue(before: str) -> bool:
+    """True if the text just before a span ends with a lead-in such as «قال تعالى» (a verse is announced right here)."""
+    words = _fold_phrase(before)
+    return any(len(c) <= len(words) and words[len(words) - len(c):] == c for c in _QURAN)
+
+
 def find_phrases(article: str, tokens: list[arabic.Token], index: QuranIndex) -> PhraseScan:
     """Reportable Quran phrases in ``article`` (see the module docstring for the tiers)."""
     s = _Searcher(article, tokens, index)

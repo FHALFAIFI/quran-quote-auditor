@@ -115,7 +115,7 @@ Known gap: the search cannot know where a writer's quotation ends, so a wrong **
 | `normalized` — بعد توحيد الرسم | Differs only by simplified letter forms (for example ا for أ/إ/آ, ي↔ى, ه for ة). Each change is listed. |
 | difference (diacritics / letters) | Letters match a unique verse, but a diacritic contradicts the source (e.g. «يخشى اللهُ»), or a hamza seat changed (إن ↔ أن). |
 | difference (`fuzzy`) — أقرب موضع مقترح | Not found exactly, so the closest passage is shown with a word diff. **Always flagged “needs human review”, never shown as verified.** |
-| uncertain — غير محسوم | Fewer than 3 words, found in several verses without a disambiguating reference, not found, or source unavailable. |
+| uncertain — غير محسوم | Fewer than 3 words, found in several verses without a disambiguating reference, not found, or source unavailable. **Also:** for an unmarked span chosen by the program or the AI, when the quotation's start or end is not settled (the article word touching the span differs from the verse's neighbouring word and no punctuation, lead-in or reference marks the boundary). That means the boundary could not be established, not that the wording is wrong; the editor confirms or adjusts it. Brackets and manual highlights are never questioned. |
 
 ### Reference statuses
 
@@ -186,6 +186,7 @@ node --test tests/revision.test.mjs      # the revision engine alone
 # browser end-to-end (Playwright installed in any scratch dir, not a project dependency)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs http://localhost:8000 ./shots
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs http://localhost:8000 ./shots   # unmarked-phrase workflow (use AI_PROVIDER=none)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_boundary_e2e.mjs http://localhost:8000 ./shots   # uncertain-boundary workflow (use AI_PROVIDER=none; wait 60 s between browser scripts: rate limit)
 python scripts/measure_resources.py [--server]       # startup time and peak memory in fresh processes (needs a cached Quran text)
 python eval/validate_phrases.py                       # the frozen phrase set against the Hafs text
 python scripts/e2e_check.py http://localhost:8000   # API checks, samples, files that must not be served

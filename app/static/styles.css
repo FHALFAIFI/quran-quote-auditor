@@ -259,3 +259,11 @@ details.alts ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: .92rem
 .confirm-box .choice .quran { flex: 1 1 260px; }
 .manual-note { margin: 10px 0 0; font-size: .85rem; color: var(--muted); }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+.boundary-note { margin: -6px 0 18px; padding: 8px 12px; border-radius: 10px; border: 1px solid #EBD27A; background: var(--warn-bg); color: var(--warn-fg); font-size: .9rem; }
+.boundary-box { border: 1px dashed #C9A21A; border-radius: 12px; padding: 10px 12px; background: var(--warn-bg); color: var(--warn-fg); }
+.boundary-box p { margin: 4px 0; }
+.boundary-box .small { font-size: .88rem; }
+.boundary-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.btn.primary-ish { background: var(--violet); border-color: var(--violet); color: #fff; }
+.manual-note b { color: var(--navy); }

@@ -354,7 +354,7 @@ Otherwise the next article word touches the span and the verse says something el
 `needs_review` is set, the card keeps the candidate and the existing hint «بعد هذا المقطع في المصحف … وبعده في المقال …», `end_boundary` records the basis, and the optional reference insertion (which would go after a word that may be wrong) is withheld.
 The reference verdict is computed separately and is untouched (a correct reference stays "matched" beside an uncertain wording). Spans stated by the writer (brackets, quotation marks) or highlighted by the editor are not questioned.
 A comma does **not** settle the end (the search itself reads through commas). The same rule applies to an AI-chosen span; AI mode was not rerun.
-**Not covered:** the same problem at the *start* of a span (a wrong first word) is unchanged and remains a known limit.
+**Not covered:** the same problem at the *start* of a span (a wrong first word) was unchanged here; **addressed later the same day** ("The start of an unmarked quotation" below).
 
 **Rerun of the unchanged sets, no Groq, labels untouched** (before = HEAD `d7cf6cd` code run today, after = this change; raw files `eval/results/fallback-20261001-*-boundary-before-d7cf6cd-*.json` and `…-boundary-after-fix-*.json`):
 
@@ -382,7 +382,7 @@ Changes: the adapter now keeps the shortened error body (type, code, message, fa
 - The main and held-out numbers are **development data**: they were inspected before and while the search was designed. They show the change works on those examples, not that it generalizes.
 - The frozen set was run twice and run 2 followed two fixes (see above); no threshold changed between the runs.
 - The synthetic benchmark and the Wikipedia prose are proxies. Articles by Islamic-content writers may differ from Wikipedia prose.
-- Detection is not complete: phrases of one or two words, phrases made only of common words, near matches of fewer than 4 matched words, a wrong first word of a quotation (a wrong last word is no longer reported "matched" but only "uncertain, end not settled"),
+- Detection is not complete: phrases of one or two words, phrases made only of common words, near matches of fewer than 4 matched words, a wrong first word of a quotation (a wrong first or last word is no longer reported "matched" but only "uncertain, start/end not settled"; the wrong word itself is still not found),
   Uthmani spellings and quotations with omissions are missed or reported only as "maybe". The interface says so and offers manual selection.
 - Memory and timing are from one macOS machine with Python 3.14; Render's Python and CPU differ.
 
@@ -391,3 +391,31 @@ Changes: the adapter now keeps the shortened error body (type, code, message, fa
 1. A human reviewer (ideally someone with Quranic studies background) reviews every label in `eval/cases.json`.
 2. Add real, independently sourced articles (with permission), including Uthmani-script quotations and quotations with omissions («…»).
 3. Run AI mode three times to check repeatability, then report the mean and range.
+
+### The start of an unmarked quotation (2026-10-01, fallback only, no Groq)
+
+**Why.** The end rule above has a mirror. The search starts at the first word that matches the Quran, so a quotation whose FIRST word is wrong
+(known gap, listed above) is found from its second word, and the same span also arises when a correct, mid-verse quotation follows ordinary prose.
+`app/audit.py::_start_boundary` applies the mirror of the end rule to spans chosen by the program or the AI. Brackets, quotation marks and an editor's highlight state their own start and are never questioned.
+
+**Rule.** The start is *settled* when the span begins at its verse's first word, or the article's first word, or after punctuation / a line break (a comma or «؛» does NOT settle it, as for the end),
+or right after a Quran lead-in (`ends_with_quran_cue`: «قال تعالى», «في القرآن الكريم»… the same list the tiers use), or right after the reference that belongs to it. Otherwise the article word touching the span differs from the verse's previous word
+and the wording is **"uncertain"** (needs review), never "matched". Only "matched" is held back; "difference" stays "difference"; the reference verdict is computed separately. The card shows the verse's previous word beside the article's (`lead_in`).
+No threshold, tier, label or `phrases.py` search code changed (one read-only helper was added there).
+
+**Result** (`eval/results/fallback-*-start-before-df94548-*` = unchanged HEAD `df94548`, `…-start-after-boundary-*` = this change; labels untouched, `eval/phrases_frozen.sha256` OK; per-row comparison of detection, tier, kind, location, references and grades):
+
+| Set | Correct quotations read "matched" before → after | Moved matched → uncertain | Detection / tiers / labels / references |
+|---|---|---|---|
+| Main (14 cases) | 17 → 17 | 0 | identical |
+| Held-out (4 cases) | 5 → 3 | 2 (h01 «ومن يتق الله يجعل له مخرجا» after «فتذكر»; «وقل رب زدني علما» after «داعيًا») | identical |
+| Frozen (49 cases) | 6 → 5 | 1 (f07 «ألا بذكر الله تطمئن القلوب» after «المال،») | identical |
+| **Total** | **28 → 25** | **3** | **no change** |
+
+False "matched" wording stays 0 on every set. Why so few moves: most correct frozen quotations that follow prose were already "uncertain" because of the end rule (9 of the 15 correct frozen quotations read "uncertain" before this change,
+10 after it); the start rule adds a second reason to 6 spans there (f02, f05, f06, f11, f15, f18) and is the only reason for f07. All three moved quotations are correct quotations that follow ordinary prose, which is the cost of the rule: they cannot be told from a wrong first word.
+The comma case (f07: «…المال، ألا بذكر…») is the most common real-world form and the rule leaves it "uncertain" on purpose, to stay symmetric with the end rule and not tune against the frozen set; the editor settles it with one click.
+Not measured: there is no labelled wrong-FIRST-word case in the frozen set (f21 and f29 are missed, not matched), so the rule is tested on synthetic and real-text regression cases only, not on an evaluation set. AI mode was not rerun.
+
+**Interface.** An uncertain finding says «غير محسوم — حدود الاقتباس» and «يحتاج مراجعة», explains that this means the quotation boundary could not be established (not that the wording is wrong), shows the neighbouring words, and offers
+«حدود الاقتباس صحيحة» (re-checks the same span as the editor's own highlight, with the proposed verse) and «عدّل الحدود بنفسك» (selects the span in the article box, ready for «افحص المقطع المحدَّد»). A note under the summary counts them.
