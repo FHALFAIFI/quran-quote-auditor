@@ -78,6 +78,12 @@ await shot(page, "04-editor-preview.png");
 await page.click("#copy-btn");
 const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => null));
 check(clip === null || clip === revised, "copy button puts the revised article on the clipboard");
+// the confirmation must appear beside the button that was pressed, not only in the page-level status line
+check(clip === null || /تم النسخ/.test(await page.locator("#copy-btn").innerText()), "copy button confirms the copy on the button itself");
+check(clip === null || (await page.locator("#copy-note").innerText()).includes("نُسخ المقال المعدّل"), "a note beside the copy button confirms the copy");
+// the nine summary tiles never leave a single orphan tile on a row (one row on wide screens, a 3 x 3 block below 1000 px)
+const tileRows = await page.$$eval("#summary .tile", (t) => [...new Set(t.map((x) => Math.round(x.getBoundingClientRect().top)))].length);
+check(tileRows === 1 || tileRows === 3, `summary tiles form ${tileRows} row(s) (1 or 3 expected, no orphan tile)`);
 
 // reply draft for a social post: approved fix only, no claim about the whole post
 await page.click(".reply-box summary");

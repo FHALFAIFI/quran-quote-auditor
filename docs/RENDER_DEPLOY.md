@@ -1,13 +1,13 @@
-# Deploying on Render (prepared 30 Sep 2026, not yet done)
+# Deploying on Render
 
-No Render service exists yet. This guide creates one by hand in the dashboard and deploys the **latest `main` commit**
+The live demo (https://quran-quote-auditor.onrender.com) was created from this guide on 1–2 Oct 2026 (pre-challenge). The service does not expose its commit hash, so read it on the service's Events page; `docs/TEST_LOG.md` records what was observed. This guide creates a service by hand in the dashboard and deploys the **latest `main` commit**
 (`git log -1`; since 1 Oct 2026 it includes the end-of-quotation fix (the two known false "matched" verdicts are gone) and the matching start-of-quotation rule (a possibly wrong first word reads "uncertain", never "matched"); `3273078` is only the commit the guide was first written for). `render.yaml` holds the same values for a Blueprint, but the manual
 route below is the one to follow: it lets you choose the commit.
 
 Checked locally on 30 Sep for `3273078` (re-checked on 1 Oct for the latest commit: see `docs/TEST_LOG.md`): a clean `git archive` build with Python 3.12.13 and
 `pip install -r requirements.txt` (via uv), started with the command below on `PORT=10000`. Results:
 `/api/health` 200, `/` 200, and `POST /api/audit` on sample 2 gave 200 with 7 quotations, 3 needing review, `mode: reduced`.
-There was no AI key; nothing has been tried on Render itself.
+There was no AI key in that check; the later live checks on Render itself are in `docs/TEST_LOG.md`.
 
 ## Settings (New → Web Service → connect GitHub `FHALFAIFI/quran-quote-auditor`)
 
@@ -40,7 +40,7 @@ Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; d
 
 ## Deploy the latest commit
 
-> The branch gained the unmarked-phrase search on 30 Sep and the end-boundary fix on 1 Oct (see `CHANGELOG.md`). Deploy the commit whose hash is at the top of `git log` on `main` (push it to GitHub first), and log that hash. Nothing has been deployed by this work.
+> Deploy the commit whose hash is at the top of `git log` on `main` (push it to GitHub first) and log that hash. Observed on 2 Oct: the service redeployed itself about 40 s after each push to `main`, although `render.yaml` sets auto-deploy off; check the Auto-Deploy setting if you want manual control.
 
 1. Create the service with the settings above. Render starts a first deploy of the latest `main` commit.
 2. If you prefer to be explicit: service page → **Manual Deploy** → **Deploy a specific commit** → paste that hash.

@@ -95,8 +95,10 @@ textarea:focus, select:focus, button:focus-visible { outline: 3px solid rgba(97,
 .notice.info { background: #E8EEFF; color: #23408E; border-color: #B8C8F5; }
 
 /* summary tiles */
-.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 18px; }
-.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+/* nine tiles: one row on wide screens, a 3x3 block below, never one orphan tile */
+.summary { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 10px; }
+@media (max-width: 1000px) { .summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .tile .n { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
 .tile .l { font-size: .82rem; color: var(--muted); }
 .tile.accent { background: linear-gradient(135deg, var(--navy), #2A2580); color: #fff; border: none; }
@@ -267,3 +269,6 @@ details.alts ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: .92rem
 .boundary-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .btn.primary-ish { background: var(--violet); border-color: var(--violet); color: #fff; }
 .manual-note b { color: var(--navy); }
+
+.copy-note { min-height: 1.4em; margin: 8px 0 0; font-size: .9rem; color: #0B6B4F; font-weight: 500; }
+.copy-note.copy-bad { color: #9A1B1B; }

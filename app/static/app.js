@@ -621,13 +621,25 @@ function updateReplyCount() {
   $("reply-count").textContent = `${toArabicDigits(n)} حرفًا`;
 }
 
+// Feedback beside the button that was pressed: the page-level status line can be far out of view.
+function copyFeedback(btn, note, text, ok) {
+  const label = btn.dataset.label || btn.textContent;
+  btn.dataset.label = label;
+  btn.textContent = ok ? "✓ تم النسخ" : label;
+  if (note) { note.textContent = text; note.classList.toggle("copy-bad", !ok); }
+  clearTimeout(btn._copyTimer);
+  btn._copyTimer = setTimeout(() => { btn.textContent = label; if (note) note.textContent = ""; }, ok ? 4000 : 8000);
+}
+
 async function copyRevised() {
   const text = $("revised-text").value;
   try {
     await navigator.clipboard.writeText(text);
+    copyFeedback($("copy-btn"), $("copy-note"), "نُسخ المقال المعدّل. الأداة فحصت الاقتباسات القرآنية فقط؛ وما بقي غير محسوم يحتاج مراجعتك.", true);
     setStatus("نُسخ المقال المعدّل. تذكير: الأداة فحصت الاقتباسات القرآنية فقط، والحالات غير المحسومة تحتاج مراجعة.");
   } catch {
-    $("revised-text").select();
+    showTab("text"); $("revised-text").select();
+    copyFeedback($("copy-btn"), $("copy-note"), "تعذّر النسخ التلقائي؛ النص المعدّل محدد الآن، انسخه يدويًا (Ctrl+C).", false);
     setStatus("تعذّر النسخ التلقائي؛ النص محدد الآن، انسخه يدويًا (Ctrl+C).", true);
   }
 }
@@ -720,7 +732,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("copy-btn").addEventListener("click", copyRevised);
   $("reply-text").addEventListener("input", updateReplyCount);
   $("reply-copy").addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText($("reply-text").value); setStatus("نُسخت المسودة. راجعها قبل نشرها بنفسك."); }
+    try { await navigator.clipboard.writeText($("reply-text").value); copyFeedback($("reply-copy"), null, "", true); setStatus("نُسخت المسودة. راجعها قبل نشرها بنفسك."); }
     catch { $("reply-text").select(); setStatus("تعذّر النسخ التلقائي؛ النص محدد، انسخه يدويًا.", true); }
   });
   $("print-btn").addEventListener("click", printRecord);

@@ -29,7 +29,7 @@ and only work done during **4–6 October 2026** is scored. This file is that re
 
 - No labelled accuracy evaluation. No accuracy numbers are claimed.
 - **AI extraction not verified with the real Gemini service** (it returned 503/429 during every test; see docs/TEST_LOG.md).
-- Live deployment exists (https://quran-quote-auditor.vercel.app); no demo video or presentation yet.
+- At the baseline a deployment existed on Vercel (https://quran-quote-auditor.vercel.app); there was no demo video or presentation yet. (The live demo for submission now runs on Render, set up on 1–2 Oct 2026: also pre-challenge.)
 - (Added after the tag, see below: editor workflow and Groq adapter — also pre-challenge.)
 
 ## Pre-challenge work after the tag (still before 4 October 2026)
@@ -48,6 +48,7 @@ The commits are listed in `CHANGELOG.md` under "Pre-challenge work".
   files prepared.
 - 30 Sep (later): unmarked-phrase search without AI (`app/phrases.py`), a frozen evaluation set written before it, manual phrase selection, resource measurements;
   the AI comparison is separate (`docs/EVALUATION.md`). Still not done before the challenge: AI extraction on the live site; no successful Gemini call.
+- 1–2 Oct: end- and start-of-quotation boundary rules, the Render service (live URL https://quran-quote-auditor.onrender.com), AI provenance rules (a model's proposal is not evidence of a quotation; a model's span never replaces a deterministic finding), live checks with real Groq calls, usability fixes found in the final review, README, presentation and video drafts, public repository. All pre-challenge; see `CHANGELOG.md` and `docs/TEST_LOG.md`.
 
 ## How to see challenge-period changes
 

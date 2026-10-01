@@ -1,6 +1,6 @@
 # Sources, licences and attribution record
 
-Last reviewed: 2026-09-30 (pre-challenge work; Groq provider; ordinary-prose sample for false-suggestion measurement).
+Last reviewed: 2026-10-02 (pre-challenge work; Groq provider live on Render; licence and secret review before the repository was made public).
 
 ## 1. Quran text — Quranpedia (authoritative source)
 
@@ -34,7 +34,14 @@ Last reviewed: 2026-09-30 (pre-challenge work; Groq provider; ordinary-prose sam
 | Data | "Your Data in GroqCloud" (https://console.groq.com/docs/your-data, read 2026-09-29): by default inference data is not retained, except up to 30 days for reliability/abuse monitoring; Zero Data Retention can be enabled per organization. Check the current terms before processing real content. |
 | Role | Identical to Gemini's: proposes candidate spans and nearby reference strings only. **Never a source of Quran text, verdicts or corrections.** |
 | Key | `GROQ_API_KEY`, supplied by the deployer; not in this repository. |
-| Status | **Responds (local, 30 Sep 2026):** real calls returned HTTP 200 on 14/14 labelled cases. Prompt v2: 26/28 and 4/6 vs 25/28 and 3/6 without AI (single runs). Free tier hit 429 at 7,000 input tokens/minute. Not yet live (no key on the deployed app). See docs/TEST_LOG.md, docs/EVALUATION.md. |
+| Status | **Responds.** Locally (30 Sep 2026) real calls returned HTTP 200 on 14/14 labelled cases; on the live demo (2 Oct 2026) real audits returned HTTP 200, and one back-to-back audit returned 429 (free tier, 7,000 input tokens/minute), after which the app falls back visibly. Observed benefit: none measured live (the model proposed the same 7 quotations the deterministic path found); one 3-word misquotation added in one local run. See docs/TEST_LOG.md, docs/EVALUATION.md. |
+
+## 2c. Hosting — Render (web service, free instance)
+
+| Item | Detail |
+|---|---|
+| Service | https://quran-quote-auditor.onrender.com, built from this repository's `main` branch (settings: docs/RENDER_DEPLOY.md). Free instances sleep when idle and have no persistent disk. |
+| Secrets | `GROQ_API_KEY` is entered in Render's dashboard only; it is not in the repository, its history, or `render.yaml`. |
 
 ## 3. Fonts and design
 
