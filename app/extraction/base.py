@@ -35,7 +35,17 @@ class RawSuggestion:
 
 
 class ExtractionError(Exception):
-    """Provider failed (timeout, HTTP error, malformed output). Message is safe to show."""
+    """Provider failed (timeout, HTTP error, malformed output). Message is safe to show.
+
+    ``body`` is the provider's own error object for an HTTP failure (type, code, message, shortened), kept for diagnosis only.
+    ``generation_failure`` is True only when that body identifies a model-generation / structured-output failure
+    (the model's output could not be made to fit the schema); every other failure, a 400 included, is not retryable.
+    """
+
+    def __init__(self, message: str, body: dict | None = None, generation_failure: bool = False):
+        super().__init__(message)
+        self.body = body
+        self.generation_failure = generation_failure
 
 
 class ExtractionProvider(ABC):

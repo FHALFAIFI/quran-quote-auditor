@@ -72,3 +72,25 @@ def test_work_budget_cuts_off_pathological_input_but_not_real_text():
     real = " ".join(INDEX.ayahs[k].text for k in sorted(INDEX.ayahs)[300:420])[:5900]  # 6,000 characters of real mushaf text
     found, sc = hits(real)
     assert not sc.truncated and found
+
+
+# --- the two end-of-quotation misquotations of the frozen set (eval/phrases_frozen.json f23, f32) ----------------------
+# Both were once reported "matched". The wrong words are at the END, so the search selects the correct opening as a
+# candidate; its end is not settled, so the wording verdict must not be "matched".
+
+@pytest.mark.parametrize("article, quoted, quran_next, article_next", [
+    ("ولا يتغير حال قوم دون عمل، فإن الله لا يغير ما بقوم حتى يغيروا أنفسهم كما نقرأ.", "الله لا يغير ما بقوم حتى يغيروا", "ما", "أنفسهم"),
+    ("والعبادة غاية الوجود، وما خلقت الجن والإنس إلا لعبادتي كما يقول المفسرون.", "وما خلقت الجن والإنس إلا", "ليعبدون", "لعبادتي"),
+])
+def test_frozen_end_misquotations_are_not_matched(monkeypatch, article, quoted, quran_next, article_next):
+    import app.audit as audit
+    from tests.conftest import FakeSource
+
+    monkeypatch.setattr(audit, "source", FakeSource(INDEX))
+    monkeypatch.setattr(audit, "get_provider", lambda: None)
+    res = audit.run_audit(article)
+    (f,) = res["findings"]
+    assert f["quote"] == quoted and f["detection"]["tier"] == "candidate"        # the candidate is still reported
+    assert f["wording"]["status"] == "uncertain" and f["needs_review"]
+    assert f["continuation"] == {"quran": quran_next, "article": article_next}
+    assert f["reference"]["status"] == "missing" and res["stats"]["matched"] == 0

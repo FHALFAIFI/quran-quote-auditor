@@ -98,8 +98,9 @@ def main() -> int:
     ap.add_argument("--url", default="", help="send each article to <url>/api/audit instead of running in-process")
     ap.add_argument("--pace", type=float, default=0.0, help="seconds to wait between AI cases (Groq free tier: 8,000 tokens/min)")
     ap.add_argument("--retry-400", type=int, default=0, dest="retry_400",
-                    help="in-process AI runs only: retry a case up to N times when the provider answers HTTP 400 (seen intermittently when the model's "
-                         "strict-JSON output fails validation). Every retry is recorded; 429 and all other failures still stop the run")
+                    help="in-process AI runs only: retry a case up to N times, but ONLY when the provider's error body identifies a model-generation "
+                         "failure (strict-schema output that does not fit the schema). Any other 400 (a refused request), 429 and all other failures "
+                         "still stop the run. Every retry is recorded with the error body")
     args = ap.parse_args()
     ai_quotes: dict[str, list] = {}
     if args.url:
@@ -149,8 +150,8 @@ def main() -> int:
             res = audit.run_audit(art)
             ai0 = res.get("ai") or {}
             if (args.mode == "ai" and not args.url and not ai0.get("responded") and ai0.get("http_status") == 400
-                    and len(retries) < args.retry_400):
-                retries.append({"error": ai0.get("error"), "elapsed_ms": ai0.get("elapsed_ms")})
+                    and ai0.get("generation_failure") and len(retries) < args.retry_400):
+                retries.append({"error": ai0.get("error"), "error_body": ai0.get("error_body"), "elapsed_ms": ai0.get("elapsed_ms")})
                 audit.get_provider().tracker.clear_cooldown()  # the adapter starts a cooldown after any failure
                 time.sleep(max(args.pace, 5.0))
                 continue
@@ -159,7 +160,8 @@ def main() -> int:
         modes[res["mode"]] += 1
         ai = res.get("ai") or {}
         ai_log.append({"case": case["id"], "mode": res["mode"], **{k: ai.get(k) for k in (
-            "provider", "model", "responded", "outcome", "http_status", "elapsed_ms", "proposed", "located", "discarded", "error")},
+            "provider", "model", "responded", "outcome", "http_status", "elapsed_ms", "proposed", "located", "discarded", "error",
+            "error_body", "generation_failure")},
                        "model_quotes": ai_quotes.get(art), "retries_after_http_400": retries})
         if args.mode == "ai" and not ai.get("responded"):
             print(f"STOP: case {case['id']} fell back ({ai.get('outcome')}: {ai.get('error')}). "

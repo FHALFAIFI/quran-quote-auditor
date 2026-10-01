@@ -89,6 +89,50 @@ def test_http_errors_make_exactly_one_call(monkeypatch, status, match):
     assert st["outcome"] == "failed" and st["http_status"] == status and st["cooldown_seconds"] > 0
 
 
+def _raise_400(monkeypatch, error):
+    patch_client(monkeypatch, lambda request: httpx.Response(400, json={"error": error}))
+    with pytest.raises(ExtractionError) as info:
+        groq.GroqProvider().extract("مقال")
+    return info.value
+
+
+def test_400_keeps_the_error_body_and_only_a_schema_generation_failure_is_retryable(monkeypatch):
+    exc = _raise_400(monkeypatch, {"message": "Generated JSON does not match the expected schema. Please adjust your prompt.",
+                                   "type": "invalid_request_error", "code": "json_validate_failed", "failed_generation": '{"candidates": [{"quote": "ا'})
+    assert exc.generation_failure is True
+    assert exc.body["code"] == "json_validate_failed" and exc.body["type"] == "invalid_request_error" and "expected schema" in exc.body["message"]
+    assert "gsk_test" not in json.dumps(exc.body)
+
+
+@pytest.mark.parametrize("error", [
+    {"message": "`reasoning_effort` is not supported with this model", "type": "invalid_request_error"},
+    {"message": "Please reduce the length of the messages or completion", "type": "invalid_request_error", "code": "context_length_exceeded"},
+    {"message": "x", "type": "y"},
+])
+def test_a_refused_request_is_not_a_generation_failure(monkeypatch, error):
+    exc = _raise_400(monkeypatch, error)
+    assert exc.generation_failure is False and exc.body["message"] == error["message"]
+
+
+def test_error_body_is_shortened(monkeypatch):
+    assert len(_raise_400(monkeypatch, {"message": "m" * 5000, "type": "t"}).body["message"]) == 300
+
+
+def test_error_body_survives_a_non_json_body(monkeypatch):
+    patch_client(monkeypatch, lambda request: httpx.Response(400, text="<html>bad gateway</html>"))
+    with pytest.raises(ExtractionError) as info:
+        groq.GroqProvider().extract("مقال")
+    assert info.value.body == {"raw": "<html>bad gateway</html>"} and info.value.generation_failure is False
+
+
+def test_the_body_reaches_the_audit_record_but_not_the_public_call_status(monkeypatch, use_source):
+    patch_client(monkeypatch, lambda request: httpx.Response(400, json={"error": {"message": "Generated JSON does not match the expected schema.", "type": "invalid_request_error"}}))
+    monkeypatch.setattr(audit, "get_provider", lambda: groq.GroqProvider())
+    ai = audit.run_audit("نص عادي بلا اقتباس.")["ai"]
+    assert ai["http_status"] == 400 and ai["generation_failure"] is True and "expected schema" in ai["error_body"]["message"]
+    assert "expected schema" not in json.dumps(groq.last_call_status())     # /api/health shows the tracker
+
+
 @pytest.mark.parametrize(
     "payload",
     [

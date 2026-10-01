@@ -1,10 +1,10 @@
 # Deploying on Render (prepared 30 Sep 2026, not yet done)
 
-No Render service exists yet. This guide creates one by hand in the dashboard and deploys commit
-**`3273078`** (prompt v2 default). `render.yaml` holds the same values for a Blueprint, but the manual
+No Render service exists yet. This guide creates one by hand in the dashboard and deploys the **latest `main` commit**
+(`git log -1`; since 1 Oct 2026 it includes the end-of-quotation fix, so the two known false "matched" verdicts are gone; `3273078` is only the commit the guide was first written for). `render.yaml` holds the same values for a Blueprint, but the manual
 route below is the one to follow: it lets you choose the commit.
 
-Checked locally on 30 Sep: a clean `git archive 3273078` built with Python 3.12.13 and
+Checked locally on 30 Sep for `3273078` (re-checked on 1 Oct for the latest commit: see `docs/TEST_LOG.md`): a clean `git archive` build with Python 3.12.13 and
 `pip install -r requirements.txt` (via uv), started with the command below on `PORT=10000`. Results:
 `/api/health` 200, `/` 200, and `POST /api/audit` on sample 2 gave 200 with 7 quotations, 3 needing review, `mode: reduced`.
 There was no AI key; nothing has been tried on Render itself.
@@ -23,8 +23,7 @@ There was no AI key; nothing has been tried on Render itself.
 | Health check path (Advanced) | `/api/health` |
 | Auto-deploy (Advanced) | **Off** |
 
-**Python version:** do **not** set `PYTHON_VERSION`. The repository's `.python-version` (`3.12`, present in
-`3273078`) selects the latest 3.12 patch. If you do set `PYTHON_VERSION`, Render requires a full version
+**Python version:** do **not** set `PYTHON_VERSION`. The repository's `.python-version` (`3.12`) selects the latest 3.12 patch. If you do set `PYTHON_VERSION`, Render requires a full version
 such as `3.12.13`. In the build log, check that the line with the Python version shows 3.12.x.
 
 ## Environment variables (Advanced → Environment Variables)
@@ -39,14 +38,12 @@ such as `3.12.13`. In the build log, check that the line with the Python version
 
 Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; do not add it.
 
-## Deploy commit 3273078
+## Deploy the latest commit
 
-> Later on 30 Sep the pre-challenge branch gained the unmarked-phrase search (see `CHANGELOG.md`). `3273078` is the commit this guide was written for; deploy whichever commit you want to show, and log its hash. Nothing has been deployed by this work.
+> The branch gained the unmarked-phrase search on 30 Sep and the end-boundary fix on 1 Oct (see `CHANGELOG.md`). Deploy the commit whose hash is at the top of `git log` on `main` (push it to GitHub first), and log that hash. Nothing has been deployed by this work.
 
 1. Create the service with the settings above. Render starts a first deploy of the latest `main` commit.
-   That is harmless: the app code at `main` differs from `3273078` only by a configurable
-   `GROQ_MAX_COMPLETION_TOKENS` whose default (4096) is the value hard-coded in `3273078`.
-2. Service page → **Manual Deploy** → **Deploy a specific commit** → paste `3273078` (or pick it from the list).
+2. If you prefer to be explicit: service page → **Manual Deploy** → **Deploy a specific commit** → paste that hash.
 3. Wait for "Live" in the Events tab. Note the deploy's commit in `docs/TEST_LOG.md`.
 
 ## Check it (in this order, and log each result)

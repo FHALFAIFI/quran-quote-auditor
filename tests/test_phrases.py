@@ -191,6 +191,82 @@ def test_continuation_hint_shows_the_next_word_without_a_verdict(use_source, len
     assert g["continuation"] is None or g["continuation"]["article"] != "العلماء"
 
 
+# --- end of the span: "matched" only when the whole identified span is settled -------------------------------------
+
+def _one(article):
+    res = run_audit(article)
+    (f,) = res["findings"]
+    return f, res
+
+
+def test_wrong_last_word_after_the_matching_part_is_not_matched(use_source, lenient):
+    """Release blocker: a quotation whose LAST word is wrong looks like a correct partial quotation followed by prose."""
+    f, res = _one("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا وكذلك نختم المقال.")
+    assert f["quote"] == "واعتصموا بحبل الله جميعا ولا تفرقوا" and f["detection"]["tier"] == "candidate"   # candidate kept
+    assert f["wording"]["status"] == "uncertain" and f["needs_review"]
+    assert f["end_boundary"] == {"status": "uncertain", "basis": "adjacent_word", "quran": "واذكروا", "article": "وكذلك"}
+    assert f["continuation"] == {"quran": "واذكروا", "article": "وكذلك"}
+    assert f["reference"]["status"] == "missing"                                  # the reference verdict is its own
+    assert res["stats"]["matched"] == 0 and res["stats"]["uncertain"] == 1 and res["stats"]["candidates"] == 1
+    assert not [c for c in f["changes"] if c["kind"] == "reference_add"]          # a reference would go after a word that may be wrong
+    assert f["correction"]["status"] == "review_only"
+
+
+def test_dropped_words_misquotation_is_not_matched_either(use_source, lenient):
+    f, _ = _one("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا أنفسهم دائما.")
+    assert f["wording"]["status"] == "uncertain" and f["end_boundary"]["status"] == "uncertain"
+
+
+def test_a_correct_partial_quotation_stays_matched_when_something_closes_it(use_source, lenient):
+    for article, basis in [
+        ("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا. وهذا كلام آخر.", "punctuation"),
+        ("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا\nوهذا كلام آخر.", "punctuation"),
+        ("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا", "article_end"),
+        ("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا (آل عمران: 103) وهذا كلام آخر.", "reference"),
+        ("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا آل عمران: 103 وهذا كلام آخر.", "reference"),
+    ]:
+        f, res = _one(article)
+        assert f["wording"]["status"] == "matched" and not f["needs_review"], article
+        assert f["end_boundary"] == {"status": "settled", "basis": basis} and f["continuation"] is None, article
+        assert res["stats"]["matched"] == 1
+
+
+def test_a_quotation_that_reaches_the_end_of_its_verse_is_settled(use_source, lenient):
+    f, _ = _one("وهنا إنما المؤمنون إخوة فأصلحوا بين أخويكم واتقوا الله لعلكم ترحمون وكذلك نختم المقال.")
+    assert f["wording"]["status"] == "matched" and f["end_boundary"] == {"status": "settled", "basis": "verse_end"}
+
+
+def test_a_quotation_followed_by_ordinary_prose_is_flagged_not_matched(use_source, lenient):
+    """Prose that touches the span cannot be told from a wrong last word; the candidate stays and the editor decides."""
+    f, _ = _one("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا كما قال المفسرون في هذه الآية.")
+    assert f["detection"]["tier"] == "candidate" and f["quote"] == "واعتصموا بحبل الله جميعا ولا تفرقوا"
+    assert f["wording"]["status"] == "uncertain" and f["needs_review"]
+    assert f["continuation"] == {"quran": "واذكروا", "article": "كما"}
+    # a comma does not settle it (the search itself reads through commas); a full stop does
+    g, _ = _one("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا، كما قال المفسرون.")
+    assert g["wording"]["status"] == "uncertain"
+    h, _ = _one("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا. كما قال المفسرون.")
+    assert h["wording"]["status"] == "matched"
+
+
+def test_wording_and_reference_verdicts_stay_separate(use_source, lenient):
+    f, res = _one("وهنا واعتصموا بحبل الله جميعا ولا تفرقوا وكذلك آل عمران: 103 وهذا كلام آخر.")
+    assert f["reference"]["status"] == "matched" and f["wording"]["status"] == "uncertain"   # a right reference does not settle the end
+    assert res["stats"]["ref_matched"] == 1 and res["stats"]["matched"] == 0
+
+
+def test_stated_ends_are_not_questioned(use_source, lenient, monkeypatch):
+    marked, _ = _one("قال تعالى ﴿واعتصموا بحبل الله جميعا ولا تفرقوا﴾ كما نرى.")
+    assert marked["wording"]["status"] == "matched" and marked["end_boundary"] is None
+    article = "وهنا واعتصموا بحبل الله جميعا ولا تفرقوا كما نرى."
+    manual = run_phrase(article, article.index("واعتصموا"), article.index(" كما"), 3, 103, 103)["finding"]
+    assert manual["wording"]["status"] == "matched" and manual["end_boundary"] is None   # the editor highlighted it
+    # an end chosen by the AI is not stated by the writer, so it is held to the same rule
+    monkeypatch.setattr(audit, "get_provider", lambda: FakeProvider([RawSuggestion("واعتصموا بحبل الله جميعا ولا تفرقوا")]))
+    (ai,) = run_audit(article)["findings"]
+    assert ai["detected_by"] == ["ai", "phrase"] and ai["wording"]["status"] == "uncertain"
+
+
 def test_phrase_hits_do_not_steal_references_from_marked_quotes(use_source, lenient):
     article = "واعتصموا بحبل الله جميعا ولا تفرقوا ثم قال تعالى ﴿اقرأ باسم ربك الذي خلق﴾ [العلق: 1]"
     res = run_audit(article)

@@ -56,6 +56,31 @@ def last_call_status() -> dict:
     return _tracker.status()
 
 
+# Groq documents one 400 for a model-generation failure under strict structured outputs
+# (console.groq.com/docs/structured-outputs, read 2026-10-01): "Generated JSON does not match the expected schema."
+# Any other 400 means the request itself was refused and needs a code fix, not a retry.
+_GENERATION_FAILURE_MARKERS = ("does not match the expected schema", "json_validate_failed")
+
+
+def error_body(resp: httpx.Response) -> dict:
+    """The provider's error object, shortened. Never contains the API key; ``failed_generation`` is the model's own output."""
+    try:
+        err = resp.json().get("error") or {}
+    except ValueError:
+        err = {}
+    if not isinstance(err, dict):
+        err = {"message": str(err)}
+    body = {k: (str(err[k])[:300] if err.get(k) is not None else None) for k in ("type", "code", "param", "message", "failed_generation")}
+    if not any(body.values()):
+        body["raw"] = resp.text[:300]
+    return {k: v for k, v in body.items() if v is not None}
+
+
+def is_generation_failure(status: int, body: dict) -> bool:
+    text = " ".join(str(v) for v in body.values()).lower()
+    return status == 400 and any(m in text for m in _GENERATION_FAILURE_MARKERS)
+
+
 def _reasoning_effort(model: str) -> str | None:
     """Only send reasoning_effort when configured or when the model is known to accept "none"."""
     configured = settings.groq_reasoning_effort
@@ -109,10 +134,10 @@ class GroqProvider(ExtractionProvider):
         def ms() -> int:
             return int((time.monotonic() - started) * 1000)
 
-        def fail(detail: str, message: str, status: int | None = None, cooldown: float | None = None):
+        def fail(detail: str, message: str, status: int | None = None, cooldown: float | None = None, body: dict | None = None):
             _tracker.start_cooldown(settings.ai_cooldown if cooldown is None else cooldown)
-            _tracker.record("failed", self.model, detail, status, ms())
-            raise ExtractionError(message)
+            _tracker.record("failed", self.model, detail, status, ms())  # the tracker is public via /api/health: no body here
+            raise ExtractionError(message, body=body, generation_failure=bool(body) and is_generation_failure(status or 0, body))
 
         try:
             with httpx.Client() as client:
@@ -129,14 +154,14 @@ class GroqProvider(ExtractionProvider):
 
         code = resp.status_code
         if code == 429:
-            fail("429", "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا", 429, max(settings.ai_cooldown, 120))
+            fail("429", "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا", 429, max(settings.ai_cooldown, 120), error_body(resp))
         if code in (401, 403):
-            fail(str(code), "مفتاح خدمة الذكاء الاصطناعي مرفوض (تحقق من GROQ_API_KEY)", code, max(settings.ai_cooldown, 300))
+            fail(str(code), "مفتاح خدمة الذكاء الاصطناعي مرفوض (تحقق من GROQ_API_KEY)", code, max(settings.ai_cooldown, 300), error_body(resp))
         if code in (498, 503) or code >= 500:
-            fail(str(code), f"خدمة الذكاء الاصطناعي مشغولة أو غير متاحة حاليًا ({code})", code)
+            fail(str(code), f"خدمة الذكاء الاصطناعي مشغولة أو غير متاحة حاليًا ({code})", code, body=error_body(resp))
         if code >= 400:
-            # e.g. 400 when the model cannot produce schema-valid JSON, or 404 for a retired model.
-            fail(str(code), f"خدمة الذكاء الاصطناعي أعادت الخطأ {code}", code)
+            # 400: a strict-schema generation failure (body says so) or a refused request; 404: a retired model.
+            fail(str(code), f"خدمة الذكاء الاصطناعي أعادت الخطأ {code}", code, body=error_body(resp))
         try:
             choice = resp.json()["choices"][0]
             text = choice["message"]["content"]

@@ -31,6 +31,8 @@ TIER_REASON = {
     "formula": "عبارة شائعة الاستعمال (بسملة أو حمدلة أو ذكر…) وقد لا يُقصد بها اقتباس آية.",
     "non_quran_cue": "سبقتها إشارة إلى حديث أو دعاء أو مثل، فقد تكون من غير القرآن.",
 }
+END_UNCERTAIN_MESSAGE = ("نهاية المقطع غير محسومة: ما قبل هذه الكلمة مطابق للمصحف، لكن الكلمة التالية في المقال تختلف عن كلمة الآية التالية "
+                         "ولا يغلق المقطعَ علامةٌ ولا إحالة، فلا يُعرف أهي كلام الكاتب بعد الاقتباس أم خطأ في آخر الاقتباس.")
 UNCONFIRMED_REASON = "لم يتأكد أن هذا المقطع اقتباس قرآني، فلا تُقترح عليه تصحيحات. إن كان اقتباسًا فأكّد ذلك واختر موضعه ليظهر التصحيح المقترح."
 
 
@@ -167,6 +169,15 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
         "detection": _detection(c),
         **result,
     }
+    boundary = _end_boundary(article, c, finding, ref) if index is not None else None
+    finding["end_boundary"] = boundary
+    finding["continuation"] = {"quran": boundary["quran"], "article": boundary["article"]} if boundary and boundary["status"] == "uncertain" else None
+    if boundary and boundary["status"] == "uncertain":
+        # Keep wording and reference verdicts apart: only the wording verdict is held back, and only for "matched".
+        if finding["wording"]["status"] == "matched":
+            finding["wording"] = {**finding["wording"], "status": "uncertain", "message": END_UNCERTAIN_MESSAGE}
+            finding["needs_review"] = True
+        finding["review_reasons"] = list(dict.fromkeys([END_UNCERTAIN_MESSAGE, *finding["review_reasons"]]))
     det = finding["detection"]
     if det["unconfirmed"]:
         # Detection is weak: show it, but offer no replacement text until the editor says it is a Quran quotation.
@@ -182,34 +193,41 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
         finding["correction"] = summary
         if det["kind"] == "phrase":
             finding["review_reasons"] = list(dict.fromkeys([*det["reasons"], *finding["review_reasons"]]))
+        if boundary and boundary["status"] == "uncertain":
+            # Nothing may be offered that depends on where the quotation ends (a reference goes after its last word).
+            finding["changes"] = [ch for ch in finding["changes"] if ch["kind"] != "reference_add"]
+            if finding["correction"]["status"] == "none_needed":
+                finding["correction"] = {"status": "review_only", "reason": END_UNCERTAIN_MESSAGE}
     finding["choices"] = _choices(index, finding) if index is not None and det["kind"] in ("phrase", "manual") else []
-    finding["continuation"] = _continuation(article, c, finding) if index is not None and det["kind"] in ("phrase", "manual") else None
     return finding
 
 
-def _continuation(article: str, c: Candidate, finding: dict) -> dict | None:
-    """What the verse says right after the phrase versus what the article says.
+def _end_boundary(article: str, c: Candidate, finding: dict, ref: Reference | None) -> dict | None:
+    """Is the END of the identified span settled, or could the quotation really run on (a wrong last word)?
 
-    The phrase search cannot know where a writer's quotation really ends, so a wrong LAST word looks exactly like
-    ordinary prose after the quotation. This only *shows* the two words side by side (no verdict, no edit) when the
-    phrase ends in the middle of a verse and the next article word differs from the verse's next word.
+    Only spans whose end was chosen by the program or by the AI are in question; brackets, quotation marks and a
+    highlight made by the editor state the end themselves (``None``). The end is settled when the span reaches the
+    end of its verse, when punctuation / a line break / the end of the article follows it, or when the reference
+    that belongs to it follows at once. Otherwise the next article word touches the span and the verse says
+    something else there: a wrong last word and ordinary prose look identical, so the end is "uncertain".
     """
+    if {"marked", "manual"} & c.sources:
+        return None
     src = finding.get("source")
     if not src or not src.get("segments"):
         return None
     last = src["segments"][-1]
     if last["to"] >= len(last["words"]):
-        return None  # the phrase ends where the verse ends
+        return {"status": "settled", "basis": "verse_end"}
+    if ref is not None and ref.start >= c.end and not arabic.tokenize(article[c.end:ref.start]):
+        return {"status": "settled", "basis": "reference"}
     nxt = arabic.tokenize(article[c.end:c.end + 80])
     if not nxt:
-        return None
+        return {"status": "settled", "basis": "article_end"}
     gap = article[c.end:c.end + nxt[0].start]
     if "\n" in gap or gap.strip(" \t\u00a0،,؛;") != "":
-        return None  # punctuation ends the phrase: nothing adjoins it
-    quran_word = last["words"][last["to"]]
-    if nxt[0].fold == arabic.folded(quran_word):
-        return None
-    return {"quran": arabic.letters(quran_word), "article": nxt[0].raw}
+        return {"status": "settled", "basis": "punctuation"}
+    return {"status": "uncertain", "basis": "adjacent_word", "quran": arabic.letters(last["words"][last["to"]]), "article": nxt[0].raw}
 
 
 def _drop_overlapping_changes(findings: list[dict]) -> None:
@@ -286,6 +304,8 @@ def run_audit(article: str) -> dict:
         "located": 0,
         "discarded": 0,
         "error": None,
+        "error_body": None,
+        "generation_failure": False,
     }
     discarded = 0
     if provider:
@@ -305,7 +325,7 @@ def run_audit(article: str) -> dict:
                     candidates.append(c)
         except ExtractionError as exc:
             mode = "ai_failed"
-            ai.update(outcome="failed", error=str(exc))
+            ai.update(outcome="failed", error=str(exc), error_body=exc.body, generation_failure=exc.generation_failure)
             notices.append({"level": "warning", "text": f"تعذّر الاستخراج بالذكاء الاصطناعي ({exc}). عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة."})
         ai["elapsed_ms"] = int((time.monotonic() - t_ai) * 1000)
         ai["discarded"] = discarded

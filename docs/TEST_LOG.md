@@ -333,3 +333,12 @@ Full tables and method: `docs/EVALUATION.md`, "Experiment — unmarked phrase se
 - Groq calls made for this comparison: 101 in total — frozen attempt 1: 18 (17 ok + the 400), main 14, held-out 4, attempt 2: 3 (2 ok + the 429), attempt 3: 9 (8 ok + the 400), attempt 4: 50 (49 + 1 retry), and 3 single diagnostic calls (the f18 article; the 429 probe; the 512-token probe).
 - Main (21:25) and held-out (21:30) AI passes used the defaults (completion cap 4096, pace 12 s, no retries); the frozen pass used cap 512, pace 15 s, one retry on 400 (temperature 0, so the cap only matters if an output exceeded 512 tokens).
 
+## 2026-10-01 — end-boundary release blocker (Pre-challenge, no Groq call)
+
+- Trace of f23/f32 and the rule: `docs/EVALUATION.md`, "Release blocker". Before the change, on HEAD `d7cf6cd`: frozen run → 2 misquotations "matched" (`eval/results/fallback-20261001-054703-boundary-before-d7cf6cd-phrases_frozen.json`).
+- New tests: 7 end-boundary tests in `tests/test_phrases.py` (wrong last word; dropped words; correct partial quotation closed by a full stop / line break / article end / bracketed or bare reference; verse end; quotation followed by prose, comma vs full stop;
+  reference "matched" beside wording "uncertain"; marked, manual and AI-chosen ends), 2 real-text tests for f23 and f32 in `tests/test_phrases_full.py`, 5 Groq error-body tests. Run against the old `audit.py`, 9 of them failed; with the change `pytest` → 183 passed. `node --test tests/revision.test.mjs` 11 passed.
+- Browser: `scripts/ui_phrase_e2e.mjs` 0 failures (22 checks), `scripts/ui_e2e.mjs` 0 failures, `AI_PROVIDER=none`.
+- Rerun, fallback mode, labels unchanged, `eval/phrases_frozen.sha256` OK: false "matched" wording 2 → 0 (frozen), 0 → 0 (main, held-out); detection and tiers identical; correct quotations read "matched": main 18 → 17, held-out 6 → 5, frozen 15 → 6 (of 15 expected). Raw: `…-boundary-after-fix-*.json`.
+- Groq: the bodies of the two HTTP 400s had never been recorded (the adapter dropped them), so they could not be inspected. Adapter and harness changed as described in `docs/EVALUATION.md`. No Groq call was made.
+

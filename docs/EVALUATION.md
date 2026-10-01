@@ -274,7 +274,7 @@ What the remaining errors are (frozen set, run 2):
   near-match rules (at least 4 matched words and mass 16) reject them on purpose.
 - **Misquotations reported "matched" (2):** «إن الله لا يغير ما بقوم حتى يغيروا أنفسهم» and «وما خلقت الجن والإنس إلا لعبادتي». In both the wrong words are at the **end**
   of the quotation; the search reports the correct opening as a `candidate`, and the card shows the hint «بعد هذا المقطع في المصحف: … وبعده في المقال: …». A wrong edge word cannot be told apart from
-  prose after a quotation, so this is a known limit, not a fixed one.
+  prose after a quotation, so this is a known limit, not a fixed one. **Superseded on 2026-10-01:** these two are no longer reported "matched"; see "Release blocker" below.
 - **The 2 negatives shown:** «من كان يؤمن بالله واليوم الآخر» (a hadith that begins with a 6-word Quran run, shown as `possible` because «وجاء في الحديث» precedes it)
   and «إقامة الصلاة وإيتاء الزكاة» (shown as `possible`, common phrase).
 
@@ -335,6 +335,46 @@ so the 400s look like intermittent schema-validation failures, which I did not c
 and used `GROQ_MAX_COMPLETION_TOKENS=512` (real outputs stay under 100 tokens; one probe succeeded at 512 right after a 429 at the default 4096, which is not a controlled test). The completed pass (attempt 4) had one
 retried case (f18, 400 then 200). The main and held-out passes ran with the defaults (4096, no retries). Total Groq calls for this comparison: 101 (counted passes 49 + 14 + 4, the stopped attempts, the one retry and three single diagnostic calls).
 
+### Release blocker: the end of an unmarked quotation (2026-10-01, fallback only, no Groq)
+
+**Problem.** Two misquotations of the frozen set (f23 «إن الله لا يغير ما بقوم حتى يغيروا أنفسهم», f32 «وما خلقت الجن والإنس إلا لعبادتي») were reported with wording "matched",
+which tells an editor the quotation is right. Tracing each case (full text, no AI):
+
+| Step | f23 | f32 |
+|---|---|---|
+| Phrase span chosen (`phrases.py`: longest exact run, then trimmed) | «الله لا يغير ما بقوم حتى يغيروا» (the leading «فإن» does not fold to «إن», so it is not in the run either) | «وما خلقت الجن والإنس إلا» |
+| Why the run stops | the article's next word «أنفسهم» ≠ the verse's next word «ما» | «لعبادتي» ≠ «ليعبدون» |
+| Verifier (`verifier.py`) | the span aligns word for word with الرعد: 11, so "matched" — correctly, *for that span* | same, الذاريات: 56 |
+| What was wrong | the span's end was never checked: the wrong words are *outside* the span, where a writer's own prose would also be. `_continuation` saw the differing next word but only drew a hint | same |
+
+**Change (`app/audit.py::_end_boundary`; no threshold, tier or search rule changed — `app/phrases.py` is untouched, `eval/phrases_frozen.sha256` still verifies).**
+A span whose end was chosen by the program or by the AI may be "matched" only if its end is settled:
+(a) it reaches the end of its verse, or (b) a full stop, quotation mark, bracket, digit or line break follows, or the article ends, or (c) the reference attached to it follows at once.
+Otherwise the next article word touches the span and the verse says something else at that point, so the end is **uncertain**: wording becomes "uncertain" (never "difference": nothing was shown to be wrong),
+`needs_review` is set, the card keeps the candidate and the existing hint «بعد هذا المقطع في المصحف … وبعده في المقال …», `end_boundary` records the basis, and the optional reference insertion (which would go after a word that may be wrong) is withheld.
+The reference verdict is computed separately and is untouched (a correct reference stays "matched" beside an uncertain wording). Spans stated by the writer (brackets, quotation marks) or highlighted by the editor are not questioned.
+A comma does **not** settle the end (the search itself reads through commas). The same rule applies to an AI-chosen span; AI mode was not rerun.
+**Not covered:** the same problem at the *start* of a span (a wrong first word) is unchanged and remains a known limit.
+
+**Rerun of the unchanged sets, no Groq, labels untouched** (before = HEAD `d7cf6cd` code run today, after = this change; raw files `eval/results/fallback-20261001-*-boundary-before-d7cf6cd-*.json` and `…-boundary-after-fix-*.json`):
+
+| Set | Wording "matched" among detected quotations (before → after) | False "matched" wording | Detection, tiers, gold verse shown, reference verdicts, corrections, negatives |
+|---|---|---|---|
+| Main (28 gold) | 18 → 17 (c11 «ولا تنسوا الفضل بينكم» → uncertain) | 0 → 0 | identical |
+| Held-out (6) | 6 → 5 (h02 «وتعاونوا على البر والتقوى» → uncertain) | 0 → 0 | identical |
+| **Frozen (32)** | 17 → **6** (of the 15 correct quotations expected "matched": 15 → **6**) | **2 → 0** (f23, f32 → uncertain) | identical (30/32 detected, 15 candidate / 15 possible, 30/30 gold verse shown, references 30 correct); the hadith negative f34 changed from wording "matched" to "uncertain" (still only a `possible`) |
+
+Changed rows on the frozen set: f02, f05, f06, f08, f10, f11, f15, f17, f18 (correct quotations, prose touches the end) and f23, f32 (the misquotations).
+Detection and the false-suggestion counts did not change; nothing was hidden or relabelled.
+
+**What this costs.** An unmarked quotation that runs on into the writer's own words without punctuation is now "uncertain" (9 of the 15 correct ones on the frozen set), because that case and a wrong last word look the same.
+The editor can settle it by highlighting the quotation (manual path: the end is then stated). This is the intended conservative behaviour, not an accuracy gain.
+
+**The two HTTP 400s from Groq (f18 in attempt 1, f09 in attempt 3).** Their bodies were **not recorded**: the adapter discarded the response body of every 4xx, so the exact text cannot be inspected and I did not guess it. What is known: the request was identical for all cases and 17 and 8 earlier calls
+succeeded, and a replay of f18 returned 200, so it was not a statically malformed request. Groq documents one structured-output 400 — «Generated JSON does not match the expected schema» (checked 2026-10-01) — which would be a model-generation failure, but nothing proves these were that.
+Changes: the adapter now keeps the shortened error body (type, code, message, failed generation; never the key) in the per-audit `ai` record and in the evaluation log (not in `/api/health`), and marks a 400 as a generation failure **only** when the body says so;
+`run_eval.py --retry-400` now retries only that marked case (before: any 400). Any other 400 stops the run and needs a code fix. No Groq call was made for this work; the next 400, if any, will show its body.
+
 ### Limits of these results
 
 - The frozen set is small (32 gold quotations, 28 negatives, 5 formulae), author-written with an AI-assisted workflow, and its labels are pending human review.
@@ -342,7 +382,7 @@ retried case (f18, 400 then 200). The main and held-out passes ran with the defa
 - The main and held-out numbers are **development data**: they were inspected before and while the search was designed. They show the change works on those examples, not that it generalizes.
 - The frozen set was run twice and run 2 followed two fixes (see above); no threshold changed between the runs.
 - The synthetic benchmark and the Wikipedia prose are proxies. Articles by Islamic-content writers may differ from Wikipedia prose.
-- Detection is not complete: phrases of one or two words, phrases made only of common words, near matches of fewer than 4 matched words, a wrong first or last word of a quotation,
+- Detection is not complete: phrases of one or two words, phrases made only of common words, near matches of fewer than 4 matched words, a wrong first word of a quotation (a wrong last word is no longer reported "matched" but only "uncertain, end not settled"),
   Uthmani spellings and quotations with omissions are missed or reported only as "maybe". The interface says so and offers manual selection.
 - Memory and timing are from one macOS machine with Python 3.14; Render's Python and CPU differ.
 
