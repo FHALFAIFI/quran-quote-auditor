@@ -10,12 +10,12 @@ Each item must be committed during 4–6 October and listed in `CHANGELOG.md` un
 
 | Priority | Change | Done when |
 |---|---|---|
-| 1 | **Live AI extraction** on the deployed app (Render, `docs/RENDER_DEPLOY.md`) with the Groq key. *Local verification is pre-challenge: 14/14 responded, 30 Sep.* | `/api/health` and one real audit on the live URL are logged in `docs/TEST_LOG.md` (commit, model, status, candidates, discarded). |
+| 1 | **Live AI extraction** on the deployed app. *Done before the challenge (1–2 Oct 2026, so not challenge work): the Render service answers with real Groq calls (HTTP 200, one 429 on back-to-back audits), and the notice says what the model did. No benefit from the model has been measured live (it proposed the same quotations the deterministic path found, or nothing).* Challenge-day work: repeat it under the same logging if the service or model changes. | One real audit per change logged in `docs/TEST_LOG.md` (commit, model, status, candidates, discarded). |
 | 2 | Repeat the AI-mode evaluation (three runs, paced under Groq's 7,000 input tokens/minute) to check repeatability. *Single runs are pre-challenge: 26/28 and 4/6 vs 25/28 and 3/6.* | Mean and range in `docs/EVALUATION.md`; every run, including rate-limited ones, listed. |
 | 3 | Human review of the labels by an Arabic reader/specialist using `docs/LABEL_REVIEW.md`; log any correction with reason and source. | Checklist ticked; corrections log filled; evaluation re-run. |
 | 4 | Handle quotations with an ellipsis («…») as two excerpts in the correction logic, so the omitted part is not flagged as missing words. | Tests for «…» inside ﴿﴾ pass; no automatic insertion of omitted words. |
 | 5 | Uthmani-script input: map common Uthmani spellings (e.g. «الصلوة», small alef) so correct Uthmani quotes are not shown as differences. | Tests with Uthmani quotes; no new false fixes on the labelled set. |
-| 6 | Demo polish from real evidence: final screenshots, video variant A or B (per `submission/VIDEO_SCRIPT.md`), final PDF deck. | Video ≤ 2:00 and deck show only observed behaviour and numbers. |
+| 6 | Demo polish. *Pre-challenge versions exist (2 Oct 2026): deck and video built from the live service.* Challenge days: only re-record or update if the product changes, and show only observed behaviour and numbers. | Video ≤ 2:00 and deck match the deployed version. |
 | 7 | Test the existing reply draft (built pre-challenge, section C step 1) with real posts pasted by an editor; adjust wording. | Feedback recorded; still copy-only, no API. |
 
 Added to the plan from the 30 Sep phrase-search work (*pre-challenge* results are in `docs/EVALUATION.md`; everything below is not done):

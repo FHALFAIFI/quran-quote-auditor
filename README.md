@@ -8,7 +8,7 @@ taken only from that text, and lets an editor approve them one by one.
 
 | | |
 |---|---|
-| **Live demo** | https://quran-quote-auditor.onrender.com (Render Free: after ~15 minutes idle the first request can take up to a minute; open it, wait for the page, then audit) |
+| **Live demo** | https://quran-quote-auditor.onrender.com (Render Free sleeps when idle: one measurement after 18 idle minutes took 23 s for the first page, so allow up to a minute; open it, wait for the page, then audit) |
 | **Source code** | https://github.com/FHALFAIFI/quran-quote-auditor |
 | **Licence** | MIT (code). The Quran text is not included. See [SOURCES.md](SOURCES.md) |
 
@@ -33,7 +33,7 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 
 ## Try it (about two minutes)
 
-1. Open https://quran-quote-auditor.onrender.com. **Render Free sleeps when idle**: if the page takes up to a minute, wait for it, and expect the first audit afterwards to take a few seconds more (the Quran text is downloaded once).
+1. Open https://quran-quote-auditor.onrender.com. **Render Free sleeps when idle**: if the page is slow (23 s in the one measurement I made, so allow up to a minute), wait for it, and expect the first audit afterwards to take a few seconds more (the Quran text is downloaded once).
 2. Paste this post into the text box (or pick a sample from «مثال جاهز») and press «دقّق الاقتباسات»:
 
 ```
