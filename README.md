@@ -19,6 +19,20 @@ taken only from that text, and lets an editor approve them one by one.
 > See [BASELINE.md](BASELINE.md) and [CHANGELOG.md](CHANGELOG.md).
 > Built by one participant with Claude Code as a coding assistant; Claude is not used at runtime.
 
+## Who it is for, and what it changes
+
+| Question | Answer |
+|---|---|
+| **Primary user** | An Arabic content editor or proofreader who prepares an article or social post that quotes the Quran (a publisher, a content team, a social-media desk). Not a general reader, and not a scholar. |
+| **The task that creates the problem** | Before publishing, every quotation needs its wording, spelling and surah:ayah reference checked against a mushaf. It is usually done by searching each verse by hand, or by trusting text copied from somewhere else. A misquoted word or a wrong verse number is easy to miss and embarrassing to publish. |
+| **What manual checking and generic tools leave unresolved** | Manual lookup is repeated for every quotation and easy to skip when the deadline is near. A general chat assistant can produce a verse that looks right and is not, and does not say how sure it is. Some tools check or correct verses (for example quran-validator and Qalam, SOURCES.md §6); I have **not** compared them with this app side by side, so I make no claim to be better. |
+| **The exact benefit for the editor** | One review list for the whole article: each quotation next to the source verse, the exact word or reference that differs, and a plain statement of what is *not* settled. Every proposed change waits for the editor's approval; the revised text is copied only after that, with a printable record of what was changed and where the source is. |
+| **What AI does, and what stays source-based or human** | A language model may *propose where* quotations are. All Quran text, references, verdicts and corrections come from Quranpedia's Hafs text through deterministic code. The editor approves or rejects each change and resolves everything marked uncertain. |
+| **Evidence for each claim** | Small, author-written labelled sets and dated end-to-end logs (below, [docs/EVALUATION.md](docs/EVALUATION.md), [docs/TEST_LOG.md](docs/TEST_LOG.md)). No independent evaluation, no user study, no measured time saving. |
+| **Resources to continue** | [docs/PILOT.md](docs/PILOT.md): a proposed pilot with one content team, what would be measured, what it costs to host and call the model, and what is still unknown. No partner, user, funding or organisation exists today. |
+
+Value innovation, kept to four moves: **remove** unapproved automatic changes; **reduce** repeated manual checking (not measured, so no time-saving figure is claimed); **raise** source visibility and honesty about uncertainty (each verse links to Quranpedia; «غير محسوم» and «يحتاج مراجعة» are first-class states); **create** an approval-based path from the original text to a revised text and a review record.
+
 ## What it does
 
 You paste an Arabic article or post. The app:
@@ -33,22 +47,20 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 
 ## Try it (about two minutes)
 
-1. Open https://quran-quote-auditor.onrender.com. **Render Free sleeps when idle**: if the page is slow (23 s in the one measurement I made, so allow up to a minute), wait for it, and expect the first audit afterwards to take a few seconds more (the Quran text is downloaded once).
-2. Paste this post into the text box (or pick a sample from «مثال جاهز») and press «دقّق الاقتباسات»:
+1. Open https://quran-quote-auditor.onrender.com. **Render Free sleeps when idle**: Render says a spin-up takes about a minute (I measured 23 s once); wait for the page, and expect the first audit afterwards to take a few seconds more (the Quran text is downloaded once per instance).
+2. Choose **«المقال التجريبي: الصبر»** in the list above the text box (file: `app/static/samples/sample-demo.txt`) and press «دقّق الاقتباسات». The article has four quotations; **the two mistakes in it are deliberate misquotations written for the demo, not Quran text**:
 
-```
-الصبر والعمل الصالح مفتاح الفرج.
+| # | In the article | Expected result (deterministic; the model, if it answers, changes nothing here) |
+|---|---|---|
+| 1 | Ayah 2:153 in Uthmani script, copied letter for letter from Tanzil's text (credit below), reference «البقرة: 153» | «مطابق — رسم عثماني», reference matched, **no correction** (only an optional formatting offer) |
+| 2 | Ayah 2:156 with full vowel marks, reference «البقرة: 156» | «مطابق حرفيًا», reference matched, nothing to do |
+| 3 | «إنما **يجزى** الصابرون أجرهم بغير حساب» [الزمر: 10] | «اختلاف — أقرب موضع مقترح» (not a confirmed match); proposal: «يجزى» → «يوفى», taken from Quranpedia's 39:10; the reference stays «غير محسومة» until the wording is settled |
+| 4 | «فإن مع العسر يسرا» [**الشرح: 6**] | words match 94:5; reference «خاطئة»; proposal: «الشرح: 6» → «الشرح: 5» |
 
-قال تعالى: ﴿وافعلوا الشر لعلكم تفلحون﴾ [الحج: 77]
+3. Approve the two required changes, look at the before/after preview, and press «نسخ المقال المعدّل». Nothing changes without your approval; the article still says nothing about being verified as a whole. `tests/test_demo_article.py` pins these results.
+4. «تفاصيل هذا التدقيق» (under the status line) says whether the AI model answered, what it proposed and when the Quran text was fetched. If Groq's free tier answers 429 or is unavailable, a warning says so and the audit continues without the model. On the live demo the model has so far proposed nothing for this kind of post; the details then say so, and the result is the deterministic one.
 
-وقال سبحانه: ﴿فإن مع العسر يسرا﴾ [الشرح: 6]
-
-وتذكّر قول الله تعالى إن الله مع الصابرين.
-```
-
-3. Expected (deterministic, with or without the model): three findings, all marked «يحتاج مراجعة». (1) «الشر» is not in the verse: the card shows the closest verse, the word difference and a proposed replacement «الخير» taken from the source. (2) The reference «الشرح: 6» does not match the quoted verse; the proposed fix is «الشرح: 5». (3) «إن الله مع الصابرين» «may be a quotation» and occurs in two verses (البقرة: 153, الأنفال: 46), so **no correction is proposed until you choose the verse** with «هذا هو الموضع».
-4. Approve the proposals you accept, look at the before/after preview, and press «نسخ المقال المعدّل». Nothing changes without your approval.
-5. A notice at the top of the results says whether the AI model responded. If Groq's free tier answered 429 it says so and the audit continues without the model. On the live demo the model sometimes proposes nothing for this post; the notice then says so, and the result is the deterministic one.
+Earlier samples are still in the list («مثال: العلم», «مثال: الصبر (أخطاء شائعة)», «مثال: مقال بلا أقواس») and exercise unmarked quotations and the "possible" tier. The Uthmani quotation in the demo is a verbatim copy of **Tanzil** text (Tanzil Project, https://tanzil.net, CC BY 3.0, version 1.1); the page footer carries the credit and link.
 
 ## What it does not claim
 
@@ -235,7 +247,7 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 ### Tests
 
 ```bash
-python -m pytest -q                      # 343 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
+python -m pytest -q                      # 344 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
                                          # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
 node --test tests/revision.test.mjs      # the revision engine alone
 
@@ -299,7 +311,20 @@ A first Vercel deployment (pre-challenge baseline) was blocked from deploying ne
 - **Hosting limits.** Render Free sleeps after about 15 minutes idle (first request up to about a minute, plus one Quran download), has no persistent disk, and shares CPU; Groq's free tier answers 429 when audits come in quick succession (about 2 minutes apart is safe). A production deployment would need a paid host, a paid Groq tier (or Zero Data Retention) and a shared cache. Memory and timing numbers in `docs/EVALUATION.md` were measured locally, not on Render.
 - Time limits: AI gets 12 s total per audit (one request, no retry chain); Quranpedia calls time out after 20 s; the unmarked-phrase search has a fixed work budget and reports when it was cut off.
 
+## What still needs human review
+
+The tool is an aid to an editor, not a substitute for one. A person still has to:
+
+- read every quotation marked «يحتاج مراجعة» or «غير محسوم» and decide; nothing marked «غير محسوم» comes with a replacement;
+- read the parts of the article the tool did not recognise as quotations (a short or unmarked quotation can be missed, or listed only as «possible»);
+- decide whether a quotation is *used* correctly. The tool checks wording and reference only; it does not interpret verses, judge context or give religious rulings;
+- check wording the tool calls «مطابق» when it matters: a match means the words agree with Quranpedia's Hafs text at the shown level (literal, vowel marks ignored, spelling unified, or Uthmani script), and mushaf editions differ in a few marks;
+- check any text in Quranpedia's source itself that is later corrected (it is corrected weekly; the app reads it live, but a stale cached copy can be used when Quranpedia is unreachable, and the details say so);
+- review the labelled evaluation sets: they were written by the author, partly self-labelled, and no Arabic specialist has reviewed them yet ([docs/LABEL_REVIEW.md](docs/LABEL_REVIEW.md)).
+
 ## Known limitations
+
+- **Free hosting.** The live demo runs on Render Free: it sleeps after 15 minutes without traffic and the first request afterwards can take about a minute (23 s in the one measurement). No keep-alive is used to hide this.
 
 - **No general accuracy claims.** The numbers above come from three small, author-written sets, single runs, labels awaiting specialist review. AI-mode numbers (Groq, earlier local runs, one run per set) are in `docs/EVALUATION.md`; they were not repeated for the current code.
 - **Detection is not complete.** Unmarked phrases of one or two words, phrases made only of common words, near matches with fewer than 4 matched words, a wrong first or last word of an unmarked quotation (reported only as "uncertain: boundary not settled", with the neighbouring words shown), quotations with omissions and rare Uthmani spellings can be missed or shown only as «possible» or «uncertain». Frozen set: 30 of 32 unmarked quotations found, 2 missed.
@@ -338,6 +363,7 @@ scripts/ui_boundary_e2e.mjs Playwright check of the "uncertain boundary" workflo
 scripts/measure_resources.py startup time and peak memory (in-process and real uvicorn server)
 docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
 docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)
+docs/PILOT.md       proposed pilot, operating costs, unknowns (nothing of it has happened)
 docs/EVALUATION.md   labelled evaluation: method, fallback results, limits
 docs/TEST_LOG.md     dated end-to-end observations (local + live)
 docs/RENDER_DEPLOY.md Render settings, deploy steps and checks (the live demo's host)
@@ -348,7 +374,7 @@ SOURCES.md           sources, licences and attribution record
 BASELINE.md          pre-challenge baseline declaration
 ```
 
-Sample articles are in `app/static/samples/` and can be loaded from the «مثال جاهز» menu.
+Sample articles are in `app/static/samples/` and can be loaded from the «مثال جاهز» menu (the first entry, «المقال التجريبي: الصبر», is the demonstration article).
 Each contains some deliberately wrong quotations or references so every status can be demonstrated.
 
 ## Dependencies and licences

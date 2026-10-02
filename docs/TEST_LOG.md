@@ -528,3 +528,22 @@ Documentation and data provenance only; `app/` is byte-identical to the previous
 * **Re-runs on Tanzil-sourced data.** Held-out and dev Uthmani sets in fallback mode: rows and counts identical to the recorded final run; whole-text rule analysis (3 modes): identical numbers; `eval/validate_uthmani.py`: OK on both sets.
 * **Scan.** No tracked file in any of the rebuilt commits contains the other site's name, its API host or its field name, apart from `SOURCES.md` §1b «History of this data» (added in the last commit on purpose). No Uthmani verse text outside the fixture, the two evaluation sets and the result files that quote them.
 * **Quranpedia fixture check (documentation only).** `tests/fixtures/hafs_subset.json`: 36 verses, 552 words, 17 surahs; all 36 identical to the live endpoint on 2026-10-02 (BOM/whitespace aside); `SOURCES.md` §1 and the README now say it is a committed, frozen, credited partial copy and quote the policy; the file itself was not changed.
+
+## 2026-10-02 (late evening, Riyadh) — presentation pass on the live journey and demonstration article (Pre-challenge, local checks)
+
+**Reviewed** the journey paste/load sample → audit → findings → approve/reject → preview → copy at 1366 px and at 390 px (Playwright, Chromium, no Groq call: server without keys, so `mode: reduced`) and with axe-core 4 (WCAG 2 A/AA + best-practice) at 320, 390 and 1366 px with every `<details>` opened. Axe findings on the code of `3a5ba42`: colour contrast 3.26:1 on the ayah numbers inside source verses (3 nodes), and the scrollable preview region not reachable by keyboard (at 320 px). Other observations: two stacked notice boxes (AI mode, source retrieval time) ahead of the results; approve/reject buttons and `<summary>` rows 24–28 px high on a phone; the raw error text of a failed AI call inside a warning.
+
+**Changed** (`7ee0c49`): one quiet line plus «تفاصيل هذا التدقيق»; touch targets of 44 px on phones; ayah-number colour; `tabindex="0"` + label on the preview; footer privacy note folded into a `<details>` with the cold-start sentence; Tanzil credit in the footer; the AI-failure warning text no longer contains the exception text (kept in `ai.error` and shown in the details). A first version of the sample names overflowed 390 px by 11 px (`window.innerWidth` 401 vs `clientWidth` 390); caught by the script, fixed by shortening the names and letting the select shrink.
+
+**After:** axe: 0 violations at 320/390/1366 px; no horizontal overflow at 320/390; `pytest` 344 passed; `node --test tests/revision.test.mjs` 11 passed; `scripts/ui_e2e.mjs`, `ui_phrase_e2e.mjs`, `ui_boundary_e2e.mjs`, `ui_uthmani_e2e.mjs` all pass (run against the local server, 60 s apart because of the app's own rate limit).
+
+**Demonstration article** (`app/static/samples/sample-demo.txt`, four quotations, chosen for showing every state the story needs; both mistakes are deliberate user misquotations written for the demo, not Quran text). Observed locally (deterministic path, source = Quranpedia mushaf 1 read live on 2 Oct 2026):
+
+| # | Quotation | Wording | Reference | Proposed changes |
+|---|---|---|---|---|
+| 1 | 2:153 in Uthmani script, byte copy of Tanzil v1.1 | matched, level `uthmani` | matched | none required (one optional formatting offer) |
+| 2 | 2:156, byte copy of the Quranpedia text | matched, level `literal` | matched | none |
+| 3 | «إنما يجزى الصابرون أجرهم بغير حساب» [الزمر: 10] | difference, closest location (fuzzy, not confirmed) | uncertain | one: «يجزى» → «يوفى» (Quranpedia 39:10 has «يُوَفَّى») |
+| 4 | «فإن مع العسر يسرا» [الشرح: 6] | matched (vowel marks ignored) | incorrect | one: «الشرح: 6» → «الشرح: 5» (94:5 «فَإِنَّ مَعَ الْعُسْرِ يُسْرًا»; 94:6 is «إِنَّ مَعَ …») |
+
+Verified against the stated sources on 2 Oct 2026: Tanzil XML (SHA-256 `c5052534…1244`) `2:153` equals quotation 1 byte for byte; the Quranpedia mushaf-1 text of 2:156, 39:10, 94:5 and 94:6 was fetched once and read; quotation 2 equals the fixture's 2:156. `tests/test_demo_article.py` pins the table. Not claimed: that a one-word substitution is always graded like #3 (any wording change is reported as «اختلاف — أقرب موضع مقترح», never as a confirmed match, because the text is not found letter for letter), nor that the model would add anything: four live Groq audits of an earlier demo post proposed nothing.
