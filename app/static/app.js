@@ -211,7 +211,7 @@ function auditMeta(data) {
     details.push(el("p", {}, "النموذج: ", el("bdi", { dir: "ltr", text: ai.model || data.provider_model || data.provider }),
       ` — استجاب في ${toArabicDigits(((ai.elapsed_ms || 0) / 1000).toFixed(1))} ث`,
       ai.proposed ? `؛ اقترح ${maqatiAr(ai.proposed)}، وُجد منها في المقال ${toArabicDigits(ai.located)}، واستُبعد ${toArabicDigits(ai.discarded)}.` : "؛ لم يقترح أي مقطع، فاعتمد الرصد على العلامات والبحث الآلي في المصحف.",
-      aiShare(ai)));
+      toArabicDigits(aiShare(ai))));
   } else if (data.mode === "ai_failed" && ai.error) {
     details.push(el("p", {}, "سبب تعذّر النموذج: ", el("bdi", { dir: "ltr", text: String(ai.error) })));
   }

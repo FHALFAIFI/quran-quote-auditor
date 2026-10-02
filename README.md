@@ -355,6 +355,7 @@ app/
   static/            index.html, styles.css, app.js, revision.js (browser revision engine), samples/*.txt
 tests/               verifier, references, normalization, pipeline, source, Gemini, Groq, corrections,
                      revision-engine (Node) tests
+scripts/live_smoke.mjs one focused journey of the demonstration article on a running instance (one audit; one Groq call if a model is configured)
 scripts/e2e_check.py end-to-end API check of a running instance (samples, errors, files not served)
 scripts/ui_e2e.mjs   Playwright browser check of the editor workflow, desktop + mobile
 scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirming a verse, manual selection (own AI-off server);
