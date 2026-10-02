@@ -138,6 +138,7 @@ def test_api_escaping_and_errors(use_source):
     client = TestClient(app)
     health = client.get("/api/health").json()
     assert health["mode"] == "reduced"
+    assert "build" in health  # the host's commit id when it provides one (RENDER_GIT_COMMIT), else null
     res = client.post("/api/audit", json={"article": "<script>alert(1)</script> ﴿اقرأ باسم ربك الذي خلق﴾"})
     assert res.status_code == 200
     assert res.headers["cache-control"] == "no-store"

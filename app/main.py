@@ -7,6 +7,7 @@ written to disk, stored, or logged; error handlers return generic messages.
 from __future__ import annotations
 
 import logging
+import os
 import threading
 import time
 from collections import defaultdict, deque
@@ -122,6 +123,8 @@ def health():
         "ai_selection": settings.ai_provider,
         "ai_last_call": provider.tracker.status() if provider and provider.tracker else None,
         "max_chars": settings.max_chars,
+        # The commit the host built (Render sets RENDER_GIT_COMMIT; public information, null elsewhere).
+        "build": (os.environ.get("RENDER_GIT_COMMIT") or "")[:40] or None,
         "source": source.status(),
     }
 
