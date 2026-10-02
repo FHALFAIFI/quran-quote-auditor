@@ -40,6 +40,9 @@ function el(tag, attrs, ...children) {
   return node;
 }
 
+// replaceChildren with the empty slots of a conditional («cond ? node : null») left out: replaceChildren(null) would print the word «null»
+const fill = (node, ...kids) => node.replaceChildren(...kids.flat(Infinity).filter((k) => k !== null && k !== undefined && k !== false));
+
 const toArabicDigits = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
 const fmtTime = (secs) => new Date(secs * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
 const motion = () => (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
@@ -1178,13 +1181,13 @@ function renderFinal() {
   ].filter(Boolean).join("، ") + ".";
   $("final-summary").replaceChildren(el("p", { class: "final-sentence", text: sentence }));
 
-  $("final-changes").replaceChildren(rows.length ? el("div", {}, el("h3", { text: "التغييرات التي ستظهر في النص" }),
+  fill($("final-changes"), rows.length ? el("div", {}, el("h3", { text: "التغييرات التي ستظهر في النص" }),
     el("ul", { class: "change-list" }, rows.map(({ f, c }) => el("li", {}, el("div", { class: "cl-head" },
       el("b", { text: `الاقتباس ${toArabicDigits(f.id)} — ${whereText(f)}` }),
       el("button", { type: "button", class: "link-btn", onclick: () => goTo(f.id, { scroll: "panel" }), text: "افتحه" })), changeContext(f, c))))) : null);
 
   const open = [...new Map([...pend, ...unresolved].map((f) => [f.id, f])).values()].sort((a, b) => a.start - b.start);
-  $("final-pending").replaceChildren(open.length ? el("div", { class: "open-box" },
+  fill($("final-pending"), open.length ? el("div", { class: "open-box" },
     el("h3", { text: pend.length ? `${pendingText(pend.length)} — وسيبقى كما كتبتَه إن لم تقرّر` : "اقتباسات لم تحسمها الأداة" }),
     el("ul", { class: "open-list" }, open.map((f) => el("li", {}, el("span", { class: "row-num", text: toArabicDigits(f.id) }), el("span", { class: "row-q", dir: "rtl" }, excerpt(f.quote)),
       el("span", { class: `state ${pendingKind(f) ? "need" : "off"}`, text: pendingKind(f) ? PENDING_TEXT[pendingKind(f)] : reviewed[f.id] ? "راجعتَه بنفسك؛ لم تحسمه الأداة" : "لم تحسمه الأداة" }),
@@ -1286,7 +1289,7 @@ function buildRecord() {
   const off = allFindings().filter((f) => dismissed[f.id]);
   const kv = (k, v) => el("tr", {}, el("th", { text: k }), el("td", {}, v));
 
-  rec.replaceChildren(
+  fill(rec, 
     el("h1", { text: "سجل مراجعة الاقتباسات" }),
     el("p", { class: "rec-disclaimer" },
       el("b", { text: "أداة مساعدة تحريرية، وليست شهادة بصحة النص الديني أو سلامته. " }),

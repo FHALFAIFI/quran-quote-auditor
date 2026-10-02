@@ -115,6 +115,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check(norm(await page.textContent("#final-pending")).includes("فإن مع العسر يسرا") && norm(await page.textContent("#final-pending")).includes("لم تحسمه الأداة"), "the quotation whose wrong reference was left stays listed as not settled");
   check(fin.includes("ليس شهادة بأن المقال كله متحقق منه"), "the final check says it does not certify the whole article");
   await shot("3-final");
+  check(!/\bnull\b|undefined|\[object/.test(await page.evaluate(() => document.body.innerText)), "no stray «null», «undefined» or «[object …]» text anywhere on the page");
   // a changed mind: reopen #4 from the list and approve
   await page.locator("#final-pending button", { hasText: "راجع" }).click();
   await page.waitForTimeout(700);
@@ -128,6 +129,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check(clip === expected && clip !== demo, "the clipboard holds the article with exactly «يجزى»→«يوفى» and «الشرح: 6»→«الشرح: 5»");
   check(/الاقتباسات القرآنية التي رُصدت فقط/.test(await page.textContent("#copy-note")), "after copying, a note says only the quotations found were checked");
   await shot("4-copied");
+  check(!/\bnull\b|undefined|\[object/.test(await page.evaluate(() => document.body.innerText)) && (await page.locator("#final-pending").innerText()).trim() === "", "with everything decided the final check lists nothing open and prints no stray text");
 
   // ---- 6. layout, touch targets, reload, clear
   check((await overflowX()) <= 1, "results: no horizontal overflow");
@@ -143,6 +145,8 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await page.click("#edit-btn");
   await page.click("#clear-btn");
   check(await page.locator("#demo-hero").isVisible() && await page.locator("#results").isHidden(), "clearing brings the demo action back and hides the results");
+  await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+  check(!/\bnull\b|undefined|\[object/.test(await page.evaluate(() => document.getElementById("print-record").innerText)), "no stray «null» text in the printable record");
   check(errors.length === 0, `no console/page errors ${errors.join(" | ")}`);
 }
 finish(server, browser);
