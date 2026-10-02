@@ -1,0 +1,198 @@
+{
+ "_about": "Development examples (NOT held out): the three correct Uthmani quotations observed on 2 October 2026 (2:43, 2:153 [first six words], 3:200), each in two Uthmani encodings (the Tanzil Uthmani text and Quranpedia's own Uthmani mushaf, id 2). Used while the matching layer was written.",
+ "_notice": [
+  "# PLEASE DO NOT REMOVE OR CHANGE THIS COPYRIGHT BLOCK",
+  "#====================================================================",
+  "#",
+  "#  Tanzil Quran Text (Uthmani, Version 1.1)",
+  "#  Copyright (C) 2007-2026 Tanzil Project",
+  "#  License: Creative Commons Attribution 3.0",
+  "#",
+  "#  This copy of the Quran text is carefully produced, highly ",
+  "#  verified and continuously monitored by a group of specialists ",
+  "#  at Tanzil Project.",
+  "#",
+  "#  TERMS OF USE:",
+  "#",
+  "#  - Permission is granted to copy and distribute verbatim copies ",
+  "#    of this text, but CHANGING IT IS NOT ALLOWED.",
+  "#",
+  "#  - This Quran text can be used in any website or application, ",
+  "#    provided that its source (Tanzil Project) is clearly indicated, ",
+  "#    and a link is made to tanzil.net to enable users to keep",
+  "#    track of changes.",
+  "#",
+  "#  - This copyright notice shall be included in all verbatim copies ",
+  "#    of the text, and shall be reproduced appropriately in all files ",
+  "#    derived from or containing substantial portion of this text.",
+  "#",
+  "#  Please check updates at: http://tanzil.net/updates/",
+  "#",
+  "#===================================================================="
+ ],
+ "version": 1,
+ "cases": [
+  {
+   "id": "d1-tanzil-2-43",
+   "article": "قال تعالى: ﴿وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَٱرْكَعُوا۟ مَعَ ٱلرَّٰكِعِينَ﴾ [البقرة: 43] وهذا مثال.",
+   "gold": [
+    {
+     "quote": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَٱرْكَعُوا۟ مَعَ ٱلرَّٰكِعِينَ",
+     "surah": 2,
+     "ayah_start": 43,
+     "ayah_end": 43,
+     "correct_text": "وأقيموا الصلاة وآتوا الزكاة واركعوا مع الراكعين",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "البقرة: 43",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "tanzil"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 2:43"
+    }
+   ],
+   "negatives": []
+  },
+  {
+   "id": "d1-quranpedia-uthmani-2-43",
+   "article": "قال تعالى: ﴿وَأَقِيمُواْ ٱلصَّلَوٰةَ وَءَاتُواْ ٱلزَّكَوٰةَ وَٱرۡكَعُواْ مَعَ ٱلرَّٰكِعِينَ﴾ [البقرة: 43] وهذا مثال.",
+   "gold": [
+    {
+     "quote": "وَأَقِيمُواْ ٱلصَّلَوٰةَ وَءَاتُواْ ٱلزَّكَوٰةَ وَٱرۡكَعُواْ مَعَ ٱلرَّٰكِعِينَ",
+     "surah": 2,
+     "ayah_start": 43,
+     "ayah_end": 43,
+     "correct_text": "وأقيموا الصلاة وآتوا الزكاة واركعوا مع الراكعين",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "البقرة: 43",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "quranpedia-uthmani"
+     ],
+     "script": "uthmani",
+     "source": "quranpedia-uthmani 2:43"
+    }
+   ],
+   "negatives": []
+  },
+  {
+   "id": "d2-tanzil-2-153",
+   "article": "قال تعالى: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ﴾ [البقرة: 153] وهذا مثال.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+     "surah": 2,
+     "ayah_start": 153,
+     "ayah_end": 153,
+     "correct_text": "يا أيها الذين آمنوا استعينوا بالصبر والصلاة",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "البقرة: 153",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "tanzil"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 2:153"
+    }
+   ],
+   "negatives": []
+  },
+  {
+   "id": "d2-quranpedia-uthmani-2-153",
+   "article": "قال تعالى: ﴿يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُواْ ٱسۡتَعِينُواْ بِٱلصَّبۡرِ وَٱلصَّلَوٰةِۚ﴾ [البقرة: 153] وهذا مثال.",
+   "gold": [
+    {
+     "quote": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُواْ ٱسۡتَعِينُواْ بِٱلصَّبۡرِ وَٱلصَّلَوٰةِۚ",
+     "surah": 2,
+     "ayah_start": 153,
+     "ayah_end": 153,
+     "correct_text": "يا أيها الذين آمنوا استعينوا بالصبر والصلاة",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "البقرة: 153",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "quranpedia-uthmani"
+     ],
+     "script": "uthmani",
+     "source": "quranpedia-uthmani 2:153"
+    }
+   ],
+   "negatives": []
+  },
+  {
+   "id": "d3-tanzil-3-200",
+   "article": "قال تعالى: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱصْبِرُوا۟ وَصَابِرُوا۟ وَرَابِطُوا۟ وَٱتَّقُوا۟ ٱللَّهَ لَعَلَّكُمْ تُفْلِحُونَ﴾ [آل عمران: 200] وهذا مثال.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱصْبِرُوا۟ وَصَابِرُوا۟ وَرَابِطُوا۟ وَٱتَّقُوا۟ ٱللَّهَ لَعَلَّكُمْ تُفْلِحُونَ",
+     "surah": 3,
+     "ayah_start": 200,
+     "ayah_end": 200,
+     "correct_text": "يا أيها الذين آمنوا اصبروا وصابروا ورابطوا واتقوا الله لعلكم تفلحون",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "آل عمران: 200",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "tanzil"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 3:200"
+    }
+   ],
+   "negatives": []
+  },
+  {
+   "id": "d3-quranpedia-uthmani-3-200",
+   "article": "قال تعالى: ﴿يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُواْ ٱصۡبِرُواْ وَصَابِرُواْ وَرَابِطُواْ وَٱتَّقُواْ ٱللَّهَ لَعَلَّكُمۡ تُفۡلِحُونَ﴾ [آل عمران: 200] وهذا مثال.",
+   "gold": [
+    {
+     "quote": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُواْ ٱصۡبِرُواْ وَصَابِرُواْ وَرَابِطُواْ وَٱتَّقُواْ ٱللَّهَ لَعَلَّكُمۡ تُفۡلِحُونَ",
+     "surah": 3,
+     "ayah_start": 200,
+     "ayah_end": 200,
+     "correct_text": "يا أيها الذين آمنوا اصبروا وصابروا ورابطوا واتقوا الله لعلكم تفلحون",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "آل عمران: 200",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "quranpedia-uthmani"
+     ],
+     "script": "uthmani",
+     "source": "quranpedia-uthmani 3:200"
+    }
+   ],
+   "negatives": []
+  }
+ ]
+}

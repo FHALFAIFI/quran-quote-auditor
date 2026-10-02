@@ -288,6 +288,7 @@ A first Vercel deployment (pre-challenge baseline) was blocked from deploying ne
   `/api/health` shows `loaded_from` (`network` or `disk`), the text's age and the instance start time. A cross-instance cache would need an external store; it is deliberately not used.
 - Every source verse links to Quranpedia (`api.quranpedia.net/embed?surah=…&ayah=…`)
   and to its API record. Attribution appears in the page footer.
+- Test and evaluation data in Uthmani script (never read by the app): **Quran text: Tanzil Project, https://tanzil.net** (Tanzil Quran Text, Uthmani v1.1, CC BY 3.0; verbatim, with its notice kept inside the data files; see SOURCES.md §1b).
 
 ## Security, privacy and hosting limits
 

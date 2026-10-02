@@ -1,0 +1,1455 @@
+{
+ "_about": "Held-out Uthmani-script set, v1 (2026-10-02). WRITTEN, VALIDATED AND CHECKSUMMED BEFORE ANY CODE FOR UTHMANI MATCHING WAS WRITTEN OR TUNED; the SHA-256 of this file is in eval/uthmani_heldout.sha256 and in the freezing commit. (The provenance strings of the first version of this file, written the same day, named another copy of the same text; they were replaced by Tanzil's own on 2026-10-02 after the first release, and no quotation, label or article changed: see docs/UTHMANI.md.) Quotations are verbatim excerpts of the Tanzil Quran text, Uthmani, Version 1.1 (Tanzil Project, https://tanzil.net, CC BY 3.0; notice in `_notice`; an independent source of the same Hafs text in Uthmani script, not Quranpedia's text), checked against Tanzil's own XML download of 2026-10-02; wrong-word cases are hand edits of those excerpts (field `source` says which edit). Labels were written by hand from word ranges and cross-checked against the Quranpedia Hafs text and the Tanzil text by eval/validate_uthmani.py (which does not use the app's matching code); pending review by an Arabic specialist. Author-written (AI-assisted workflow), small, not a sample of real articles. Same fields as eval/cases.json plus gold.script (uthmani | mixed) and gold.source. gold.correct_text = the Quranpedia (imla'i) wording without marks. Cases u34-u37 use spellings the author did not know the program would support (hamza on a tatweel or a yeh seat): for them the requirement is no wrong correction, an honest 'uncertain' is acceptable. u49 is a non-Quran proverb typed with Uthmani-style marks. The three Uthmani examples from the 2 October probe (2:43, 2:153, 3:200) are NOT in this set: they are development data (eval/uthmani_dev.json).",
+ "_notice": [
+  "# PLEASE DO NOT REMOVE OR CHANGE THIS COPYRIGHT BLOCK",
+  "#====================================================================",
+  "#",
+  "#  Tanzil Quran Text (Uthmani, Version 1.1)",
+  "#  Copyright (C) 2007-2026 Tanzil Project",
+  "#  License: Creative Commons Attribution 3.0",
+  "#",
+  "#  This copy of the Quran text is carefully produced, highly ",
+  "#  verified and continuously monitored by a group of specialists ",
+  "#  at Tanzil Project.",
+  "#",
+  "#  TERMS OF USE:",
+  "#",
+  "#  - Permission is granted to copy and distribute verbatim copies ",
+  "#    of this text, but CHANGING IT IS NOT ALLOWED.",
+  "#",
+  "#  - This Quran text can be used in any website or application, ",
+  "#    provided that its source (Tanzil Project) is clearly indicated, ",
+  "#    and a link is made to tanzil.net to enable users to keep",
+  "#    track of changes.",
+  "#",
+  "#  - This copyright notice shall be included in all verbatim copies ",
+  "#    of the text, and shall be reproduced appropriately in all files ",
+  "#    derived from or containing substantial portion of this text.",
+  "#",
+  "#  Please check updates at: http://tanzil.net/updates/",
+  "#",
+  "#===================================================================="
+ ],
+ "version": 1,
+ "cases": [
+  {
+   "id": "u01-marked-ref-waw",
+   "article": "من أوجز ما قيل في الإيمان والعمل قوله تعالى: ﴿إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّـٰلِحَـٰتِ وَتَوَاصَوْا۟ بِٱلْحَقِّ وَتَوَاصَوْا۟ بِٱلصَّبْرِ﴾ [العصر: 3]. وهي سورة قصيرة جامعة.",
+   "gold": [
+    {
+     "quote": "إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّـٰلِحَـٰتِ وَتَوَاصَوْا۟ بِٱلْحَقِّ وَتَوَاصَوْا۟ بِٱلصَّبْرِ",
+     "surah": 103,
+     "ayah_start": 3,
+     "ayah_end": 3,
+     "correct_text": "إلا الذين آمنوا وعملوا الصالحات وتواصوا بالحق وتواصوا بالصبر",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "العصر: 3",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "tatweel",
+      "small_zero"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 103:3"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u02-marked-ref-salat",
+   "article": "أمرٌ ربانيٌّ يتكرر في القرآن: ﴿وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَأَطِيعُوا۟ ٱلرَّسُولَ لَعَلَّكُمْ تُرْحَمُونَ﴾ (النور: 56) فهو عنوان الاستقامة.",
+   "gold": [
+    {
+     "quote": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَأَطِيعُوا۟ ٱلرَّسُولَ لَعَلَّكُمْ تُرْحَمُونَ",
+     "surah": 24,
+     "ayah_start": 56,
+     "ayah_end": 56,
+     "correct_text": "وأقيموا الصلاة وآتوا الزكاة وأطيعوا الرسول لعلكم ترحمون",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "النور: 56",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "waw_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 24:56"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u03-marked-ref-vocative",
+   "article": "وفي الجمعة نسمع النداء: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ إِذَا نُودِىَ لِلصَّلَوٰةِ مِن يَوْمِ ٱلْجُمُعَةِ فَٱسْعَوْا۟ إِلَىٰ ذِكْرِ ٱللَّهِ﴾ سورة الجمعة، الآية 9، ثم نمضي إلى المسجد.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ إِذَا نُودِىَ لِلصَّلَوٰةِ مِن يَوْمِ ٱلْجُمُعَةِ فَٱسْعَوْا۟ إِلَىٰ ذِكْرِ ٱللَّهِ",
+     "surah": 62,
+     "ayah_start": 9,
+     "ayah_end": 9,
+     "correct_text": "يا أيها الذين آمنوا إذا نودي للصلاة من يوم الجمعة فاسعوا إلى ذكر الله",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "سورة الجمعة، الآية 9",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "vocative",
+      "waw_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 62:9"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u04-marked-ref-vocative2",
+   "article": "وللكلمة أثرها، قال سبحانه: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَقُولُوا۟ قَوْلًا سَدِيدًا﴾ [الأحزاب: 70] فلنتحرَّ ما نقول.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَقُولُوا۟ قَوْلًا سَدِيدًا",
+     "surah": 33,
+     "ayah_start": 70,
+     "ayah_end": 70,
+     "correct_text": "يا أيها الذين آمنوا اتقوا الله وقولوا قولا سديدا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الأحزاب: 70",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "vocative"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 33:70"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u05-marked-ref-alaa",
+   "article": "تتكرر هذه الآية في السورة مرارًا: «فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ» [الرحمن: 13]، تذكيرًا بالنعم.",
+   "gold": [
+    {
+     "quote": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ",
+     "surah": 55,
+     "ayah_start": 13,
+     "ayah_end": 13,
+     "correct_text": "فبأي آلاء ربكما تكذبان",
+     "wording": "correct",
+     "ambiguous": true,
+     "reference_text": "الرحمن: 13",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "hamza_madda"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 55:13"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u06-marked-ref-kursi",
+   "article": "ومن أعظم آيات القرآن: ﴿ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ﴾ [البقرة: 255] وتسمى آية الكرسي.",
+   "gold": [
+    {
+     "quote": "ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ",
+     "surah": 2,
+     "ayah_start": 255,
+     "ayah_end": 255,
+     "correct_text": "الله لا إله إلا هو الحي القيوم",
+     "wording": "correct",
+     "ambiguous": true,
+     "reference_text": "البقرة: 255",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "dagger_alef",
+      "repeated_phrase"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 2:255"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u07-marked-ref-fatiha",
+   "article": "نبدأ الصلاة بقراءة الفاتحة، ومنها ﴿ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ﴾ [الفاتحة: 2] ثم نكمل.",
+   "gold": [
+    {
+     "quote": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+     "surah": 1,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "الحمد لله رب العالمين",
+     "wording": "correct",
+     "ambiguous": true,
+     "reference_text": "الفاتحة: 2",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "dagger_alef",
+      "short"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 1:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u08-marked-ref-pause",
+   "article": "في مقام التذكير بزوال الدنيا: ﴿ٱلْمَالُ وَٱلْبَنُونَ زِينَةُ ٱلْحَيَوٰةِ ٱلدُّنْيَا ۖ وَٱلْبَـٰقِيَـٰتُ ٱلصَّـٰلِحَـٰتُ خَيْرٌ عِندَ رَبِّكَ ثَوَابًا وَخَيْرٌ أَمَلًا﴾ [الكهف: 46].",
+   "gold": [
+    {
+     "quote": "ٱلْمَالُ وَٱلْبَنُونَ زِينَةُ ٱلْحَيَوٰةِ ٱلدُّنْيَا ۖ وَٱلْبَـٰقِيَـٰتُ ٱلصَّـٰلِحَـٰتُ خَيْرٌ عِندَ رَبِّكَ ثَوَابًا وَخَيْرٌ أَمَلًا",
+     "surah": 18,
+     "ayah_start": 46,
+     "ayah_end": 46,
+     "correct_text": "المال والبنون زينة الحياة الدنيا والباقيات الصالحات خير عند ربك ثوابا وخير أملا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الكهف: 46",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "pause_mark",
+      "waw_alef",
+      "long"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 18:46"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u09-marked-noref-nisaa",
+   "article": "تبدأ سورة النساء بهذا النداء: ﴿يَـٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُوا۟ رَبَّكُمُ ٱلَّذِى خَلَقَكُم مِّن نَّفْسٍ وَٰحِدَةٍ﴾ ثم تذكر الأرحام.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُوا۟ رَبَّكُمُ ٱلَّذِى خَلَقَكُم مِّن نَّفْسٍ وَٰحِدَةٍ",
+     "surah": 4,
+     "ayah_start": 1,
+     "ayah_end": 1,
+     "correct_text": "يا أيها الناس اتقوا ربكم الذي خلقكم من نفس واحدة",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "vocative"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 4:1"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u10-marked-noref-hashr",
+   "article": "من خواتيم سورة الحشر: ﴿هُوَ ٱللَّهُ ٱلَّذِى لَآ إِلَـٰهَ إِلَّا هُوَ ۖ عَـٰلِمُ ٱلْغَيْبِ وَٱلشَّهَـٰدَةِ ۖ هُوَ ٱلرَّحْمَـٰنُ ٱلرَّحِيمُ﴾ وما بعدها من أسماء الله الحسنى.",
+   "gold": [
+    {
+     "quote": "هُوَ ٱللَّهُ ٱلَّذِى لَآ إِلَـٰهَ إِلَّا هُوَ ۖ عَـٰلِمُ ٱلْغَيْبِ وَٱلشَّهَـٰدَةِ ۖ هُوَ ٱلرَّحْمَـٰنُ ٱلرَّحِيمُ",
+     "surah": 59,
+     "ayah_start": 22,
+     "ayah_end": 22,
+     "correct_text": "هو الله الذي لا إله إلا هو عالم الغيب والشهادة هو الرحمن الرحيم",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "dagger_alef",
+      "pause_mark",
+      "long"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 59:22"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u11-marked-noref-mulk",
+   "article": "قال الله تعالى: ﴿ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا﴾ فالابتلاء حكمة الحياة.",
+   "gold": [
+    {
+     "quote": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا",
+     "surah": 67,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "الذي خلق الموت والحياة ليبلوكم أيكم أحسن عملا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "waw_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 67:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u12-marked-noref-ikhlas",
+   "article": "أقرأ في صلاتي: ﴿قُلْ هُوَ ٱللَّهُ أَحَدٌ ٱللَّهُ ٱلصَّمَدُ لَمْ يَلِدْ وَلَمْ يُولَدْ﴾ وأتدبر معناها.",
+   "gold": [
+    {
+     "quote": "قُلْ هُوَ ٱللَّهُ أَحَدٌ ٱللَّهُ ٱلصَّمَدُ لَمْ يَلِدْ وَلَمْ يُولَدْ",
+     "surah": 112,
+     "ayah_start": 1,
+     "ayah_end": 3,
+     "correct_text": "قل هو الله أحد الله الصمد لم يلد ولم يولد",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "multi_verse"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 112:1, 112:2, 112:3"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u13-marked-noref-sharh",
+   "article": "وعدٌ رباني بالفرج: ﴿فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا﴾ فلا نيأس.",
+   "gold": [
+    {
+     "quote": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+     "surah": 94,
+     "ayah_start": 5,
+     "ayah_end": 5,
+     "correct_text": "فإن مع العسر يسرا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "short"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 94:5"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u14-unmarked-ref-mulk",
+   "article": "ومما يُذكَّر به المسلم دائمًا أن الحياة اختبار: ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا (الملك: 2). فلنحسن العمل.",
+   "gold": [
+    {
+     "quote": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا",
+     "surah": 67,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "الذي خلق الموت والحياة ليبلوكم أيكم أحسن عملا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الملك: 2",
+     "reference": "correct",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "referenced",
+      "waw_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 67:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u15-unmarked-ref-hujurat",
+   "article": "ومبدأ التعارف بين الشعوب أصلٌ في القرآن. يَـٰٓأَيُّهَا ٱلنَّاسُ إِنَّا خَلَقْنَـٰكُم مِّن ذَكَرٍ وَأُنثَىٰ وَجَعَلْنَـٰكُمْ شُعُوبًا وَقَبَآئِلَ لِتَعَارَفُوٓا۟ [الحجرات: 13] وهذا أساس التعايش.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلنَّاسُ إِنَّا خَلَقْنَـٰكُم مِّن ذَكَرٍ وَأُنثَىٰ وَجَعَلْنَـٰكُمْ شُعُوبًا وَقَبَآئِلَ لِتَعَارَفُوٓا۟",
+     "surah": 49,
+     "ayah_start": 13,
+     "ayah_end": 13,
+     "correct_text": "يا أيها الناس إنا خلقناكم من ذكر وأنثى وجعلناكم شعوبا وقبائل لتعارفوا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الحجرات: 13",
+     "reference": "correct",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "referenced",
+      "vocative",
+      "dagger_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 49:13"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u16-unmarked-ref-araf",
+   "article": "وأصل حسن الخلق في هذا التوجيه. خُذِ ٱلْعَفْوَ وَأْمُرْ بِٱلْعُرْفِ وَأَعْرِضْ عَنِ ٱلْجَـٰهِلِينَ [الأعراف: 199] وهو منهج الدعوة.",
+   "gold": [
+    {
+     "quote": "خُذِ ٱلْعَفْوَ وَأْمُرْ بِٱلْعُرْفِ وَأَعْرِضْ عَنِ ٱلْجَـٰهِلِينَ",
+     "surah": 7,
+     "ayah_start": 199,
+     "ayah_end": 199,
+     "correct_text": "خذ العفو وأمر بالعرف وأعرض عن الجاهلين",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الأعراف: 199",
+     "reference": "correct",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "referenced",
+      "wasla"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 7:199"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u17-unmarked-ref-ibrahim",
+   "article": "والشكر سبب المزيد. وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ [إبراهيم: 7] فاللهم أعنّا على شكرك.",
+   "gold": [
+    {
+     "quote": "وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
+     "surah": 14,
+     "ayah_start": 7,
+     "ayah_end": 7,
+     "correct_text": "وإذ تأذن ربكم لئن شكرتم لأزيدنكم",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "إبراهيم: 7",
+     "reference": "correct",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "referenced",
+      "unmarked_sukun"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 14:7"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u18-unmarked-noref-leadin-layl",
+   "article": "ومن أقسام القرآن بالزمان، قال تعالى: وَٱلَّيْلِ إِذَا يَغْشَىٰ وَٱلنَّهَارِ إِذَا تَجَلَّىٰ فيقسم بالليل والنهار.",
+   "gold": [
+    {
+     "quote": "وَٱلَّيْلِ إِذَا يَغْشَىٰ وَٱلنَّهَارِ إِذَا تَجَلَّىٰ",
+     "surah": 92,
+     "ayah_start": 1,
+     "ayah_end": 2,
+     "correct_text": "والليل إذا يغشى والنهار إذا تجلى",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "unreferenced",
+      "lam_assimilation",
+      "lead_in",
+      "short"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 92:1, 92:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u19-unmarked-noref-prose",
+   "article": "وفي سورة الكهف أن ٱلْمَالُ وَٱلْبَنُونَ زِينَةُ ٱلْحَيَوٰةِ ٱلدُّنْيَا فيجب ألا نغتر بها كثيرًا.",
+   "gold": [
+    {
+     "quote": "ٱلْمَالُ وَٱلْبَنُونَ زِينَةُ ٱلْحَيَوٰةِ ٱلدُّنْيَا",
+     "surah": 18,
+     "ayah_start": 46,
+     "ayah_end": 46,
+     "correct_text": "المال والبنون زينة الحياة الدنيا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "unreferenced",
+      "waw_alef",
+      "no_lead_in"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 18:46"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u20-unmarked-noref-leadin-tawakkul",
+   "article": "إذا عزمت على أمرٍ فاستشر ثم توكّل. قال الله تعالى: فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى ٱللَّهِ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُتَوَكِّلِينَ",
+   "gold": [
+    {
+     "quote": "فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى ٱللَّهِ ۚ إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُتَوَكِّلِينَ",
+     "surah": 3,
+     "ayah_start": 159,
+     "ayah_end": 159,
+     "correct_text": "فإذا عزمت فتوكل على الله إن الله يحب المتوكلين",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "unreferenced",
+      "wasla",
+      "lead_in",
+      "pause_mark"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 3:159"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u21-unmarked-noref-leadin-ittiqa",
+   "article": "وقال سبحانه: وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ فمن اتقى الله فتح له.",
+   "gold": [
+    {
+     "quote": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ",
+     "surah": 65,
+     "ayah_start": 2,
+     "ayah_end": 3,
+     "correct_text": "ومن يتق الله يجعل له مخرجا ويرزقه من حيث لا يحتسب",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "unreferenced",
+      "small_marks",
+      "lead_in",
+      "multi_verse"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 65:2, 65:3"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u22-wrongref-sharh",
+   "article": "قال تعالى: ﴿فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا﴾ [الشرح: 6] وقد سبق في السورة نفسها.",
+   "gold": [
+    {
+     "quote": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+     "surah": 94,
+     "ayah_start": 5,
+     "ayah_end": 5,
+     "correct_text": "فإن مع العسر يسرا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الشرح: 6",
+     "reference": "incorrect",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "wrong_ref_same_surah",
+      "short"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 94:5"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u23-wrongref-jumua",
+   "article": "﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ إِذَا نُودِىَ لِلصَّلَوٰةِ مِن يَوْمِ ٱلْجُمُعَةِ فَٱسْعَوْا۟ إِلَىٰ ذِكْرِ ٱللَّهِ﴾ [الجمعة: 10] هذا نداء الجمعة.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ إِذَا نُودِىَ لِلصَّلَوٰةِ مِن يَوْمِ ٱلْجُمُعَةِ فَٱسْعَوْا۟ إِلَىٰ ذِكْرِ ٱللَّهِ",
+     "surah": 62,
+     "ayah_start": 9,
+     "ayah_end": 9,
+     "correct_text": "يا أيها الذين آمنوا إذا نودي للصلاة من يوم الجمعة فاسعوا إلى ذكر الله",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الجمعة: 10",
+     "reference": "incorrect",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "wrong_ref_same_surah",
+      "vocative"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 62:9"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u24-wrongref-surah",
+   "article": "قال سبحانه: ﴿ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا﴾ [القلم: 2] والحياة اختبار.",
+   "gold": [
+    {
+     "quote": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا",
+     "surah": 67,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "الذي خلق الموت والحياة ليبلوكم أيكم أحسن عملا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "القلم: 2",
+     "reference": "incorrect",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "wrong_ref_other_surah",
+      "waw_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 67:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u25-mut-changed-word",
+   "article": "وجاء الأمر بالطاعة: ﴿وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَأَطِيعُوا۟ ٱلنَّبِىَّ لَعَلَّكُمْ تُرْحَمُونَ﴾ (النور: 56) وهكذا.",
+   "gold": [
+    {
+     "quote": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَأَطِيعُوا۟ ٱلنَّبِىَّ لَعَلَّكُمْ تُرْحَمُونَ",
+     "surah": 24,
+     "ayah_start": 56,
+     "ayah_end": 56,
+     "correct_text": "وأقيموا الصلاة وآتوا الزكاة وأطيعوا الرسول لعلكم ترحمون",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": "النور: 56",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "changed_word"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 24:56 (edited by hand: ٱلرَّسُولَ -> ٱلنَّبِىَّ)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u26-mut-wrong-ending",
+   "article": "قال تعالى: ﴿إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّـٰلِحَـٰتِ وَتَوَاصَوْا۟ بِٱلْحَقِّ وَتَوَاصَوْا۟ بِٱلشُّكْرِ﴾ فهذه خلاصة الأمر.",
+   "gold": [
+    {
+     "quote": "إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّـٰلِحَـٰتِ وَتَوَاصَوْا۟ بِٱلْحَقِّ وَتَوَاصَوْا۟ بِٱلشُّكْرِ",
+     "surah": 103,
+     "ayah_start": 3,
+     "ayah_end": 3,
+     "correct_text": "إلا الذين آمنوا وعملوا الصالحات وتواصوا بالحق وتواصوا بالصبر",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "wrong_ending"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 103:3 (edited by hand: بِٱلصَّبْرِ -> بِٱلشُّكْرِ)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u27-mut-one-letter",
+   "article": "وفي القول: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَقُولُوا۟ قَوْلًا شَدِيدًا﴾ [الأحزاب: 70].",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَقُولُوا۟ قَوْلًا شَدِيدًا",
+     "surah": 33,
+     "ayah_start": 70,
+     "ayah_end": 70,
+     "correct_text": "يا أيها الذين آمنوا اتقوا الله وقولوا قولا سديدا",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": "الأحزاب: 70",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "changed_word",
+      "one_letter"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 33:70 (edited by hand: سَدِيدًا -> شَدِيدًا)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u28-mut-missing-word",
+   "article": "من أسماء الله وصفاته: ﴿هُوَ ٱللَّهُ ٱلَّذِى لَآ إِلَـٰهَ إِلَّا هُوَ ۖ عَـٰلِمُ ٱلْغَيْبِ ۖ هُوَ ٱلرَّحْمَـٰنُ ٱلرَّحِيمُ﴾ فسبحانه.",
+   "gold": [
+    {
+     "quote": "هُوَ ٱللَّهُ ٱلَّذِى لَآ إِلَـٰهَ إِلَّا هُوَ ۖ عَـٰلِمُ ٱلْغَيْبِ ۖ هُوَ ٱلرَّحْمَـٰنُ ٱلرَّحِيمُ",
+     "surah": 59,
+     "ayah_start": 22,
+     "ayah_end": 22,
+     "correct_text": "هو الله الذي لا إله إلا هو عالم الغيب والشهادة هو الرحمن الرحيم",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "missing_word"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 59:22 (edited by hand: وَٱلشَّهَـٰدَةِ removed)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u29-mut-changed-word-ref-ok",
+   "article": "قال سبحانه: ﴿ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَكْثَرُ عَمَلًا﴾ (الملك: 2) والحياة اختبار.",
+   "gold": [
+    {
+     "quote": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَكْثَرُ عَمَلًا",
+     "surah": 67,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "الذي خلق الموت والحياة ليبلوكم أيكم أحسن عملا",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": "الملك: 2",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "changed_word"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 67:2 (edited by hand: أَحْسَنُ -> أَكْثَرُ)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u30-mut-changed-word-noref",
+   "article": "من هدي الأخلاق: ﴿خُذِ ٱلْعَدْلَ وَأْمُرْ بِٱلْعُرْفِ وَأَعْرِضْ عَنِ ٱلْجَـٰهِلِينَ﴾ فلنتأدب بها.",
+   "gold": [
+    {
+     "quote": "خُذِ ٱلْعَدْلَ وَأْمُرْ بِٱلْعُرْفِ وَأَعْرِضْ عَنِ ٱلْجَـٰهِلِينَ",
+     "surah": 7,
+     "ayah_start": 199,
+     "ayah_end": 199,
+     "correct_text": "خذ العفو وأمر بالعرف وأعرض عن الجاهلين",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "changed_word"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 7:199 (edited by hand: ٱلْعَفْوَ -> ٱلْعَدْلَ)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u31-mut-unmarked-leadin",
+   "article": "قال تعالى: ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَكْثَرُ عَمَلًا وذلك في سورة الملك.",
+   "gold": [
+    {
+     "quote": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَكْثَرُ عَمَلًا",
+     "surah": 67,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "الذي خلق الموت والحياة ليبلوكم أيكم أحسن عملا",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "unreferenced",
+      "changed_word",
+      "lead_in"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 67:2 (edited by hand: أَحْسَنُ -> أَكْثَرُ)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u32-mixed-correct",
+   "article": "كتب الأخ في رسالته: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ كُتِبَ الصيام كما كتب على الذين من قبلكم لعلكم تتقون﴾ (البقرة: 183) ثم شرح الحكم.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ كُتِبَ الصيام كما كتب على الذين من قبلكم لعلكم تتقون",
+     "surah": 2,
+     "ayah_start": 183,
+     "ayah_end": 183,
+     "correct_text": "يا أيها الذين آمنوا كتب عليكم الصيام كما كتب على الذين من قبلكم لعلكم تتقون",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "البقرة: 183",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "mixed_script",
+      "marked",
+      "referenced",
+      "mixed"
+     ],
+     "script": "mixed",
+     "source": "Tanzil Uthmani v1.1, verse_key 2:183 (edited by hand: second half written in plain spelling)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u33-mixed-changed-word",
+   "article": "كتب الأخ في رسالته: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ كُتِبَ القيام كما كتب على الذين من قبلكم لعلكم تتقون﴾ (البقرة: 183) ثم شرح الحكم.",
+   "gold": [
+    {
+     "quote": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ كُتِبَ القيام كما كتب على الذين من قبلكم لعلكم تتقون",
+     "surah": 2,
+     "ayah_start": 183,
+     "ayah_end": 183,
+     "correct_text": "يا أيها الذين آمنوا كتب عليكم الصيام كما كتب على الذين من قبلكم لعلكم تتقون",
+     "wording": "wording_error",
+     "ambiguous": false,
+     "reference_text": "البقرة: 183",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "mixed_script",
+      "marked",
+      "referenced",
+      "mixed",
+      "changed_word"
+     ],
+     "script": "mixed",
+     "source": "Tanzil Uthmani v1.1, verse_key 2:183 (edited by hand: second half plain; الصيام -> القيام)"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u34-hard-hamza-on-yeh",
+   "article": "ومن دروس يعقوب عليه السلام: ﴿وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ﴾ [يوسف: 87] فلا يأس مع الله.",
+   "gold": [
+    {
+     "quote": "وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ",
+     "surah": 12,
+     "ayah_start": 87,
+     "ayah_end": 87,
+     "correct_text": "ولا تيأسوا من روح الله",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "يوسف: 87",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "hard",
+      "hamza_support"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 12:87"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u35-hard-hamza-tatweel",
+   "article": "وتختم الآية بقوله: ﴿وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ﴾ [البقرة: 255].",
+   "gold": [
+    {
+     "quote": "وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ",
+     "surah": 2,
+     "ayah_start": 255,
+     "ayah_end": 255,
+     "correct_text": "ولا يئوده حفظهما وهو العلي العظيم",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "البقرة: 255",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "hard",
+      "hamza_support",
+      "pause_mark"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 2:255"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u36-hard-shayan",
+   "article": "قال سبحانه: ﴿إِنَّمَآ أَمْرُهُۥٓ إِذَآ أَرَادَ شَيْـًٔا أَن يَقُولَ لَهُۥ كُن فَيَكُونُ﴾ [يس: 82] دليل قدرته.",
+   "gold": [
+    {
+     "quote": "إِنَّمَآ أَمْرُهُۥٓ إِذَآ أَرَادَ شَيْـًٔا أَن يَقُولَ لَهُۥ كُن فَيَكُونُ",
+     "surah": 36,
+     "ayah_start": 82,
+     "ayah_end": 82,
+     "correct_text": "إنما أمره إذا أراد شيئا أن يقول له كن فيكون",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "يس: 82",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "hard",
+      "hamza_support"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 36:82"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u37-hard-akhira",
+   "article": "ومن آيات الطلاق عظةٌ: ﴿ذَٰلِكُمْ يُوعَظُ بِهِۦ مَن كَانَ يُؤْمِنُ بِٱللَّهِ وَٱلْيَوْمِ ٱلْـَٔاخِرِ﴾ [الطلاق: 2].",
+   "gold": [
+    {
+     "quote": "ذَٰلِكُمْ يُوعَظُ بِهِۦ مَن كَانَ يُؤْمِنُ بِٱللَّهِ وَٱلْيَوْمِ ٱلْـَٔاخِرِ",
+     "surah": 65,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "ذلكم يوعظ به من كان يؤمن بالله واليوم الآخر",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الطلاق: 2",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "hard",
+      "hamza_support",
+      "dagger_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 65:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u38-marked-ref-vocative-ibadi",
+   "article": "ومن أرجى آيات القرآن: ﴿قُلْ يَـٰعِبَادِىَ ٱلَّذِينَ أَسْرَفُوا۟ عَلَىٰٓ أَنفُسِهِمْ لَا تَقْنَطُوا۟ مِن رَّحْمَةِ ٱللَّهِ﴾ [الزمر: 53].",
+   "gold": [
+    {
+     "quote": "قُلْ يَـٰعِبَادِىَ ٱلَّذِينَ أَسْرَفُوا۟ عَلَىٰٓ أَنفُسِهِمْ لَا تَقْنَطُوا۟ مِن رَّحْمَةِ ٱللَّهِ",
+     "surah": 39,
+     "ayah_start": 53,
+     "ayah_end": 53,
+     "correct_text": "قل يا عبادي الذين أسرفوا على أنفسهم لا تقنطوا من رحمة الله",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الزمر: 53",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "vocative",
+      "small_marks"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 39:53"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u39-marked-ref-anam",
+   "article": "﴿قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ﴾ [الأنعام: 162] وهذا إعلان التوحيد.",
+   "gold": [
+    {
+     "quote": "قُلْ إِنَّ صَلَاتِى وَنُسُكِى وَمَحْيَاىَ وَمَمَاتِى لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+     "surah": 6,
+     "ayah_start": 162,
+     "ayah_end": 162,
+     "correct_text": "قل إن صلاتي ونسكي ومحياي ومماتي لله رب العالمين",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الأنعام: 162",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "explicit_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 6:162"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u40-marked-ref-isra",
+   "article": "في بر الوالدين: ﴿وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا﴾ [الإسراء: 23].",
+   "gold": [
+    {
+     "quote": "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوٓا۟ إِلَّآ إِيَّاهُ وَبِٱلْوَٰلِدَيْنِ إِحْسَـٰنًا",
+     "surah": 17,
+     "ayah_start": 23,
+     "ayah_end": 23,
+     "correct_text": "وقضى ربك ألا تعبدوا إلا إياه وبالوالدين إحسانا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الإسراء: 23",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "waw_alef",
+      "dagger_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 17:23"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u41-marked-ref-taha-dua",
+   "article": "دعاء موسى عليه السلام: ﴿قَالَ رَبِّ ٱشْرَحْ لِى صَدْرِى وَيَسِّرْ لِىٓ أَمْرِى وَٱحْلُلْ عُقْدَةً مِّن لِّسَانِى يَفْقَهُوا۟ قَوْلِى﴾ [طه: 25-28].",
+   "gold": [
+    {
+     "quote": "قَالَ رَبِّ ٱشْرَحْ لِى صَدْرِى وَيَسِّرْ لِىٓ أَمْرِى وَٱحْلُلْ عُقْدَةً مِّن لِّسَانِى يَفْقَهُوا۟ قَوْلِى",
+     "surah": 20,
+     "ayah_start": 25,
+     "ayah_end": 28,
+     "correct_text": "قال رب اشرح لي صدري ويسر لي أمري واحلل عقدة من لساني يفقهوا قولي",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "طه: 25-28",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "multi_verse",
+      "wasla",
+      "range_ref"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 20:25, 20:26, 20:27, 20:28"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u42-marked-noref-kahf-dua",
+   "article": "دعاء الفتية: ﴿فَقَالُوا۟ رَبَّنَآ ءَاتِنَا مِن لَّدُنكَ رَحْمَةً وَهَيِّئْ لَنَا مِنْ أَمْرِنَا رَشَدًا﴾ فنقتدي بهم.",
+   "gold": [
+    {
+     "quote": "فَقَالُوا۟ رَبَّنَآ ءَاتِنَا مِن لَّدُنكَ رَحْمَةً وَهَيِّئْ لَنَا مِنْ أَمْرِنَا رَشَدًا",
+     "surah": 18,
+     "ayah_start": 10,
+     "ayah_end": 10,
+     "correct_text": "فقالوا ربنا آتنا من لدنك رحمة وهيئ لنا من أمرنا رشدا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "unreferenced",
+      "hamza_madda"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 18:10"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u43-marked-ref-baqara286",
+   "article": "ومن رحمته: ﴿لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا﴾ [البقرة: 286].",
+   "gold": [
+    {
+     "quote": "لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
+     "surah": 2,
+     "ayah_start": 286,
+     "ayah_end": 286,
+     "correct_text": "لا يكلف الله نفسا إلا وسعها",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "البقرة: 286",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "wasla"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 2:286"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u44-marked-ref-fatiha-56",
+   "article": "نردد في كل ركعة ﴿إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ﴾ [الفاتحة: 5-6].",
+   "gold": [
+    {
+     "quote": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ",
+     "surah": 1,
+     "ayah_start": 5,
+     "ayah_end": 6,
+     "correct_text": "إياك نعبد وإياك نستعين اهدنا الصراط المستقيم",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الفاتحة: 5-6",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "multi_verse",
+      "dagger_alef",
+      "range_ref"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 1:5, 1:6"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u45-marked-ref-maida",
+   "article": "ومن مبادئ الشراكة: ﴿وَتَعَاوَنُوا۟ عَلَى ٱلْبِرِّ وَٱلتَّقْوَىٰ ۖ وَلَا تَعَاوَنُوا۟ عَلَى ٱلْإِثْمِ وَٱلْعُدْوَٰنِ﴾ (المائدة: 2).",
+   "gold": [
+    {
+     "quote": "وَتَعَاوَنُوا۟ عَلَى ٱلْبِرِّ وَٱلتَّقْوَىٰ ۖ وَلَا تَعَاوَنُوا۟ عَلَى ٱلْإِثْمِ وَٱلْعُدْوَٰنِ",
+     "surah": 5,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "وتعاونوا على البر والتقوى ولا تعاونوا على الإثم والعدوان",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "المائدة: 2",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "pause_mark",
+      "dagger_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 5:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u46-marked-ref-raad",
+   "article": "التغيير يبدأ من الداخل: ﴿إِنَّ ٱللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا۟ مَا بِأَنفُسِهِمْ﴾ [الرعد: 11].",
+   "gold": [
+    {
+     "quote": "إِنَّ ٱللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا۟ مَا بِأَنفُسِهِمْ",
+     "surah": 13,
+     "ayah_start": 11,
+     "ayah_end": 11,
+     "correct_text": "إن الله لا يغير ما بقوم حتى يغيروا ما بأنفسهم",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الرعد: 11",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "small_marks"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 13:11"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u47-wrongref-raad",
+   "article": "التغيير يبدأ من الداخل: ﴿إِنَّ ٱللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا۟ مَا بِأَنفُسِهِمْ﴾ [الرعد: 12].",
+   "gold": [
+    {
+     "quote": "إِنَّ ٱللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا۟ مَا بِأَنفُسِهِمْ",
+     "surah": 13,
+     "ayah_start": 11,
+     "ayah_end": 11,
+     "correct_text": "إن الله لا يغير ما بقوم حتى يغيروا ما بأنفسهم",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الرعد: 12",
+     "reference": "incorrect",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "wrong_ref_same_surah"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 13:11"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u48-unmarked-noref-leadin-fatiha",
+   "article": "نقرأ في كل ركعة: ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ مَـٰلِكِ يَوْمِ ٱلدِّينِ ثم نواصل.",
+   "gold": [
+    {
+     "quote": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ مَـٰلِكِ يَوْمِ ٱلدِّينِ",
+     "surah": 1,
+     "ayah_start": 2,
+     "ayah_end": 4,
+     "correct_text": "الحمد لله رب العالمين الرحمن الرحيم مالك يوم الدين",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "tags": [
+      "uthmani",
+      "unmarked",
+      "unreferenced",
+      "dagger_alef",
+      "lead_in",
+      "multi_verse"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 1:2, 1:3, 1:4"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  },
+  {
+   "id": "u49-negative-proverb-uthmani-marks",
+   "article": "يقول المثل المشهور: ٱلْعِلْمُ فِى ٱلصِّغَرِ كَٱلنَّقْشِ فِى ٱلْحَجَرِ فلنتعلم صغارًا.",
+   "gold": [],
+   "negatives": [
+    "ٱلْعِلْمُ فِى ٱلصِّغَرِ كَٱلنَّقْشِ فِى ٱلْحَجَرِ"
+   ],
+   "note": "a proverb typed with Quran-style letters and marks; not Quran text"
+  },
+  {
+   "id": "u50-prose-around-uthmani-quote",
+   "article": "وقد تحدث الكتّاب قديمًا عن الاختبار في الحياة وعن حسن العمل والصبر على البلاء وعن طلب العلم في الصغر. وجاء في الذكر الحكيم ﴿ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا﴾ [الملك: 2]. ثم وقد تحدث الكتّاب قديمًا عن الاختبار في الحياة وعن حسن العمل والصبر على البلاء وعن طلب العلم في الصغر.",
+   "gold": [
+    {
+     "quote": "ٱلَّذِى خَلَقَ ٱلْمَوْتَ وَٱلْحَيَوٰةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا",
+     "surah": 67,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "correct_text": "الذي خلق الموت والحياة ليبلوكم أيكم أحسن عملا",
+     "wording": "correct",
+     "ambiguous": false,
+     "reference_text": "الملك: 2",
+     "reference": "correct",
+     "unmarked": false,
+     "tags": [
+      "uthmani",
+      "marked",
+      "referenced",
+      "surrounding_prose",
+      "waw_alef"
+     ],
+     "script": "uthmani",
+     "source": "Tanzil Uthmani v1.1, verse_key 67:2"
+    }
+   ],
+   "negatives": [],
+   "note": ""
+  }
+ ]
+}
