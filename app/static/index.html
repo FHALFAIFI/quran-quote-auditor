@@ -36,9 +36,10 @@
           <label for="sample-select">مثال جاهز:</label>
           <select id="sample-select">
             <option value="">— اختر —</option>
-            <option value="sample-1">مقال عن العلم</option>
-            <option value="sample-2">مقال عن الصبر (أخطاء شائعة)</option>
-            <option value="sample-3">مقال بلا أقواس</option>
+            <option value="sample-demo">المقال التجريبي: الصبر</option>
+            <option value="sample-1">مثال: العلم</option>
+            <option value="sample-2">مثال: الصبر (أخطاء شائعة)</option>
+            <option value="sample-3">مثال: مقال بلا أقواس</option>
           </select>
         </div>
       </div>
@@ -97,7 +98,7 @@
           <button id="tab-preview" type="button" role="tab" aria-selected="true" class="tab">المعاينة: المحذوف والمضاف</button>
           <button id="tab-text" type="button" role="tab" aria-selected="false" class="tab">النص المعدّل الكامل</button>
         </div>
-        <div id="preview-view" class="article-view preview-view" dir="rtl"></div>
+        <div id="preview-view" class="article-view preview-view" dir="rtl" tabindex="0" role="region" aria-label="معاينة المقال المعدّل"></div>
         <textarea id="revised-text" class="revised-text" dir="rtl" rows="12" readonly hidden aria-label="النص المعدّل الكامل"></textarea>
         <div class="preview-legend">
           <span><del>نص محذوف</del></span> <span><ins>نص معتمد</ins></span> <span><span class="unresolved">اقتباس غير محسوم</span><sup class="unres-mark">⚠</sup></span>
@@ -136,11 +137,16 @@
         مصدر النص القرآني: <a href="https://quranpedia.net" target="_blank" rel="noopener">الموسوعة القرآنية — Quranpedia</a>،
         مصحف حفص عن عاصم عبر <a href="https://api.quranpedia.net/" target="_blank" rel="noopener">واجهة Quranpedia البرمجية</a>.
         لا يُستخدم الذكاء الاصطناعي مصدرًا لنص القرآن ولا حكَمًا على صحته؛ دوره اقتراح مواضع الاقتباس فقط.
+        الآية المكتوبة بالرسم العثماني في المقال التجريبي نسخة حرفية من نص Tanzil (النص العثماني، الإصدار 1.1): <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project — tanzil.net</a> (رخصة CC BY 3.0)؛ أما الحكم على الاقتباسات فمبني على نص قرآنبيديا وحده.
       </p>
-      <p class="muted">
-        الخصوصية: لا تُخزَّن المقالات على الخادم ولا تُسجَّل، وقرارات التصحيح تبقى في متصفحك. عند تفعيل الذكاء الاصطناعي يُرسل نص المقال إلى <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noopener">Groq</a> (خوادم في الولايات المتحدة) لاقتراح مواضع الاقتباس فقط؛ ولا تحتفظ Groq بالطلبات افتراضيًا، إلا لمدة أقصاها 30 يومًا عند تتبّع الأعطال أو التحقيق في إساءة الاستخدام.
-        · عمل ما قبل التحدي — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026، المسار الرابع: أدوات المعرفة والتحقق.
-      </p>
+      <details class="privacy">
+        <summary>الخصوصية وحدود الاستخدام</summary>
+        <p>
+          لا تُخزَّن المقالات على الخادم ولا تُسجَّل، وقرارات التصحيح تبقى في متصفحك. عند تفعيل الذكاء الاصطناعي يُرسل نص المقال إلى <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noopener">Groq</a> (خوادم في الولايات المتحدة) لاقتراح مواضع الاقتباس فقط؛ ولا تحتفظ Groq بالطلبات افتراضيًا، إلا لمدة أقصاها 30 يومًا عند تتبّع الأعطال أو التحقيق في إساءة الاستخدام. لا تلصق نصًا سريًا.
+        </p>
+        <p>الاستضافة المجانية تنام عند الخمول، فقد يتأخر أول طلب بعد فترة سكون (تذكر Render نحو دقيقة، وقيس مرة واحدة 23 ثانية). الأداة فحص أولي للاقتباسات وإحالاتها ولا تغني عن مراجعة بشرية.</p>
+      </details>
+      <p class="muted">عمل ما قبل التحدي — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026، المسار الرابع: أدوات المعرفة والتحقق.</p>
     </div>
   </footer>
 

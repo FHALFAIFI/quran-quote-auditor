@@ -147,6 +147,7 @@ async function loadSample(name) {
     if (!res.ok) throw new Error();
     $("article").value = (await res.text()).trim();
     updateCount();
+    if (name === "sample-demo") setStatus("حُمّل مقال تجريبي كُتب لهذا العرض؛ فيه خطآن مقصودان في الاقتباس (لفظ وإحالة)، وهما من صنع المثال وليسا نصًا قرآنيًا. اضغط «دقّق الاقتباسات».");
   } catch {
     setStatus("تعذّر تحميل المثال.", true);
   }
@@ -186,7 +187,7 @@ async function runAudit() {
     saveSession();
     render(data, true);
     loadHealth();  // refresh the banner with this call's real outcome
-    setStatus(`اكتمل التدقيق في ${toArabicDigits((data.elapsed_ms / 1000).toFixed(1))} ث.`);
+    setStatus("اكتمل التدقيق. راجع ما يحتاج قرارك أولًا.");
   } catch (e) {
     setStatus(e.name === "AbortError" ? "انتهت مهلة الطلب؛ حاول مرة أخرى." : "تعذّر الاتصال بالخادم.", true);
   } finally {
@@ -196,33 +197,40 @@ async function runAudit() {
 }
 
 // ---------------------------------------------------------------- render
-function aiNotice(data) {
+// One quiet line about how this audit was made; the model, timing and source details sit behind it.
+function auditMeta(data) {
   const ai = data.ai || {};
+  const details = [];
+  let line = null, tone = "plain";
   if (data.mode === "reduced") {
-    return el("div", { class: "notice warning", text: "نُفِّذ هذا التدقيق في الوضع المخفّض دون ذكاء اصطناعي؛ قد تفوت الاقتباسات القصيرة غير المعلَّمة." });
+    tone = "reduced";
+    line = "جرى التدقيق دون ذكاء اصطناعي: مطابقة بنص قرآنبيديا وحده. قد تفوت عبارات قصيرة بلا علامات؛ يمكنك تحديدها بنفسك.";
+  } else if (data.mode === "ai" && ai.responded) {
+    tone = "ai";
+    line = "اقترح نموذج ذكاء اصطناعي مواضع الاقتباس فقط، والحكم على كل اقتباس من نص قرآنبيديا وحده." + (ai.proposed ? "" : " ولم يقترح هذه المرة أي مقطع.");
+    details.push(el("p", {}, "النموذج: ", el("bdi", { dir: "ltr", text: ai.model || data.provider_model || data.provider }),
+      ` — استجاب في ${toArabicDigits(((ai.elapsed_ms || 0) / 1000).toFixed(1))} ث`,
+      ai.proposed ? `؛ اقترح ${maqatiAr(ai.proposed)}، وُجد منها في المقال ${toArabicDigits(ai.located)}، واستُبعد ${toArabicDigits(ai.discarded)}.` : "؛ لم يقترح أي مقطع، فاعتمد الرصد على العلامات والبحث الآلي في المصحف.",
+      aiShare(ai)));
+  } else if (data.mode === "ai_failed" && ai.error) {
+    details.push(el("p", {}, "سبب تعذّر النموذج: ", el("bdi", { dir: "ltr", text: String(ai.error) })));
   }
-  if (data.mode === "ai" && ai.responded) {
-    return el("div", { class: "notice info" }, "استجاب نموذج الذكاء الاصطناعي ", el("bdi", { dir: "ltr", text: ai.model || data.provider_model || data.provider }),
-      ` في هذا التدقيق (${toArabicDigits(((ai.elapsed_ms || 0) / 1000).toFixed(1))} ث)`,
-      ai.proposed
-        ? `: اقترح ${maqatiAr(ai.proposed)}، وُجد منها في المقال ${toArabicDigits(ai.located)}، واستُبعد ${toArabicDigits(ai.discarded)}. `
-        : ": لم يقترح أي مقطع، فاعتمد الرصد على العلامات والبحث الآلي في المصحف. ",
-      toArabicDigits(aiShare(ai)) + " ",
-      "ثم حُكم على كل اقتباس بمقارنته بنص المصحف فقط.");
+  if (data.source?.available && data.source.fetched_at) {
+    details.push(el("p", {}, "نص المصحف من قرآنبيديا (مصحف حفص)، جُلب في ", el("b", { text: fmtTime(data.source.fetched_at) }), data.source.stale ? " — نسخة مخبأة لتعذّر التحديث." : "."));
   }
-  return null;
+  if (!line && !details.length) return null;
+  const box = el("div", { class: `audit-meta ${tone}` });
+  if (line) box.append(el("p", { class: "am-line", text: line }));
+  if (details.length) box.append(el("details", {}, el("summary", { text: "تفاصيل هذا التدقيق" }), ...details));
+  return box;
 }
 
 function render(data, scroll) {
   $("results").hidden = false;
   const notices = $("notices");
   notices.replaceChildren(...(data.notices || []).map((n) => el("div", { class: `notice ${n.level}`, text: n.text })));
-  const an = aiNotice(data);
-  if (an) notices.append(an);
-  if (data.source?.available && data.source.fetched_at) {
-    notices.append(el("div", { class: "notice info" }, "نص المصحف من قرآنبيديا، جُلب في ", el("b", { text: fmtTime(data.source.fetched_at) }),
-      data.source.stale ? " (نسخة مخبأة لتعذّر التحديث)" : ""));
-  }
+  const meta = auditMeta(data);
+  if (meta) notices.append(meta);
   renderSummary(data);
   renderArticle(data.findings);
   renderFindings();

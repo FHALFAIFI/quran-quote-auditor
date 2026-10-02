@@ -452,7 +452,7 @@ def run_audit(article: str) -> dict:
         except ExtractionError as exc:
             mode = "ai_failed"
             ai.update(outcome="failed", error=str(exc), error_body=exc.body, generation_failure=exc.generation_failure)
-            notices.append({"level": "warning", "text": f"تعذّر الاستخراج بالذكاء الاصطناعي ({exc}). عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة."})
+            notices.append({"level": "warning", "text": "تعذّر الاستخراج بالذكاء الاصطناعي في هذا التدقيق. عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة."})
         ai["elapsed_ms"] = int((time.monotonic() - t_ai) * 1000)
         ai["discarded"] = discarded
         last = provider.tracker.status() if getattr(provider, "tracker", None) else {}
