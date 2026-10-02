@@ -421,3 +421,19 @@ The three demo samples (`app/static/samples`, fallback mode): sample 1 and 2 unc
 
 **Interface.** An uncertain finding says «غير محسوم — حدود الاقتباس» and «يحتاج مراجعة», explains that this means the quotation boundary could not be established (not that the wording is wrong), shows the neighbouring words, and offers
 «حدود الاقتباس صحيحة» (re-checks the same span as the editor's own highlight, with the proposed verse) and «عدّل الحدود بنفسك» (selects the span in the article box, ready for «افحص المقطع المحدَّد»). A note under the summary counts them.
+
+
+## Uthmani-script quotations (2026-10-02, fallback only, no Groq) — pre-challenge
+
+Full write-up, rules, disclosure and reproduction commands: [UTHMANI.md](UTHMANI.md). Summary of the runs (`eval/results/`):
+
+| Run | Code | Held-out Uthmani set: correct quotations given a wrong correction | Notes |
+|---|---|---|---|
+| baseline | `976395e` | 30 of 41 | 38 of the 46 detected were graded wrong; run before any Uthmani code, after the set was frozen in `1bc8cbf` |
+| run 1 `after-uthmani-layer` | working copy before `0eacaaa` | 11 (one of them the label error) | `madd_sign` and `idgham_shadda` conventions missing |
+| run 2 `after-uthmani-layer2` | working copy before the exact-letters rule (a unit test showed that equivalence was still decided at the search-fold level, which equates `أَمَنُوا` and `ءَامَنُوا`; equivalence now requires identical letters, hamza seats included) | 1 | the one is the label error `u32` |
+| final `after-uthmani-final` | `0eacaaa` (matching code, unchanged since) | 1 (the label error) | same counts as run 2 |
+
+The three earlier sets (`cases`, `heldout`, `phrases_frozen`) re-run on the final code: rows, negative hits, formula hits and extra findings **identical** to the run on `976395e`
+(`eval/results/*before-uthmani-976395e-*` vs `*after-uthmani-final-*`). AI mode was not re-evaluated.
+The rules were checked against whole Uthmani texts, with the held-out verses excluded: `eval/check_uthmani_rules.py`, `eval/results/uthmani-rules-*-excl-heldout.json`.

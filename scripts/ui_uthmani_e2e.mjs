@@ -1,9 +1,11 @@
 // Browser check of the revised interface with Uthmani-script input (Playwright, Chromium), desktop 1280 and mobile 390.
 //
 //   npm i playwright            # in any scratch directory; not a project dependency
-//   NODE_PATH=<scratch>/node_modules node scripts/ui_uthmani_e2e.mjs [--shots DIR] [--python PATH]
+//   NODE_PATH=<scratch>/node_modules node scripts/ui_uthmani_e2e.mjs [--shots DIR] [--python PATH] [--live https://host]
 //
-// Starts its OWN server on a free port with AI off (no key in its environment, no Groq call possible). Article: one correct
+// Starts its OWN server on a free port with AI off (no key in its environment, no Groq call possible); with --live URL it drives
+// that deployment instead (ONE audit, i.e. one model call when the service has AI on; the checks do not depend on what the model
+// proposes, and the result of the model call is printed). With --shots DIR and --live it also saves element screenshots. Article: one correct
 // Uthmani quotation (البقرة: 153), one with a changed word (النور: 56) and one correct quotation with a wrong reference (الشرح: 6).
 // Quran text in the test article: Tanzil Project, https://tanzil.net (Tanzil Quran Text, Uthmani v1.1, CC BY 3.0; its notice is in
 // tests/fixtures/uthmani_verses.json). Typed from Tanzil's text with some marks in another order, so not a byte copy; the
@@ -30,14 +32,22 @@ if (shots) fs.mkdirSync(shots, { recursive: true });
 let failures = 0;
 const check = (c, m) => { console.log(`${c ? "PASS" : "FAIL"}  ${m}`); if (!c) failures++; };
 
-const port = await new Promise((res) => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => res(p)); }); });
-const env = { ...process.env, AI_PROVIDER: "none", RATE_LIMIT_PER_MINUTE: "1000" };
-for (const k of Object.keys(env)) if (/^(GROQ|GEMINI|GOOGLE)_|API_KEY/i.test(k)) delete env[k];
-const child = spawn(python, ["-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", String(port)], { cwd: root, env, stdio: "ignore" });
-const base = `http://127.0.0.1:${port}`;
-for (let i = 0; i < 100; i++) { try { if ((await fetch(base + "/api/health")).ok) break; } catch { /* not up yet */ } await new Promise((r) => setTimeout(r, 200)); }
+const live = opt("--live");
+let child = null;
+let base;
+if (live) {
+  base = live.replace(/\/$/, "");
+} else {
+  const port = await new Promise((res) => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => res(p)); }); });
+  const env = { ...process.env, AI_PROVIDER: "none", RATE_LIMIT_PER_MINUTE: "1000" };
+  for (const k of Object.keys(env)) if (/^(GROQ|GEMINI|GOOGLE)_|API_KEY/i.test(k)) delete env[k];
+  child = spawn(python, ["-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", String(port)], { cwd: root, env, stdio: "ignore" });
+  base = `http://127.0.0.1:${port}`;
+}
+for (let i = 0; i < 300; i++) { try { if ((await fetch(base + "/api/health", { signal: AbortSignal.timeout(20000) })).ok) break; } catch { /* not up yet */ } await new Promise((r) => setTimeout(r, 400)); }
 const h = await (await fetch(base + "/api/health")).json();
-check(h.ai_configured === false, "the server under test has AI off");
+if (live) console.log(`INFO  live ${base}: mode ${h.mode}, provider ${h.provider}`);
+else check(h.ai_configured === false, "the server under test has AI off");
 
 const art = `قال تعالى: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ ۚ إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ﴾ [البقرة: 153]
 
@@ -45,8 +55,9 @@ const art = `قال تعالى: ﴿يَـٰٓأَيُّهَا ٱلَّذِينَ
 
 ﴿فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا﴾ [الشرح: 6]`;
 const browser = await chromium.launch();
-for (const [vp, size] of [["desktop 1280", { width: 1280, height: 800 }], ["mobile 390", { width: 390, height: 844 }]]) {
-  const ctx = await browser.newContext({ viewport: size, locale: "ar" });
+const viewports = [["desktop 1280", { width: 1280, height: 800 }], ["mobile 390", { width: 390, height: 844 }]].filter(([v]) => !opt("--only") || v.startsWith(opt("--only")));
+for (const [vp, size] of viewports) {
+  const ctx = await browser.newContext({ viewport: size, locale: "ar", deviceScaleFactor: Number(opt("--dpr") || 1) });
   await ctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: base }).catch(() => {});
   const page = await ctx.newPage();
   const errs = [];
@@ -76,7 +87,9 @@ for (const [vp, size] of [["desktop 1280", { width: 1280, height: 800 }], ["mobi
   check(seq.includes("clear-btn") && seq.includes("audit-btn"), `${vp}: Tab reaches the clear and audit buttons from the text box (${seq.join(" → ")})`);
 
   await page.fill("#article", art);
-  await page.click("#audit-btn");
+  const [resp] = await Promise.all([page.waitForResponse((r) => r.url().endsWith("/api/audit"), { timeout: 120000 }), page.click("#audit-btn")]);
+  const data = await resp.json();
+  if (live) console.log("INFO  audit:", JSON.stringify({ http: resp.status(), mode: data.mode, ai: { outcome: data.ai?.outcome, http_status: data.ai?.http_status, proposed: data.ai?.proposed, added_only: data.ai?.added_only, also_found: data.ai?.also_found, model: data.ai?.model }, stats: data.stats }));
   await page.waitForSelector("#results:not([hidden]) .finding", { timeout: 60000 });
   await page.waitForTimeout(400);
   g = await geometry();
@@ -112,10 +125,14 @@ for (const [vp, size] of [["desktop 1280", { width: 1280, height: 800 }], ["mobi
   });
   check(orderIn[0].includes("النص في المقال") && orderIn[1].includes("النص في المصحف") || orderIn[1].includes("أقرب موضع"), `${vp}: card order starts with the article text, then the source verse (${orderIn.slice(0, 3).join(" | ")})`);
 
+  const elementShot = async (loc, name) => { if (shots && tag === "desktop") { await loc.scrollIntoViewIfNeeded(); await loc.screenshot({ path: path.join(shots, name) }); } };
+  await elementShot(page.locator("#findings .finding.review").first(), "card-correction.png");
   // keyboard: open the compact row with Enter, approve a correction with Space
   await page.locator(".f-compact > summary").first().focus();
   await page.keyboard.press("Enter");
   check((await page.locator(".f-compact[open]").count()) === 1, `${vp}: the compact row opens with Enter`);
+  await page.locator(".f-compact .optional-box summary").first().click();
+  await elementShot(page.locator("#findings .finding.ok").first(), "card-uthmani-matched.png");
   const approves = page.locator('.action .change:not(.optional) button[data-act="approved"]');
   for (let i = 0; i < 2; i++) { await approves.nth(i).focus(); await page.keyboard.press("Space"); }
   const revised = await page.inputValue("#revised-text");
@@ -124,6 +141,7 @@ for (const [vp, size] of [["desktop 1280", { width: 1280, height: 800 }], ["mobi
   const noOptional = !revised.includes("يَا أَيُّهَا") && revised.includes("يَـٰٓأَيُّهَا");
   check(diff && noOptional && revised.includes("[الشرح: 5]") && !revised.includes("ٱلنَّبِىَّ"), `${vp}: after approving only the two corrections the article differs only there; the correct Uthmani text is untouched`);
   check(revised.split("\n").length === art.split("\n").length, `${vp}: line structure preserved`);
+  await elementShot(page.locator("#editor-title").locator("xpath=ancestor::section[1]"), "editor-preview.png");
   await page.click("#tab-text");
   await page.click("#copy-btn");
   await page.waitForTimeout(300);
@@ -134,6 +152,6 @@ for (const [vp, size] of [["desktop 1280", { width: 1280, height: 800 }], ["mobi
   await ctx.close();
 }
 await browser.close();
-child.kill();
+if (child) child.kill();
 console.log(failures ? `${failures} FAILED` : "all checks passed");
 process.exit(failures ? 1 : 0);

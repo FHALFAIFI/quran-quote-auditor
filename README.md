@@ -25,7 +25,7 @@ You paste an Arabic article or post. The app:
 
 1. finds likely Quran quotations: marked ones (﴿﴾, {}, «» after a cue or before a reference), and unmarked phrases, shown as a *candidate* or as «قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة» (*possible*). It also finds the surah/ayah reference written next to a quotation;
 2. checks each quotation's **wording** and **reference** against Quranpedia's Hafs text;
-3. shows one review list: where the quotation is in the article, the source verse, word-level differences, the reference status, and which cases **need a human**;
+3. shows one review list, with what needs the editor first: the quotation in the article, the source verse, the exact difference, the reference status and the action asked of the editor. A quotation copied in the **Uthmani script** of a mushaf site or app (`ٱلصَّلَوٰةَ`, `ءَامَنُوا۟`) is matched when its words are the source's words, and gets no correction ([docs/UTHMANI.md](docs/UTHMANI.md));
 4. proposes **source-backed corrections** only when the source supports both the text and the location. The editor **approves or rejects each one**; a before/after preview and a copy button give the corrected text;
 5. offers a printable **review record** («سجل مراجعة الاقتباسات») and a copy-only reply draft. The app never posts anything.
 
@@ -55,20 +55,21 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 - It does **not** say an article or post is "verified" or ready to publish. It checks only the quotations it found.
 - **Detection is not complete.** Short unmarked misquotations may be only «possible» or missed; ordinary prose can reuse Quran words and be shown as «possible»; the start or end of an unmarked quotation may need the editor's confirmation (shown as «غير محسوم — حدود الاقتباس»); a model can fail (see "AI use"). The editor can highlight any phrase and check it by hand.
 - A «possible» phrase is **not** a verified quotation, and gets no replacement text until the editor confirms it and picks the verse.
-- **Uthmani-script quotations are not matched yet.** The source text is in standard (imla'i) spelling. In a 2 October 2026 probe, 3 of 3 correct quotations written in Uthmani script (e.g. «ٱلَّذِينَ ءَامَنُوا۟») were shown as a «difference» or «uncertain» needing review, and one of them got a proposed wording change that the editor can reject ([docs/TEST_LOG.md](docs/TEST_LOG.md)). Plain-spelling quotations are unaffected. This is the planned first improvement ([docs/CONTINUATION.md](docs/CONTINUATION.md)).
+- **Uthmani script is recognised only as far as the documented rules go** ([docs/UTHMANI.md](docs/UTHMANI.md)). Before the change on 2 October 2026 (pre-challenge) a correct Uthmani quotation was shown as «difference» or «uncertain» and could get a wrong correction (30 of 41 on the frozen Uthmani set). Now 37 of those 41 read «matched», and none of the other 8 wrong quotations is. The rules explain 99.2% of the verses of the Tanzil Uthmani text (SOURCES.md §1b) and 98.8% of Quranpedia's Uthmani edition; about 50 rare spellings are not covered and read «uncertain» with no replacement. The held-out set was no longer untouched after its first run, and it contains label errors, so these figures are not an independent accuracy rate. A genuinely changed word, a different vowel or a wrong reference in Uthmani text is still flagged.
 - It does not proofread Arabic, interpret verses, translate, or give religious rulings.
 - **No measured accuracy.** The only numbers are from small, author-written, labelled sets (below). They are not independent measurements, and the labels are still awaiting review by an Arabic specialist ([docs/LABEL_REVIEW.md](docs/LABEL_REVIEW.md)).
 - **No measured AI benefit.** On the live demo sample the model proposed the same 7 quotations that the deterministic path found without it. In the labelled sets, with the phrase search in place, it added one quotation (a 3-word misquotation) in one run on one set, and none on the other two.
 
-## Results observed so far (all pre-challenge, no AI; audit code as of `801051f`, unchanged since)
+## Results observed so far (all pre-challenge, no AI; code as of `cccd084`)
 
-Rerun on 2 October 2026 with `eval/run_eval.py --mode fallback` (later commits changed only the interface and the manual-check path, which the evaluation does not use); labels unchanged, frozen-set checksum verified, detection identical to the previous logged run. Raw files in `eval/results/`.
+Rerun on 2 October 2026 with `eval/run_eval.py --mode fallback`; labels unchanged, checksums verified. For the first three sets the **rows are byte-identical to the run on `976395e`** (before the Uthmani layer), so the Uthmani layer changed nothing for plain-spelling or imla'i-vocalised text. Raw files in `eval/results/`.
 
 | Set (author-written, small) | Quotations | Found | Notes |
 |---|---|---|---|
 | Main, 14 articles (development data) | 28 | 27 | 0 false "matched" wording; 6/6 wording errors given a correct source-backed fix; 0 corrections proposed for correct text |
 | Held-out, 4 articles (development data) | 6 | 6 | 3 of 6 read "uncertain" (boundary not settled) |
 | Frozen, 49 articles (written and checksummed before the search was built) | 32 unmarked | 30 | 2 missed; 12 of the 30 found read "uncertain"; 2 of 28 non-Quran texts shown as «possible», none shown as confirmed; 0 misquotations reported "matched" |
+| **Uthmani, 50 articles** (excerpts of the Tanzil Uthmani text, SOURCES.md §1b; written and checksummed before any Uthmani code; **no longer untouched after its first run; the labels were not edited after the freeze and 4 of them disagree with the program: `u32`, `u09`, `u10`, `u19`, see docs/UTHMANI.md**) | 49 (41 correct, 8 wrong) | 48 | correct: 37 «matched», 2 «uncertain» (boundary rule), 1 «difference» (label error: the quote omits a word), 1 not found (formula); wrong-labelled: 8 «difference», **0 «matched»**; wrong references flagged 4/4; automatic corrections given to correct quotations **30 → 1** (that one is the label error). Before the change: 1 «matched», 30 corrections |
 
 Costs of the cautious rules: many correct unmarked quotations after prose read "uncertain" and need one click to confirm.
 Ordinary Islamic-topic prose produces about 2–3 «possible» items per 1,000 words (Arabic Wikipedia sample, local only). Details, runs that did not count, and limits: [docs/EVALUATION.md](docs/EVALUATION.md). Dated end-to-end logs, including the live Render checks: [docs/TEST_LOG.md](docs/TEST_LOG.md).
@@ -234,7 +235,7 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 ### Tests
 
 ```bash
-python -m pytest -q                      # 240 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
+python -m pytest -q                      # 343 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
                                          # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
 node --test tests/revision.test.mjs      # the revision engine alone
 
@@ -301,14 +302,14 @@ A first Vercel deployment (pre-challenge baseline) was blocked from deploying ne
 ## Known limitations
 
 - **No general accuracy claims.** The numbers above come from three small, author-written sets, single runs, labels awaiting specialist review. AI-mode numbers (Groq, earlier local runs, one run per set) are in `docs/EVALUATION.md`; they were not repeated for the current code.
-- **Detection is not complete.** Unmarked phrases of one or two words, phrases made only of common words, near matches with fewer than 4 matched words, a wrong first or last word of an unmarked quotation (reported only as "uncertain: boundary not settled", with the neighbouring words shown), Uthmani spellings and quotations with omissions can be missed or shown only as «possible». Frozen set: 30 of 32 unmarked quotations found, 2 missed.
+- **Detection is not complete.** Unmarked phrases of one or two words, phrases made only of common words, near matches with fewer than 4 matched words, a wrong first or last word of an unmarked quotation (reported only as "uncertain: boundary not settled", with the neighbouring words shown), quotations with omissions and rare Uthmani spellings can be missed or shown only as «possible» or «uncertain». Frozen set: 30 of 32 unmarked quotations found, 2 missed.
 - **«Possible» is not verified.** Ordinary prose can reuse Quran words (about 2–3 «possible» items per 1,000 words of Islamic-topic prose, 44 outside brackets in 19,794 untuned Wikipedia words). Close paraphrases such as «لا تحزن إن الله معنا دائما» (5 of 6 words from التوبة: 40) are reported as a candidate whose end is "uncertain".
 - **A short unmarked misquotation** (e.g. «إن الله مع الصابرون» with no reference and no «قال تعالى») is indistinguishable from prose by evidence: it is listed only as «possible» with its closest verse and a one-click confirm, or missed.
 - **Boundaries.** The tool cannot know where an unmarked quotation starts or ends, so the editor may need to confirm («حدود الاقتباس صحيحة») or adjust them. This makes many correct quotations read "uncertain".
 - **AI may fall back.** On Groq's free tier a 429 can happen; the notice says so and the result is the deterministic one. A model can also propose prose or nothing.
 - **Speed.** A full-size article (about 1,000 words) took about 0.1–0.4 s locally with the phrase search; Render's CPU will be slower (not measured). Memory: a real `uvicorn` process peaked at 94.1 MB locally.
 - Automatic corrections are deliberately conservative: a short fuzzy quote, or a phrase found in several verses, gets review information but no replacement.
-- The source is Quranpedia's Hafs text in standard (imla'i) spelling with full diacritics. Quotations copied from Uthmani-script editions (e.g. «الصلوة») may appear as *differences* needing review. Diacritic conventions vary between printed mushafs, so a diacritics difference is a prompt to check, not proof of error.
+- The source is Quranpedia's Hafs text in standard (imla'i) spelling with full diacritics. Uthmani spellings (e.g. «الصلوة») are matched through documented rules; about 50 rare spellings are not covered, and a few words the imla'i text joins or splits differently (`بَعْدَ مَا` / `بعدما`) are not either: such a quotation reads «uncertain» without a replacement. The Uthmani rasm writes some different imla'i words identically (a plural verb and a singular verb ending in waw), so that confusion cannot be detected in Uthmani text. Only Hafs is supported. Diacritic conventions vary between printed mushafs, so a diacritics difference is a prompt to check, not proof of error.
 - Quotations with omissions («…») are compared as one span, so they show missing words and need review. Quotations under 3 words are never confirmed without a reference and are not searched for automatically (select them by hand). Reference parsing covers common Arabic forms, not every style.
 - Gemini: no real Gemini call has succeeded (503/429), so that adapter is unverified.
 
