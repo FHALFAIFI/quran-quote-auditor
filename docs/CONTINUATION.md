@@ -53,3 +53,19 @@ Staged plan:
    The editor copies and posts it manually.
 2. **Opt-in review queue:** mentions of an official account are fetched, audited, and queued for a human to approve.
 3. **Assisted replies:** only after 2 has run safely, approved replies are posted by the API with idempotency keys.
+
+## D. Future direction (idea only — not built, not started, not tested): sharing a post from an iPhone
+
+> **This is not a feature and nothing here works today.** The app takes **pasted text only** (up to 6000 characters) in the browser. It does **not** import a URL or fetch a post, it has no share-sheet or Shortcuts integration, and there is **no iPhone app**. The live demo and the video show none of this.
+
+The idea: an editor who reads a draft or a post on an iPhone could send it to the checker without copying it by hand, and get the same review list back.
+
+Routes that could be examined, in order of how little they need (feasibility on iOS is **unverified** for all of them; none has been tried):
+
+1. **Paste on the phone, as today.** The page works at 390 px and 320 px (tested in a desktop browser at those widths, not on a real phone). The first thing to learn from a pilot is whether editors even work on phones.
+2. **An iOS Shortcut** that receives shared text and opens the page with it. This would need the page or API to accept text from outside, which it does not yet do; the text must not travel in a URL query string (it would be logged), so a POST or a URL fragment would be needed.
+3. **URL import** (give a link, the server fetches the post). Not planned: many posts sit behind a login or a platform's terms, a server that fetches arbitrary URLs needs protection against abuse (server-side request forgery), and it would send other people's content through the service. Pasted text avoids all of that.
+4. **A native iOS share extension / app.** Needs an Apple developer account, App Review, and a maintained second code base; justified only if a pilot shows steady phone use.
+
+Before any of these: always-on hosting, a model setting that does not retain content (see [PILOT.md](PILOT.md)), and evidence from the pilot that editors want it. The plan promises no date and no deliverable.
+
