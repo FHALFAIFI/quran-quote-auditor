@@ -274,3 +274,62 @@ def test_format_reference_keeps_writer_style(written, surah, a0, a1, expected):
     ref = parse_reference(written)
     assert ref is not None and ref.text == written
     assert format_reference(ref, surah, a0, a1) == expected
+
+
+# --- one word changed in a three-word quotation (eval/articles_frozen.json, L1: «واستعينوا بالصبر الصلاة» [البقرة: 45]) ---
+# Word-level similarity of such a quotation is 2/3 at best, under the 0.75 floor, so it never got replacement text even
+# though its boundaries were stated and the reference named the verse. The floor is waived only when everything else is
+# settled; each test below removes one of those conditions.
+
+THREE_WORDS = "استعينوا بالصبر الصلاة"  # 2:153 reads «استعينوا بالصبر والصلاة»
+
+
+def test_three_word_marked_quote_with_ayah_reference_gets_the_one_word_fix(use_source):
+    article = f"وقد ورد قوله ﴿{THREE_WORDS}﴾ [البقرة: 153]، فالاستعانة بالله لا تلغي الأخذ بالأسباب."
+    res = run_audit(article)
+    f = res["findings"][0]
+    assert f["wording"]["level"] == "fuzzy" and f["wording"]["similarity"] < 0.75
+    (ch,) = changes_of(res, {"wording"})
+    assert (ch["original"], ch["replacement"]) == ("الصلاة", "والصلاة")
+    after = apply(article, [ch])
+    assert after == article.replace("بالصبر الصلاة", "بالصبر والصلاة")
+    assert outside_spans_identical(article, after, [ch])
+    assert ch["optional"] is False and ch["surah"] == 2 and ch["ayah_start"] == 153 and ch["source_urls"]
+
+
+def test_three_word_fix_needs_stated_boundaries(use_source):
+    """The same words without a marker: the phrase search or the model chose the span, so only the verse is shown."""
+    res = run_audit(f"وقد ورد قوله {THREE_WORDS} [البقرة: 153] في الكتاب.")
+    assert not changes_of(res, {"wording"})
+
+
+def test_three_word_fix_needs_an_ayah_number(use_source):
+    for ref in ("", " [سورة البقرة]"):
+        res = run_audit(f"وقد ورد قوله ﴿{THREE_WORDS}﴾{ref} في الكتاب.")
+        assert not changes_of(res, {"wording"}), ref
+        assert res["findings"][0]["correction"]["status"] == "review_only"
+
+
+def test_three_word_fix_blocked_when_reference_points_elsewhere(use_source):
+    res = run_audit(f"﴿{THREE_WORDS}﴾ [الإخلاص: 2]")
+    f = res["findings"][0]
+    assert f["changes"] == [] and f["correction"]["status"] == "review_only"
+
+
+def test_three_word_fix_blocked_when_two_words_differ(use_source):
+    """One word changed and a second one missing: more than one swap is still left to the writer."""
+    res = run_audit("﴿استعينوا بالصلاة الصبر﴾ [البقرة: 153]")
+    assert not changes_of(res, {"wording"})
+
+
+def test_three_word_fix_in_a_manual_selection_with_a_chosen_verse(use_source):
+    from app.audit import run_phrase
+
+    article = f"وقال: {THREE_WORDS} في كتابه."
+    start = article.index("استعينوا")
+    out = run_phrase(article, start, start + len(THREE_WORDS), surah=2, ayah_start=153, ayah_end=153)
+    (ch,) = [c for c in out["finding"]["changes"] if c["kind"] == "wording"]
+    assert (ch["original"], ch["replacement"]) == ("الصلاة", "والصلاة")
+    # without the chosen verse nothing is proposed
+    out = run_phrase(article, start, start + len(THREE_WORDS))
+    assert not [c for c in out["finding"]["changes"] if c["kind"] == "wording"]

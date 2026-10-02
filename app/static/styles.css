@@ -189,7 +189,7 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
 .where-label { color: var(--ink-2); }
 .ref-note { font-size: .88rem; color: var(--ink-2); }
 .ref-note.incorrect { color: var(--old); font-weight: 600; }
-.src-link { font-size: .9rem; }
+.src-link { font-size: .9rem; padding-block: 2px; }  /* a 24 px-high target (WCAG 2.2, 2.5.8) */
 .card-error { background: var(--old-bg); color: var(--old); border-radius: 10px; padding: 8px 12px; font-size: .92rem; }
 .q-title { font-size: 1.08rem; font-weight: 700; line-height: 1.5; }
 .ask, .decide { display: grid; gap: 10px; }
@@ -372,7 +372,9 @@ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid v
   .final-actions .btn { flex: 1 1 100%; }
   .demo-btn { width: 100%; }
   .verse-form { grid-template-columns: minmax(0, 1fr); }
-  .panel-nav { display: none; }
+  /* the bottom bar offers «التالي» here; these stay in the tab order, hidden until one has focus, so a keyboard user (or a desktop at 400% zoom)
+     reaches «التالي» with Shift+Tab from the card instead of tabbing through the queue to the end of the page */
+  .panel-nav:not(:focus-within) { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .ch-src a, .source-meta a { padding: 10px 2px; }
 }
 

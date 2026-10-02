@@ -239,7 +239,8 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
     if index is None:
         result = unavailable_result(ref)
     else:
-        result = verify(index, words, ref, pin=pin, hints=list(c.phrase.spans) if phrase_found else None)
+        result = verify(index, words, ref, pin=pin, hints=list(c.phrase.spans) if phrase_found else None,
+                        bounded=bool({"marked", "manual"} & c.sources))
     line, col = _line_col(article, c.start)
     finding = {
         "id": n,

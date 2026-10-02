@@ -80,6 +80,10 @@ e3aaa4bbc3ad5038eec754405a5e2d53e92f607f -> 1783cfe58e7ff06cd9f8ed90744aae782bfa
 cdf151b0264e7ab65f659dc183965b652ac296d0 -> 3a5ba42aebe1ecfe9b8dcd4092b13c1849aced54
 ```
 
+| Date | Commit(s) | Change |
+|---|---|---|
+| 2026-10-03 | (this commit) | **Three-word correction gap and final UI QA.** A marked three-word quotation with one wrong word and a correct ayah reference («واستعينوا بالصبر الصلاة» [البقرة: 45]) never received replacement text: its word-level similarity is at most 0.667 and the floor is 0.75. The floor is now waived only for a stated boundary (marker or the writer's selection), an ayah-level reference (or chosen verse) at the closest passage, no close rival and exactly one word swapped for one word (`verifier._one_word_swapped`, `bounded`). 6 tests (351 pass). The six frozen sets rerun without Groq: five identical, the long-article set changes in exactly one row (replacement text for the six one-word-wrong quotations 2 → 3); a post-hoc change, disclosed in `docs/EVALUATION.md`; «وبالوالدين إحسانا» is still missed (manual selection remains the fallback). UI QA (`scripts/ui_final_qa.mjs`, 144 checks): the source link is now 24 px high; at narrow widths «التالي» in the card header is reachable by keyboard (visible when focused), 2 Shift+Tab presses instead of 26 Tab presses. No Groq call for the change (`docs/TEST_LOG.md`) |
+
 ## Pre-challenge baseline — 2026-09-28
 
 Initial working version (tag `pre-challenge-baseline`, commit `532e965`). See [BASELINE.md](BASELINE.md) for the full inventory.

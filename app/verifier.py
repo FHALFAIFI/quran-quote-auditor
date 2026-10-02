@@ -395,13 +395,15 @@ def unavailable_result(ref: Reference | None) -> dict:
 
 
 def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None,
-           pin: Reference | None = None, hints: list[Span] | None = None) -> dict:
+           pin: Reference | None = None, hints: list[Span] | None = None, bounded: bool = False) -> dict:
     """Verify a quotation given as a list of raw article words.
 
     ``pin`` is a verse the editor chose by hand. It settles the location the way a nearby written reference
     does (repeated or very short phrases), but is never reported as a reference the writer wrote.
     ``hints`` are places the phrase search thinks are close; they are only *offered* to the fuzzy alignment,
     they never make a match count as a reference and they confirm nothing.
+    ``bounded`` is True when a marker (brackets, quotation marks) or the editor's own selection states where the quotation
+    begins and ends; only then may a one-word substitution in a very short quotation be corrected (see ``propose_wording``).
     """
     qf = [arabic.search_fold(w) for w in quote_words]
     quote_alts = [uthmani.alternatives(w) for w in quote_words]
@@ -511,7 +513,7 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None,
         # deterministic letter-form / diacritics finding; still worth a human look
         reasons.append(wording["message"])
 
-    proposal = propose_wording(index, quote_words, wording, chosen, fuzzy_best, fuzzy_good, loc)
+    proposal = propose_wording(index, quote_words, wording, chosen, fuzzy_best, fuzzy_good, loc, bounded)
     return {
         "wording": wording,
         "proposal": proposal,
@@ -557,8 +559,19 @@ def _word_fixes(quote_words: list[str], source_words: list[str], q0: int, s0: in
     return edits
 
 
+def _one_word_swapped(best: Alignment) -> bool:
+    """The quotation differs from its closest passage by exactly one word written in place of another one.
+
+    Word-level similarity cannot rate such a quotation above (n-1)/n, which is 0.667 for three words, so the
+    similarity floors below could never be met by a three-word quotation however well everything else is confirmed.
+    """
+    others = [op for op in best.ops if op[0] != "equal"]
+    equal = sum(i2 - i1 for tag, i1, i2, _, _ in best.ops if tag == "equal")
+    return equal >= 2 and len(others) == 1 and others[0][0] == "replace" and others[0][2] - others[0][1] == 1 and others[0][4] - others[0][3] == 1
+
+
 def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, chosen: Span | None,
-                    best: Alignment | None, good: list[Alignment], ref_ok: Reference | None) -> dict:
+                    best: Alignment | None, good: list[Alignment], ref_ok: Reference | None, bounded: bool = False) -> dict:
     """Decide whether a source-backed wording correction can be offered.
 
     Returns ``{"status": ..., "edits": [...], "vocalize": [...], "reason": str}``:
@@ -612,7 +625,11 @@ def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, ch
         if not ref_overlaps(ref_ok, index, best.span)[0]:
             out["reason"] = "الإحالة المكتوبة لا تشير إلى أقرب موضع، فلا يُعرف الموضع المقصود يقينًا."
             return out
-        if best.similarity < FUZZY_PROPOSE_WITH_REF:
+        # A three-word quotation with one word changed scores 0.667, under the floor, whatever else is settled. When the
+        # writer's marker or selection states its boundaries, an ayah-level reference (or chosen verse) points at the
+        # closest passage (checked above), no close rival exists and nothing but that one word differs, the floor is waived.
+        waived = bounded and ref_ok.ayah_start is not None and _one_word_swapped(best)
+        if best.similarity < FUZZY_PROPOSE_WITH_REF and not waived:
             out["reason"] = "الفرق كبير بين الاقتباس وأقرب موضع؛ يلزم تحقق بشري."
             return out
     elif best.similarity < FUZZY_PROPOSE_NO_REF:

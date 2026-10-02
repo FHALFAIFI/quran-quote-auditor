@@ -247,7 +247,7 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 ### Tests
 
 ```bash
-python -m pytest -q                      # 345 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
+python -m pytest -q                      # 351 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
                                          # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
 node --test tests/revision.test.mjs      # the revision engine alone
 
