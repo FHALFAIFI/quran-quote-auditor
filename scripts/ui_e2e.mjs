@@ -1,150 +1,107 @@
 // Browser end-to-end check of the editor workflow (Playwright, Chromium).
 //
-//   npm i playwright            # in any scratch directory; not a project dependency
-//   NODE_PATH=<scratch>/node_modules node scripts/ui_e2e.mjs http://localhost:8000 [screenshot-dir]
+//   NODE_PATH=<scratch>/node_modules node scripts/ui_e2e.mjs [--shots DIR] [--server URL] [--python PATH]
 //
-// Flow: load sample 2 → audit → approve the reference fix for «الشرح: 6» → reject one
-// optional change → check the revised article (only that span changed, all other
-// characters identical) → review-only filter → print-record contents → mobile layout.
-// Also pastes an article containing markup and checks that nothing is injected.
-import { createRequire } from "module";
-import fs from "fs";
-import path from "path";
+// Flow: sample 2 → audit → approve the reference fix for «الشرح: 6» → reject one optional formatting change → the revised article
+// differs only in that span → the final check shows it in its sentence → copy → reply draft → print record → decisions survive a
+// reload → markup pasted into the article is shown as text, never executed → phone layout. Starts its OWN AI-off server unless --server.
+import { chromium, check, norm, readSample, testServer, openPage, openRow, finish } from "./_ui_common.mjs";
 
-const require = createRequire(import.meta.url);
-const { chromium } = require("playwright");
-const base = (process.argv[2] || "http://localhost:8000").replace(/\/$/, "");
-const shots = process.argv[3] || null;
-if (shots) fs.mkdirSync(shots, { recursive: true });
-
-let failures = 0;
-const check = (cond, msg) => { console.log(`${cond ? "PASS" : "FAIL"}  ${msg}`); if (!cond) failures++; };
-const shot = async (page, name, opts = {}) => { if (shots) await page.screenshot({ path: path.join(shots, name), ...opts }); };
-
+const server = await testServer();
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, locale: "ar" });
-await ctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: base });
-const page = await ctx.newPage();
-const errors = [];
-page.on("pageerror", (e) => errors.push(String(e)));
-page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+const { page, errors, shot, overflowX } = await openPage(browser, server.base, { width: 1440, height: 900 }, false, "e-desktop");
+await page.goto(server.base);
+await page.evaluate(() => sessionStorage.clear());
+await page.reload();
+await page.waitForSelector("#mode-banner", { state: "attached" });
+await shot("01-home");
 
-await page.goto(base + "/");
-await page.waitForSelector("#mode-banner:not([hidden])", { state: "attached" });  // the banner lives in the collapsed help
-await shot(page, "01-home.png");
-
-// sample 2
 await page.selectOption("#sample-select", "sample-2");
 await page.waitForFunction(() => document.getElementById("article").value.length > 100);
-const original = await page.inputValue("#article");
+const original = (await page.inputValue("#article")).replace(/\r\n?/g, "\n");
+check(original === readSample("sample-2"), "the sample loaded");
 await page.click("#audit-btn");
-await page.waitForSelector("#results:not([hidden]) .finding", { timeout: 60000 });
+await page.waitForSelector("#results:not([hidden]) #current article", { timeout: 60000 });
 await page.waitForTimeout(600);
-await shot(page, "02-results.png");
+await shot("02-results");
+check((await page.locator("#queue .row").count()) === 7, `sample 2 lists 7 quotations (got ${await page.locator("#queue .row").count()})`);
+check((await page.inputValue("#revised-text")) === original, "revised article equals the original before any approval");
+check(!(await page.textContent("#input-summary")).includes("null") && (await page.locator("#input-body").isHidden()), "after the audit the pasted text gives way to one summary line (the article is shown once)");
 
-const nFindings = await page.locator(".finding").count();
-check(nFindings === 7, `sample 2 shows 7 findings (got ${nFindings})`);
+// find the finding with the wrong reference through the page's own state, open it from the list and approve
+const target = await page.evaluate(() => { const f = lastResult.findings.find((x) => x.quote.includes("فإن مع العسر يسرا") && x.changes.some((c) => c.kind === "reference" && !c.optional)); return { id: f.id, change: f.changes.find((c) => c.kind === "reference" && !c.optional).id }; });
+await openRow(page, target.id);
+const dm = norm(await page.textContent(`[data-change="${target.change}"] .delta`));
+check(dm.includes("الشرح") && dm.includes("٦") && dm.includes("٥"), `the reference change is shown exactly («${dm}»)`);
+await page.locator(`[data-change="${target.change}"] button[data-act="approved"]`).click();
+await page.waitForTimeout(500);
+check(/اعتمدتَ تغيير «الشرح: ٦» إلى «الشرح: ٥»/.test(norm(await page.textContent("#undo-line"))), "the page says exactly what was approved");
 
-// initially nothing approved: revised text identical to the original
-check((await page.inputValue("#revised-text")) === original.replace(/\r\n?/g, "\n"), "revised article equals original before any approval");
-
-// approve reference fix «الشرح: 6» → «الشرح: 5»
-const refChange = page.locator('[data-change$="-reference"]').filter({ hasText: "الشرح" }).first();
-await refChange.scrollIntoViewIfNeeded();
-await refChange.locator('button[data-act="approved"]').click();
-check(await refChange.evaluate((n) => n.classList.contains("approved")), "reference change marked approved");
-await shot(page, "03-approved-change.png");
-
-// reject an optional vocalization change
-const optional = page.locator(".change.optional").first();
-await optional.evaluate((n) => { for (let d = n.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true; });  // optional formatting sits in its own collapsed box, apart from the corrections
-await optional.locator('button[data-act="rejected"]').click();
-check(await optional.evaluate((n) => n.classList.contains("rejected")), "optional change marked rejected");
+// reject an optional formatting change (it sits in its own folded box, apart from the corrections)
+const optId = await page.evaluate(() => lastResult.findings.flatMap((f) => f.changes).find((c) => c.optional && c.kind === "vocalize").id);
+const optFinding = await page.evaluate((id) => lastResult.findings.find((f) => f.changes.some((c) => c.id === id)).id, optId);
+await openRow(page, optFinding);
+await page.locator(`#finding-${optFinding} details.f-all > summary`).click();
+const opt = page.locator(`[data-change="${optId}"]`);
+await opt.locator('button[data-act="rejected"]').click();
+check((await page.locator(`[data-change="${optId}"] button[data-act="rejected"]`).getAttribute("aria-pressed")) === "true", "the optional change is marked as ignored");
 
 const revised = await page.inputValue("#revised-text");
 const expected = original.replace("{فإن مع العسر يسرا} [الشرح: 6]", "{فإن مع العسر يسرا} [الشرح: 5]");
-check(expected !== original, "test precondition: sample contains the wrong reference");
+check(expected !== original, "test precondition: the sample contains the wrong reference");
 check(revised === expected, "revised article = original with ONLY «الشرح: 6» → «الشرح: 5»");
 check(revised.split("\n").length === original.split("\n").length, "line breaks preserved");
+await page.locator("#final").scrollIntoViewIfNeeded();
+const fin = norm(await page.textContent("#final-changes"));
+check((await page.locator("#final-changes del").allTextContents()).includes("الشرح: 6") && (await page.locator("#final-changes ins").allTextContents()).includes("الشرح: 5"), "the final check shows the change in its sentence (old struck, new marked)");
+check(fin.includes("الاقتباس") && /الفقرة|السطر/.test(fin), "and says where it is");
+await page.locator("#final details.full-text summary").click();
+check((await page.locator("#preview-view del").allTextContents()).includes("الشرح: 6") && (await page.locator("#preview-view .unresolved").count()) >= 1, "the full before/after view marks the change and the quotations not settled");
+await shot("03-final");
 
-// preview shows del/ins and unresolved marks
-const del = await page.locator("#preview-view del").allTextContents();
-const ins = await page.locator("#preview-view ins").allTextContents();
-check(del.includes("الشرح: 6") && ins.includes("الشرح: 5"), `preview shows before/after (del=${JSON.stringify(del)} ins=${JSON.stringify(ins)})`);
-check((await page.locator("#preview-view .unresolved").count()) >= 1, "unresolved quotations marked in preview");
-await page.locator(".editor-card").scrollIntoViewIfNeeded();
-await shot(page, "04-editor-preview.png");
-
-// copy
 await page.click("#copy-btn");
 const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => null));
-check(clip === null || clip === revised, "copy button puts the revised article on the clipboard");
-// the confirmation must appear beside the button that was pressed, not only in the page-level status line
-check(clip === null || /تم النسخ/.test(await page.locator("#copy-btn").innerText()), "copy button confirms the copy on the button itself");
+check(clip === null || clip === revised, "the copy button puts the revised article on the clipboard");
+check(clip === null || /تم النسخ/.test(await page.locator("#copy-btn").innerText()), "the copy button confirms the copy on the button itself");
 check(clip === null || (await page.locator("#copy-note").innerText()).includes("نُسخ المقال المعدّل"), "a note beside the copy button confirms the copy");
-// three primary figures on one row (two rows on a narrow screen), the other counts on demand
-const prim = await page.$$eval("#summary .stats .tile", (t) => t.map((x) => x.textContent.replace(/\s+/g, " ").trim()));
-check(prim.length === 3 && prim[0].includes("تحتاج مراجعة") && prim[1].includes("تصحيحات مقترحة") && prim[2].includes("اقتباسات مرصودة"), `summary shows three primary figures (${prim.join(" | ")})`);
 
-// reply draft for a social post: approved fix only, no claim about the whole post
 await page.click(".reply-box summary");
 const reply = await page.inputValue("#reply-text");
-check(reply.includes("«الشرح: 6» ← الصواب «الشرح: 5»") && reply.includes("وليس حكمًا على المنشور كله"), "reply draft lists the approved fix and the scope disclaimer");
-check(!reply.includes("155-156"), "reply draft omits corrections that were not approved");
+check(reply.includes("«الشرح: 6» ← الصواب «الشرح: 5»") && reply.includes("وليس حكمًا على المنشور كله"), "the reply draft lists the approved fix and the scope disclaimer");
+check(!reply.includes("155-156"), "the reply draft omits corrections that were not approved");
 
-// review-only filter
-await page.check("#only-review");
-const nFiltered = await page.locator(".finding").count();
-check(nFiltered > 0 && nFiltered < nFindings, `review filter narrows the list (${nFiltered}/${nFindings})`);
-await page.uncheck("#only-review");
-
-// print record
 await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
 const rec = await page.locator("#print-record").innerText();
-check(rec.includes("سجل مراجعة الاقتباسات"), "record has a title");
-check(rec.includes("ليست شهادة"), "record says it is not a certificate");
-check(rec.includes("الشرح: 5") && rec.includes("الشرح: 6"), "record lists the approved change (original and replacement)");
-check(rec.includes("quranpedia"), "record includes the source link");
-check(rec.includes("وقت جلب المصدر"), "record includes source retrieval time");
-check(rec.includes("هل عمل الاستخراج بالذكاء الاصطناعي"), "record states whether AI extraction ran");
-check(rec.includes("غير محسومة"), "record lists unresolved items");
+check(rec.includes("سجل مراجعة الاقتباسات") && rec.includes("ليست شهادة"), "the record has a title and says it is not a certificate");
+check(rec.includes("الشرح: 5") && rec.includes("الشرح: 6") && rec.includes("quranpedia"), "the record lists the approved change and the source link");
+check(rec.includes("وقت جلب المصدر") && rec.includes("هل عمل الاستخراج بالذكاء الاصطناعي") && rec.includes("غير محسومة"), "the record states the source time, whether AI ran, and the unresolved items");
 await page.emulateMedia({ media: "print" });
-if (shots) await page.pdf({ path: path.join(shots, "review-record.pdf"), format: "A4", printBackground: true });
-await shot(page, "05-print-record.png", { fullPage: true });
+await shot("04-print-record", true);
 await page.emulateMedia({ media: "screen" });
 
-// session persistence: reload keeps decisions
 await page.reload();
-await page.waitForSelector("#results:not([hidden]) .finding");
+await page.waitForSelector("#results:not([hidden]) #current article");
 check((await page.inputValue("#revised-text")) === expected, "decisions survive a reload (sessionStorage)");
 
-// XSS: markup in the article is shown as text, never parsed
+// markup in the article is shown as text, never parsed
+await page.click("#edit-btn");
 await page.click("#clear-btn");
 await page.fill("#article", '<img src=x onerror="window.__pwned=1"> قال تعالى: ﴿اقرأ باسم ربك الذي خلق﴾ [العلق: 2] <script>window.__pwned=2</script>');
 await page.click("#audit-btn");
-await page.waitForSelector("#results:not([hidden]) .finding");
-const refFix = page.locator('[data-change$="-reference"]').first();
-await refFix.locator('button[data-act="approved"]').click();
+await page.waitForSelector("#results:not([hidden]) #current article");
+const fix = await page.evaluate(() => lastResult.findings.flatMap((f) => f.changes).find((c) => c.kind === "reference" && !c.optional)?.id);
+if (fix) { await page.locator(`[data-change="${fix}"] button[data-act="approved"]`).click(); }
 check(await page.evaluate(() => window.__pwned === undefined), "no script executed from article text");
-check((await page.locator("#article-view img, #preview-view img, #findings img, #article-view script").count()) === 0, "no injected elements in the page");
+check((await page.locator("#article-view img, #preview-view img, #current img, #article-view script").count()) === 0, "no injected elements in the page");
 check((await page.inputValue("#revised-text")).includes('<img src=x onerror="window.__pwned=1">'), "markup preserved verbatim as text in the revised article");
 
-// mobile
-const m = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ar" });
-const mp = await m.newPage();
-await mp.goto(base + "/");
-await mp.selectOption("#sample-select", "sample-2");
-await mp.waitForFunction(() => document.getElementById("article").value.length > 100);
-await mp.click("#audit-btn");
-await mp.waitForSelector("#results:not([hidden]) .finding", { timeout: 60000 });
-const overflow = await mp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-check(overflow <= 1, `mobile: no horizontal scroll (overflow ${overflow}px)`);
-await shot(mp, "06-mobile-top.png");
-await mp.locator(".change").first().scrollIntoViewIfNeeded();
-await shot(mp, "07-mobile-change.png");
-await m.close();
-
-check(errors.length === 0, `no console errors (${errors.join(" | ")})`);
-await browser.close();
-console.log(`\nfailures: ${failures}`);
-process.exit(failures ? 1 : 0);
+const m = await openPage(browser, server.base, { width: 390, height: 844 }, true, "e-phone");
+await m.page.goto(server.base);
+await m.page.selectOption("#sample-select", "sample-2");
+await m.page.waitForFunction(() => document.getElementById("article").value.length > 100);
+await m.page.click("#audit-btn");
+await m.page.waitForSelector("#results:not([hidden]) #current article", { timeout: 60000 });
+check((await m.overflowX()) <= 1, `phone: no horizontal scroll (overflow ${await m.overflowX()}px)`);
+await m.shot("06-top");
+check(errors.length === 0 && m.errors.length === 0, `no console errors (${[...errors, ...m.errors].join(" | ")})`);
+finish(server, browser);

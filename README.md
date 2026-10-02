@@ -48,7 +48,7 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 ## Try it (about two minutes)
 
 1. Open https://quran-quote-auditor.onrender.com. **Render Free sleeps when idle**: Render says a spin-up takes about a minute (I measured 23 s once); wait for the page, and expect the first audit afterwards to take a few seconds more (the Quran text is downloaded once per instance).
-2. Press **«جرّب المقال التجريبي»** on the empty page: one click loads the demonstration article (file: `app/static/samples/sample-demo.txt`) and audits it, announces «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك» and takes you to the first item that needs your decision. For each such item the page shows the decisive difference first («يجزى ← يوفى», «الشرح: ٦ ← ٥») with «اعتماد التصحيح» / «اترك كما هو»; the full verse, the similarity percentage, the API links and the model/source notice sit under the details. The article has four quotations; **the two mistakes in it are deliberate misquotations written for the demo, not Quran text**:
+2. Press **«جرّب المقال التجريبي»** on the empty page: one click loads the demonstration article (file: `app/static/samples/sample-demo.txt`) and audits it, announces «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك» and shows the first item that needs your decision **beside your article** (on a phone: above it). The card shows the quoted words inside their sentence, the likely surah and ayah with its Quranpedia link, then the exact change before its two buttons («غيّر إلى «يوفى»» / «أبقِ «يجزى»»); the full verse, the similarity percentage, the API links and the model/source notice sit under the details. After each decision the panel moves on to the next waiting item and says what it did, with «تراجع». The article has four quotations; **the two mistakes in it are deliberate misquotations written for the demo, not Quran text**:
 
 | # | In the article | Expected result (deterministic; the model, if it answers, changes nothing here) |
 |---|---|---|
@@ -57,7 +57,7 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 | 3 | «إنما **يجزى** الصابرون أجرهم بغير حساب» [الزمر: 10] | «اختلاف — أقرب موضع مقترح» (not a confirmed match); proposal: «يجزى» → «يوفى», taken from Quranpedia's 39:10; the reference stays «غير محسومة» until the wording is settled |
 | 4 | «فإن مع العسر يسرا» [**الشرح: 6**] | words match 94:5; reference «خاطئة»; proposal: «الشرح: 6» → «الشرح: 5» |
 
-3. Decide both items; the bar at the bottom then turns into «نسخ المقال المعدّل» (the editor's before/after preview is below the list). Press it. Nothing changes without your approval; the article still says nothing about being verified as a whole. `tests/test_demo_article.py` pins these results.
+3. Decide both items. The panel then leads to **«المراجعة الأخيرة قبل النسخ»**: what will be copied, each change shown in its sentence (old struck, new marked), and every quotation still not settled; only there is «نسخ المقال المعدّل». Nothing changes without your approval; the page says it covers the quotations found, not the whole article. `tests/test_demo_article.py` pins these results.
 4. «تفاصيل هذا التدقيق» (under the status line) says whether the AI model answered, what it proposed and when the Quran text was fetched. If Groq's free tier answers 429 or is unavailable, a warning says so and the audit continues without the model. On the live demo the model has so far proposed nothing for this kind of post; the details then say so, and the result is the deterministic one.
 
 Earlier samples are still in the list («مثال: العلم», «مثال: الصبر (أخطاء شائعة)», «مثال: مقال بلا أقواس») and exercise unmarked quotations and the "possible" tier. The Uthmani quotation in the demo is a verbatim copy of **Tanzil** text (Tanzil Project, https://tanzil.net, CC BY 3.0, version 1.1); the page footer carries the credit and link.
@@ -65,7 +65,7 @@ Earlier samples are still in the list («مثال: العلم», «مثال: ا�
 ## What it does not claim
 
 - It does **not** say an article or post is "verified" or ready to publish. It checks only the quotations it found.
-- **Detection is not complete.** Short unmarked misquotations may be only «possible» or missed; ordinary prose can reuse Quran words and be shown as «possible»; the start or end of an unmarked quotation may need the editor's confirmation (shown as «غير محسوم — حدود الاقتباس»); a model can fail (see "AI use"). The editor can highlight any phrase and check it by hand.
+- **Detection is not complete.** Short unmarked misquotations may be only «possible» or missed; ordinary prose can reuse Quran words and be shown as «possible»; the start or end of an unmarked quotation may need the editor's confirmation (the card asks «أين يبدأ الاقتباس؟» / «أين ينتهي الاقتباس؟» and settles it in one tap); a model can fail (see "AI use"). The editor can highlight any phrase and check it by hand.
 - A «possible» phrase is **not** a verified quotation, and gets no replacement text until the editor confirms it and picks the verse.
 - **Uthmani script is recognised only as far as the documented rules go** ([docs/UTHMANI.md](docs/UTHMANI.md)). Before the change on 2 October 2026 (pre-challenge) a correct Uthmani quotation was shown as «difference» or «uncertain» and could get a wrong correction (30 of 41 on the frozen Uthmani set). Now 37 of those 41 read «matched», and none of the other 8 wrong quotations is. The rules explain 99.2% of the verses of the Tanzil Uthmani text (SOURCES.md §1b) and 98.8% of Quranpedia's Uthmani edition; about 50 rare spellings are not covered and read «uncertain» with no replacement. The held-out set was no longer untouched after its first run, and it contains label errors, so these figures are not an independent accuracy rate. A genuinely changed word, a different vowel or a wrong reference in Uthmani text is still flagged.
 - It does not proofread Arabic, interpret verses, translate, or give religious rulings.
@@ -247,16 +247,18 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 ### Tests
 
 ```bash
-python -m pytest -q                      # 344 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
+python -m pytest -q                      # 345 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
                                          # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
 node --test tests/revision.test.mjs      # the revision engine alone
 
 # browser end-to-end (Playwright installed in any scratch dir, not a project dependency)
-NODE_PATH=/path/to/scratch/node_modules node scripts/ui_journey_e2e.mjs --shots ./shots   # the judge's first journey at 1366 px and 390 px: starts its own server with AI off
-NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs http://localhost:8000 ./shots
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_journey_e2e.mjs --shots ./shots   # the judge's first journey at 1366, 390 and 320 px: starts its own server with AI off
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs --shots ./shots   # editor workflow, record, XSS, reload (own AI-off server; --server URL for yours)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_long_e2e.mjs --shots ./shots   # 5,809-character article, review sequence, keyboard focus vs the bottom bar, 320 px, URLs in Arabic text, slow/failed server, no findings, model failed
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_a11y_check.mjs   # axe-core (WCAG 2.2 AA + best practice) over eight states at 320/390/1366 px (needs axe-core installed beside playwright)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --shots ./shots   # unmarked-phrase workflow: starts its own server with AI off (no Groq call possible)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --live-ai https://<service> # opt-in: ONE audit = one Groq call; exit 2 = model did not answer
-NODE_PATH=/path/to/scratch/node_modules node scripts/ui_boundary_e2e.mjs http://localhost:8000 ./shots   # uncertain-boundary workflow (AI_PROVIDER=none; wait 60 s between browser scripts: rate limit)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_boundary_e2e.mjs --shots ./shots   # uncertain-boundary question: confirm, take the word in, choose the words, undo
 python scripts/measure_resources.py [--server]       # startup time and peak memory in fresh processes (needs a cached Quran text)
 python eval/validate_phrases.py                       # the frozen phrase set against the Hafs text
 python eval/run_eval.py --mode fallback               # labelled evaluation without any AI (--cases eval/heldout.json | eval/phrases_frozen.json)
@@ -331,7 +333,7 @@ The tool is an aid to an editor, not a substitute for one. A person still has to
 - **Detection is not complete.** Unmarked phrases of one or two words, phrases made only of common words, near matches with fewer than 4 matched words, a wrong first or last word of an unmarked quotation (reported only as "uncertain: boundary not settled", with the neighbouring words shown), quotations with omissions and rare Uthmani spellings can be missed or shown only as «possible» or «uncertain». Frozen set: 30 of 32 unmarked quotations found, 2 missed.
 - **«Possible» is not verified.** Ordinary prose can reuse Quran words (about 2–3 «possible» items per 1,000 words of Islamic-topic prose, 44 outside brackets in 19,794 untuned Wikipedia words). Close paraphrases such as «لا تحزن إن الله معنا دائما» (5 of 6 words from التوبة: 40) are reported as a candidate whose end is "uncertain".
 - **A short unmarked misquotation** (e.g. «إن الله مع الصابرون» with no reference and no «قال تعالى») is indistinguishable from prose by evidence: it is listed only as «possible» with its closest verse and a one-click confirm, or missed.
-- **Boundaries.** The tool cannot know where an unmarked quotation starts or ends, so the editor may need to confirm («حدود الاقتباس صحيحة») or adjust them. This makes many correct quotations read "uncertain".
+- **Boundaries.** The tool cannot know where an unmarked quotation starts or ends, so the editor may need to confirm («نعم، هذا هو الاقتباس كاملًا»), take the neighbouring word into the quotation, or choose the words by hand. This makes many correct quotations read "uncertain".
 - **AI may fall back.** On Groq's free tier a 429 can happen; the notice says so and the result is the deterministic one. A model can also propose prose or nothing.
 - **Speed.** A full-size article (about 1,000 words) took about 0.1–0.4 s locally with the phrase search; Render's CPU will be slower (not measured). Memory: a real `uvicorn` process peaked at 94.1 MB locally.
 - Automatic corrections are deliberately conservative: a short fuzzy quote, or a phrase found in several verses, gets review information but no replacement.
@@ -353,11 +355,14 @@ app/
   surahs.py          surah names, aliases, verse counts (metadata only)
   corrections.py     proposed changes with exact offsets (source words only)
   extraction/        provider interface, Groq + Gemini providers, call tracker, marked-quote extractor
-  static/            index.html, styles.css, app.js, revision.js (browser revision engine), samples/*.txt
+  static/            index.html, styles.css, app.js, revision.js (browser revision engine), surahs.js (surah names for the «آية أخرى» form), samples/*.txt
 tests/               verifier, references, normalization, pipeline, source, Gemini, Groq, corrections,
                      revision-engine (Node) tests
 scripts/live_smoke.mjs one focused journey of the demonstration article on a running instance (one audit; one Groq call if a model is configured; `--phone` for 390 px)
-scripts/ui_journey_e2e.mjs Playwright check of the first journey (demo action, verdict, first item, decisive difference, folded details, decisions, copy), desktop + phone, own AI-off server
+scripts/ui_journey_e2e.mjs Playwright check of the first journey (demo action, verdict, first item, decisive difference, folded details, decisions, final check, copy) at 1366/390/320 px, own AI-off server
+scripts/ui_long_e2e.mjs Playwright check of a near-limit article, sequence, keyboard focus against the bottom bar, bidi, slow/failed server, no-findings and model-failed states
+scripts/ui_a11y_check.mjs axe-core pass (WCAG 2.2 AA) over eight states at three widths
+scripts/_ui_common.mjs shared helpers of the browser checks
 scripts/e2e_check.py end-to-end API check of a running instance (samples, errors, files not served)
 scripts/ui_e2e.mjs   Playwright browser check of the editor workflow, desktop + mobile
 scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirming a verse, manual selection (own AI-off server);
@@ -372,7 +377,7 @@ docs/TEST_LOG.md     dated end-to-end observations (local + live)
 docs/RENDER_DEPLOY.md Render settings, deploy steps and checks (the live demo's host)
 render.yaml          optional Render Blueprint with the same settings (no secret values)
 vercel.json, .vercelignore  only for the earlier Vercel baseline deployment
-eval/                labelled cases, frozen phrase set (+ SHA-256), label validators, scorer, raw results
+eval/                labelled cases, frozen phrase set and frozen long-article set (+ SHA-256), label validators, scorer, raw results
 SOURCES.md           sources, licences and attribution record
 BASELINE.md          pre-challenge baseline declaration
 ```

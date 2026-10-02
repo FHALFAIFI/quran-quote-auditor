@@ -3,11 +3,11 @@
 //   NODE_PATH=<dir with playwright>/node_modules node scripts/live_smoke.mjs https://quran-quote-auditor.onrender.com [screenshot-dir] [--phone]
 //
 // Makes ONE audit (so, on a live instance with a model configured, ONE Groq call). Flow: the empty page offers
-// «جرّب المقال التجريبي» → one click loads and audits the demonstration article → the verdict, and the first item needing the
-// editor on screen with «يجزى ← يوفى» → the model/source notice above the findings is folded (what shows is measured and printed) →
-// both required changes are approved (the second by «اعتماد التصحيح» too) → the dock offers «نسخ المقال المعدّل» → the revised text
-// equals the article with exactly «يجزى»→«يوفى» and «الشرح: 6»→«الشرح: 5» → the clipboard holds it.
-// --phone runs it at 390x844 with touch instead of 1366x900.
+// «جرّب المقال التجريبي» → one click loads and audits the demonstration article → the verdict, and the first decision on screen with
+// «يجزى ← يوفى» and its two buttons → the audit-method notice is folded (what shows is measured and printed) → the first decision is
+// approved, the panel moves on to the second, which is approved too → the final check lists both changes in their sentences → copy →
+// the clipboard holds the article with exactly «يجزى»→«يوفى» and «الشرح: 6»→«الشرح: 5». --phone runs it at 390x844 with touch.
+// Prints the deployed build (/api/health "build") so the run can be tied to a commit.
 import { createRequire } from "module";
 import fs from "fs";
 import path from "path";
@@ -20,6 +20,7 @@ const shots = args[1] || null;
 if (shots) fs.mkdirSync(shots, { recursive: true });
 let failures = 0;
 const check = (cond, msg) => { console.log(`${cond ? "PASS" : "FAIL"}  ${msg}`); if (!cond) failures++; };
+const norm = (t) => (t || "").replace(/\s+/g, " ").trim();
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: phone ? { width: 390, height: 844 } : { width: 1366, height: 900 }, locale: "ar", isMobile: phone, hasTouch: phone, acceptDownloads: false });
 await ctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: base });
@@ -35,7 +36,7 @@ console.log(`INFO  page loaded in ${((Date.now() - t0) / 1000).toFixed(1)} s (${
 const health = await (await page.request.get(`${base}/api/health`)).json();
 console.log(`INFO  health: mode=${health.mode} provider=${health.provider} build=${health.build}`);
 
-check((await page.textContent("#demo-btn")).trim() === "جرّب المقال التجريبي" && await inView("#demo-btn"), "the empty page shows «جرّب المقال التجريبي» on the first screen");
+check(norm(await page.textContent("#demo-btn")) === "جرّب المقال التجريبي" && await inView("#demo-btn"), "the empty page shows «جرّب المقال التجريبي» on the first screen");
 await shot("0-empty");
 const t1 = Date.now();
 await page.click("#demo-btn");
@@ -45,47 +46,45 @@ await page.waitForTimeout(1800);
 const article = (await page.inputValue("#article")).replace(/\r\n?/g, "\n");
 await shot("1-landing");
 
-check((await page.textContent("#verdict-title")).trim() === "وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك", "the verdict: «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك»");
+check(norm(await page.textContent("#verdict-title")) === "وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك", "the verdict: «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك»");
 check((await page.textContent("#verdict")).includes("مقال تجريبي كُتب لهذا العرض"), "the page says the two mistakes in the demo are deliberate");
-check(await page.evaluate(() => document.activeElement?.id === "finding-3") && await inView("#finding-3 .ch-delta"), "the first item needing review is on screen and focused");
-const delta = (await page.textContent("#finding-3 .d-before")).trim() + " ← " + (await page.textContent("#finding-3 .d-after")).trim();
-check(delta === "يجزى ← يوفى", `its decisive difference: ${delta}`);
-check((await page.locator("ol.findings > li").count()) === 4, "four quotations found");
-check((await page.locator(".change:not(.optional)").count()) === 2, "two required changes (one word, one reference)");
-const chips = await page.locator("ol.findings > li").evaluateAll((els) => els.map((e) => e.textContent.replace(/\s+/g, " ").slice(0, 600)));
-check(chips[0].includes("رسم عثماني") && chips[0].includes("إحالة مطابقة"), "1: Uthmani-script quotation matched, reference matched");
-check(chips[1].includes("مطابق") && chips[1].includes("إحالة مطابقة"), "2: ordinary-script quotation matched, reference matched");
-check(chips[2].includes("اختلاف") && chips[2].includes("مطابقة تقريبية"), "3: the wrong word is a difference, with the «approximate match» warning");
-check(chips[3].includes("إحالة خاطئة") && chips[3].includes("٦") && chips[3].includes("٥"), "4: the wrong reference is flagged: ٦ ← ٥");
+check(await page.evaluate(() => document.activeElement?.id === "finding-3") && await inView("#finding-3 .delta"), "the first decision is on screen and focused");
+const delta = norm(await page.textContent("#finding-3 .d-before")) + " ← " + norm(await page.textContent("#finding-3 .d-after"));
+check(delta === "يجزى ← يوفى", `its exact change: ${delta}`);
+check(await inView('[data-change="3-wording"] button[data-act="approved"]'), "its buttons are on screen");
+check((await page.locator("#queue .row").count()) === 4, "four quotations found");
+const rows = await page.locator("#queue .row").evaluateAll((els) => els.map((e) => e.textContent.replace(/\s+/g, " ")));
+check(rows.filter((r) => r.includes("مطابق للمصحف")).length === 2, "1 and 2 (the Uthmani and the ordinary-script quotations) are matched and need nothing");
+check((await page.locator("#queue .row.need").count()) === 2, "3 (wrong word) and 4 (wrong reference) wait for the writer");
 
-// the notice above the findings: measure what is actually visible
-const n = await page.evaluate(() => { const e = document.getElementById("notices"); return { open: [...e.querySelectorAll("details")].filter((d) => d.open).length, text: e.innerText.replace(/\s+/g, " ").trim(), h: Math.round(e.getBoundingClientRect().height), notices: e.querySelectorAll(".notice").length }; });
-console.log(`INFO  notices region: ${n.h}px high, ${n.notices} warning(s), visible text: «${n.text}»`);
-check(n.open === 0, "model and source notices are folded (no <details> open)");
-check(health.mode === "ai" ? n.text.length <= 60 : n.text.length <= 180, "what is visible of them is one short line");
+const n = await page.evaluate(() => { const e = document.getElementById("notices"); return { open: [...e.querySelectorAll("details")].filter((d) => d.open).length, text: e.innerText.replace(/\s+/g, " ").trim(), h: Math.round(e.getBoundingClientRect().height) }; });
+console.log(`INFO  notices region: ${n.h}px high, visible text: «${n.text}»`);
+check(n.open === 0, "the audit-method notice is folded");
+check(health.mode === "ai" ? n.text.length <= 70 : n.text.length <= 140, "what is visible of it is one short line");
 await page.locator("#notices details > summary").click().catch(() => {});
-console.log(`INFO  opened: ${(await page.textContent("#notices")).replace(/\s+/g, " ").trim()}`);
+console.log(`INFO  opened: ${norm(await page.textContent("#notices"))}`);
 await shot("2-notice-open");
 await page.locator("#notices details > summary").click().catch(() => {});
 
-// nothing changes before approval
-await page.click("#tab-text");
 check((await page.inputValue("#revised-text")).replace(/\r\n?/g, "\n") === article, "before any decision the revised text equals the article");
-check(!(await page.locator("#dock-copy").isVisible()), "the final action is not offered before both decisions");
-for (const b of await page.locator(".change:not(.optional) button.approve").all()) await b.click();
-await page.waitForTimeout(300);
-check((await page.textContent("#dock-text")).includes("اكتملت قراراتك (٢ من ٢)"), "the dock says both decisions are made");
-check(await page.locator("#dock-copy").isVisible() && await inView("#dock-copy"), "«نسخ المقال المعدّل» is the visible final action");
+await page.locator('#current button[data-act="approved"]').first().click();
+await page.waitForTimeout(900);
+check(await page.evaluate(() => document.activeElement?.id === "finding-4"), "the panel moved on to the second decision by itself");
+await page.locator('#current button[data-act="approved"]').first().click();
+await page.waitForTimeout(700);
+check(norm(await page.textContent("#panel-progress")).startsWith("حسمتَ كل ما يحتاج قرارك"), "nothing is left waiting");
+await page.locator("#final").scrollIntoViewIfNeeded();
+const fin = norm(await page.textContent("#final"));
+check(/سيُنسخ مقالك بعد ٢ تغييرين اعتمدتَهما/.test(fin) && (await page.locator("#final-changes del").count()) === 2, "the final check lists both changes in their sentences");
+check(fin.includes("ليس شهادة بأن المقال كله متحقق منه"), "and says it does not certify the whole article");
 const revised = (await page.inputValue("#revised-text")).replace(/\r\n?/g, "\n");
 const expected = article.replace("يجزى", "يوفى").replace("[الشرح: 6]", "[الشرح: 5]");
-check(revised === expected && revised !== article, "after approving both: exactly «يجزى»→«يوفى» and «الشرح: 6»→«الشرح: 5», nothing else changed");
-await page.click("#tab-preview");
-await shot("3-approved");
-await page.click("#dock-copy");
+check(revised === expected && revised !== article, "exactly «يجزى»→«يوفى» and «الشرح: 6»→«الشرح: 5»; nothing else changed");
+await shot("3-final");
+await page.click("#copy-btn");
 await page.waitForTimeout(500);
 const clip = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n?/g, "\n");
 check(clip === expected, "the clipboard holds the revised article");
-check(!(await page.textContent("#dock-text")).includes("تحقق من المقال كله"), "no claim that the whole article is verified");
 check((await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 1, "no horizontal overflow");
 check(errors.length === 0, `no console/page errors ${errors.join(" | ")}`);
 await browser.close();

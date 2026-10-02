@@ -1,85 +1,74 @@
-// Browser end-to-end check of the "uncertain boundary" workflow (Playwright, Chromium). No Groq call: run the server with AI_PROVIDER=none.
+// Browser check of the uncertain-boundary question (Playwright, Chromium).
 //
-//   AI_PROVIDER=none uvicorn app.main:app --port 8011      # needs the Quran text (live or cached)
-//   NODE_PATH=<dir with playwright>/node_modules node scripts/ui_boundary_e2e.mjs http://localhost:8011 [screenshot-dir]
+//   NODE_PATH=<scratch>/node_modules node scripts/ui_boundary_e2e.mjs [--shots DIR] [--server URL] [--python PATH]
 //
-// Flow: an article with an unmarked, CORRECT quotation that begins in the middle of a verse right after prose
-// → audit → the card says «غير محسوم — حدود الاقتباس», explains what "uncertain" means, shows the verse's previous word beside the
-// article's, and offers two buttons → «عدّل الحدود بنفسك» selects the span in the textarea and enables «افحص المقطع المحدَّد» →
-// «حدود الاقتباس صحيحة» re-checks the same span as a manual highlight → wording becomes «مطابق» and the note disappears.
-import { createRequire } from "module";
-import fs from "fs";
-import path from "path";
-
-const require = createRequire(import.meta.url);
-const { chromium } = require("playwright");
-const base = (process.argv[2] || "http://localhost:8011").replace(/\/$/, "");
-const shots = process.argv[3] || null;
-if (shots) fs.mkdirSync(shots, { recursive: true });
-
-let failures = 0;
-const check = (cond, msg) => { console.log(`${cond ? "PASS" : "FAIL"}  ${msg}`); if (!cond) failures++; };
-const shot = async (page, name) => { if (shots) await page.screenshot({ path: path.join(shots, name), fullPage: true }); };
+// A quotation written straight after an ordinary word («فتذكر ومن يتق الله يجعل له مخرجا،») matches the verse, but nothing says whether
+// the word before it belongs to the quotation. The card must not call it «matched»; it must ask where the quotation begins, show the
+// word in the article and the word in the verse, and settle it in one step: confirm the span as it is, take the neighbouring word into
+// the quotation, or choose the words by hand. Each step is reversible. Whatever is chosen, nothing in the article changes.
+import { chromium, check, norm, testServer, openPage, finish } from "./_ui_common.mjs";
 
 const quote = "ومن يتق الله يجعل له مخرجا";
 const article = `إذا ضاقت بك السبل فتذكر ${quote}، واطلب المزيد.`;
-
+const server = await testServer();
 const browser = await chromium.launch();
-const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "ar" })).newPage();
-const errors = [];
-page.on("pageerror", (e) => errors.push(String(e)));
-page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+for (const [name, vp, mobile] of [["desktop", { width: 1280, height: 900 }, false], ["phone", { width: 390, height: 844 }, true]]) {
+  console.log(`\n== ${name}`);
+  const { page, errors, shot, overflowX, audit } = await openPage(browser, server.base, vp, mobile, `b-${name}`);
+  await page.goto(server.base);
+  await page.evaluate(() => sessionStorage.clear());
+  await audit(article);
+  const card = page.locator("#current article");
+  check((await page.locator("#queue li").count()) === 1, "one quotation");
+  check(norm(await card.locator(".f-head .state").textContent()).includes("حدود الاقتباس غير محسومة"), "the single state word says the boundary is not settled");
+  check((await card.locator(".state.done").count()) === 0 && !norm(await card.locator(".f-head").textContent()).includes("مطابق"), "the card's state does not say «matched»");
+  const ask = card.locator(".ask.bounds");
+  check(norm(await ask.locator(".q-title").textContent()) === "أين يبدأ الاقتباس؟", "the question is «أين يبدأ الاقتباس؟»");
+  const text = norm(await ask.textContent());
+  check(text.includes("فتذكر") && /وفي الآية: الآخر/.test(text), "it shows the word in the article and the word in the verse");
+  const btns = await ask.locator("button").allTextContents();
+  check(btns.map(norm).join("|") === "«فتذكر» من الاقتباس|نعم، هذا هو الاقتباس كاملًا|حدّد الكلمات بنفسك|ليس اقتباسًا", `the choices are plain (${btns.map(norm).join(" | ")})`);
+  check(norm(await card.locator(".ctx").first().textContent()).includes("فتذكر " + quote), "the quoted words are shown in the sentence");
+  check((await card.locator(".where a").first().getAttribute("href")).includes("quranpedia"), "the verse's source link is on the card");
+  await shot("1-uncertain");
 
-await page.goto(base + "/");
-await page.fill("#article", article);
-await page.click("#audit-btn");
-await page.waitForSelector("#results:not([hidden]) .finding", { timeout: 60000 });
-await shot(page, "b1-uncertain.png");
+  // by hand: the span editor, one tap on the word before
+  await ask.locator('[data-act="adjust-bounds"]').click();
+  check((await page.locator(".span-editor .w.in").count()) === 6 && (await page.locator(".span-editor .w.out").count()) > 0, "the editor lists the words around the span; six are inside");
+  await page.locator(".span-editor .w", { hasText: "فتذكر" }).click();
+  check((await page.locator(".span-editor .w.in").count()) === 7, "tapping the word before adds it");
+  await page.locator(".span-editor .w", { hasText: "فتذكر" }).click();
+  check((await page.locator(".span-editor .w.in").count()) === 6, "tapping the first word inside takes it out again");
+  await shot("2-editor");
+  await page.locator(".span-editor .w", { hasText: "فتذكر" }).click();
+  await page.click('[data-act="check-span"]');
+  await page.waitForFunction(() => document.querySelector("#current .ctx mark")?.textContent.startsWith("فتذكر"), null, { timeout: 30000 });
+  check((await page.locator("#current .ask.bounds").count()) === 0, "a span chosen by hand raises no boundary question");
+  check(/ثبّتَّ حدود الاقتباس/.test(norm(await page.textContent("#undo-line"))), "the page says the boundary was fixed, with «تراجع»");
+  check((await page.inputValue("#revised-text")) === article, "nothing in the article changed");
+  await shot("3-after-editor");
+  await page.locator("#undo-line button").click();
+  await page.waitForSelector("#current .ask.bounds");
+  check(norm(await page.textContent("#current .ask.bounds .q-title")) === "أين يبدأ الاقتباس؟", "«تراجع» brings the original question back");
 
-const card = page.locator(".finding").filter({ hasText: quote });
-check((await page.locator(".finding").count()) === 1, "one finding");
-check((await card.locator(".f-head .chip.warn").first().innerText()).includes("غير محسوم — حدود الاقتباس"), "the wording chip says «غير محسوم — حدود الاقتباس»");
-check((await card.locator(".f-head .chip.review").count()) === 1, "the card carries «يحتاج مراجعة»");
-check((await card.locator(".f-head .chip.ok").count()) === 0, "no green «matched» chip");
-const box = card.locator(".boundary-box");
-check((await box.count()) === 1, "the card has the boundary explanation box");
-const boxText = await box.innerText();
-check(boxText.includes("لا يعني أن الألفاظ خاطئة") && boxText.includes("حدود الاقتباس لم تتحدد"), "the box explains that «uncertain» means the boundary was not established, not that the wording is wrong");
-check(boxText.includes("فتذكر") && boxText.includes("الآخر"), "the box shows the article's previous word and the Quran's previous word");
-check((await page.locator("#boundary-note").isVisible()) && (await page.locator("#boundary-note").innerText()).includes("لأن حدودها لم تتحدد"), "the summary carries the explanation note");
-check((await box.locator("button").count()) === 2, "two buttons: confirm and adjust");
-await page.click("#summary .more-stats summary");  // the secondary counts are on demand
-check((await page.locator("#summary .tile").filter({ hasText: "غير محسومة" }).locator(".n").innerText()) === "١", "summary counts one uncertain");
+  // one tap: «فتذكر» is part of the quotation
+  await page.locator('[data-act="extend-start"]').click();
+  await page.waitForFunction(() => document.querySelector("#current .ctx mark")?.textContent.startsWith("فتذكر"), null, { timeout: 30000 });
+  check((await page.locator("#current .ask.bounds").count()) === 0, "«فتذكر» من الاقتباس: the span now includes the word and the question is gone");
+  await page.locator("#undo-line button").click();
+  await page.waitForSelector("#current .ask.bounds");
 
-// adjust: the span is selected in the textarea, the check button is enabled
-await box.locator('button[data-act="adjust-bounds"]').click();
-const sel = await page.evaluate(() => { const t = document.getElementById("article"); return t.value.slice(t.selectionStart, t.selectionEnd); });
-check(sel === quote, "«عدّل الحدود بنفسك» selects exactly the identified span in the article box");
-check(!(await page.locator("#phrase-btn").isDisabled()), "«افحص المقطع المحدَّد» is enabled by that selection");
-await shot(page, "b2-selected.png");
-
-// the editor widens the selection by hand to take the previous word → manual boundaries are respected as given
-await page.evaluate(() => { const t = document.getElementById("article"); t.setSelectionRange(t.selectionStart - "فتذكر ".length, t.selectionEnd); t.dispatchEvent(new Event("select")); });
-await page.click("#phrase-btn");
-await page.waitForFunction(() => document.querySelector(".finding .quote-text")?.textContent.startsWith("فتذكر"), null, { timeout: 30000 });
-const manual = page.locator(".finding");
-check((await manual.locator(".f-head .chip.manual").count()) === 1, "the manual highlight is labelled as the editor's own");
-check((await manual.locator(".boundary-box").count()) === 0, "no boundary question for a manual highlight");
-check((await manual.locator(".f-head .chip.warn").count()) === 0 || !(await manual.locator(".f-head .chip.warn").first().innerText()).includes("حدود"), "no «حدود الاقتباس» chip on a manual highlight");
-
-// back to the original and confirm via the button
-await page.click("#audit-btn");
-await page.waitForSelector("#results:not([hidden]) .finding .boundary-box", { timeout: 60000 });
-await page.locator('.finding button[data-act="confirm-bounds"]').click();
-await page.waitForSelector(".finding .chip.manual", { timeout: 30000 });
-const done = page.locator(".finding");
-check((await done.locator(".boundary-box").count()) === 0, "after «حدود الاقتباس صحيحة» the boundary box is gone");
-check((await done.locator(".f-head .chip.ok").count()) === 1, "the wording now reads «مطابق»");
-check((await page.locator("#boundary-note").isHidden()), "the summary note is hidden when nothing is uncertain");
-check((await done.locator(".quote-text").textContent()) === quote, "the span itself is unchanged");
-await shot(page, "b3-confirmed.png");
-
-check(errors.length === 0, `no page errors${errors.length ? ": " + errors.join(" | ") : ""}`);
-await browser.close();
-console.log(failures ? `${failures} FAILED` : "all checks passed");
-process.exit(failures ? 1 : 0);
+  // confirm as it is
+  await page.locator('[data-act="confirm-bounds"]').click();
+  await page.waitForSelector("#current .ask.bounds", { state: "detached", timeout: 30000 });
+  const done = page.locator("#current article");
+  check(norm(await done.locator(".f-head .state").textContent()).includes("مطابق للمصحف"), "after «نعم، هذا هو الاقتباس كاملًا» the wording reads matched");
+  check(norm(await done.locator(".ctx mark").textContent()) === quote, "the span itself is unchanged");
+  check(/ثبّتَّ حدود الاقتباس/.test(norm(await page.textContent("#undo-line"))), "this too can be taken back");
+  check(norm(await page.textContent("#final-summary")).includes("لم تعتمد أي تغيير"), "the final check says the article is copied as written");
+  check((await page.inputValue("#revised-text")) === article, "the article is unchanged");
+  await shot("4-confirmed");
+  check((await overflowX()) <= 1, "no horizontal overflow");
+  check(errors.length === 0, `no page errors${errors.length ? ": " + errors.join(" | ") : ""}`);
+}
+finish(server, browser);

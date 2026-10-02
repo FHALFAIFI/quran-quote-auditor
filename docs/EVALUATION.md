@@ -421,6 +421,7 @@ The three demo samples (`app/static/samples`, fallback mode): sample 1 and 2 unc
 
 **Interface.** An uncertain finding says «غير محسوم — حدود الاقتباس» and «يحتاج مراجعة», explains that this means the quotation boundary could not be established (not that the wording is wrong), shows the neighbouring words, and offers
 «حدود الاقتباس صحيحة» (re-checks the same span as the editor's own highlight, with the proposed verse) and «عدّل الحدود بنفسك» (selects the span in the article box, ready for «افحص المقطع المحدَّد»). A note under the summary counts them.
+*(Superseded on 2 October evening: the card now asks «أين يبدأ/ينتهي الاقتباس؟», shows the article's word and the verse's word, and offers «نعم، هذا هو الاقتباس كاملًا», ««X» من الاقتباس» and a word-level editor; the detection behind it is unchanged. See the next section.)*
 
 
 ## Uthmani-script quotations (2026-10-02, fallback only, no Groq) — pre-challenge
@@ -437,3 +438,33 @@ Full write-up, rules, disclosure and reproduction commands: [UTHMANI.md](UTHMANI
 The three earlier sets (`cases`, `heldout`, `phrases_frozen`) re-run on the final code: rows, negative hits, formula hits and extra findings **identical** to the run on `976395e`
 (`eval/results/*before-uthmani-976395e-*` vs `*after-uthmani-final-*`). AI mode was not re-evaluated.
 The rules were checked against whole Uthmani texts, with the held-out verses excluded: `eval/check_uthmani_rules.py`, `eval/results/uthmani-rules-*-excl-heldout.json`.
+
+
+## Long articles with partial, unmarked and one-word-wrong quotations (2026-10-02 night, fallback only, no Groq) — pre-challenge
+
+**What was added.** `eval/articles_frozen.json` (SHA-256 in `eval/articles_frozen.sha256`, commit `efb6fe8`): five articles, 25 gold quotations, 11 sentences that resemble Quran wording but are not Quran text (negatives), 4 everyday formulae. It was **written and frozen before the app was run on any of its articles**, and no detection code was changed afterwards: `git diff` of `app/*.py` between the freezing commit and the interface commit is empty. L1 is 5,809 characters (limit 6,000) with 11 quotations (marked and unmarked, complete and cut short, one wrong word, one wrong ayah number, a whole surah without marks, a short phrase next to prose words) and two look-alike sentences; L2 orphan care; L3 a social post (emoji, a URL, a Latin reference); L4 governance prose; L5 ordinary prose with no quotation. Quran words were read from the Quranpedia text by `eval/build_articles.py`; every label is checked by `eval/validate_articles.py` (own normalisation, not the app's matching code). Like the other sets it was written by the same AI-assisted workflow as the app, so it is **not an independent sample** and probably favours wordings that workflow finds natural; labels still await a human reviewer.
+
+**Run 1 (`eval/results/fallback-20261002-220008-articles-frozen-run1-before-ui.json`, AI off, code `5be1ac3`'s detection = today's).** The only run; nothing was tuned against it.
+
+| Observed | Result |
+|---|---|
+| Gold quotations detected (any tier, verse shown) | 24 / 25 (marked 11/11; unmarked 13/14; incomplete 7/7; one wrong word 6/6; wrong ayah number 2/2) |
+| Missed | 1: «وبالوالدين إحسانا» (two words, occurs in five verses; counted in the notice «لم تُعرض … عبارة قصيرة»; the writer can select it) |
+| Of the 14 unmarked: shown as «candidate» / as «possible» | 11 / 2 (one missed) |
+| False «matched» wording on a misquotation | 0 |
+| Findings on the 11 look-alike sentences or on formulae | 0 / 0 |
+| Other findings on unlabelled text | 1: «بعضهم على بعض» (3 words that are in the Quran), «possible», no replacement |
+| Wording graded as expected / as an abstention (uncertain) | 16 / 8 |
+| Replacement text proposed for the 6 one-word-wrong quotations | 2 (both marked, long enough); 4 only as a difference or «possible» with the verse shown |
+| Wrong replacement proposed | 0 |
+| Reference | 20 correct, 3 abstained, 1 wrong (see below) |
+
+**What this says and does not say.** Most unmarked quotations are *found*, but 8 of 24 get an abstention, and for the unmarked ones the reason is almost always the boundary rule: a comma or an adjacent prose word does not settle where a quotation ends, so the card asks the writer. That is the design (see the boundary sections above), and it is why the interface now settles it in one step. It is **not** evidence that the search is better than before: the three earlier sets were re-run on the same code and give rows, negative hits, formula hits and extra findings **identical** to the previous final run (`eval/results/fallback-*after-ui-revision-*` vs `*after-uthmani-final-*`; `eval/phrases_frozen.sha256`, `eval/uthmani_heldout.sha256` verify).
+
+**Label problem found after the run (not corrected, per the freeze).** L1's whole-surah quotation (103:1–3, unmarked) follows the words «سورة العصر:» in the article; I labelled its reference «missing», but the page names the surah, so the app reads a surah-only reference as matched. The scorer counts that as one `false_verified_reference`; it is a label ambiguity, not a wrong verdict. The frozen file stays as written.
+
+**Remaining misses and false suggestions on this set:** the missed two-word phrase above; «بعضهم على بعض» shown as «possible» (a true Quran phrase the writer did not mean as a quotation); four one-word-wrong passages get no replacement (three unmarked and one marked three-word quotation, «واستعينوا بالصبر الصلاة», reported as a difference with the verse and no proposed text). None of the 11 look-alike sentences produced any suggestion.
+
+**AI mode was not run on this set.** No claim is made that the model improves detection on long articles.
+
+**Interface (front end only).** Reproduction of every interface state is in `scripts/ui_*_e2e.mjs` (below, TEST_LOG).
