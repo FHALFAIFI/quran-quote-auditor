@@ -37,6 +37,38 @@ _Record every change made during the challenge here, with its date. Nothing yet.
 | 2026-10-02 | `0eacaaa` | Uthmani-script matching (`app/uthmani.py`, `docs/UTHMANI.md`): documented equivalences applied only to words that show an Uthmani feature, equivalence only by identical letters (hamza seats included); joined vocative split into two tokens; verifier level `uthmani` with `wording.script`; a recognised spelling is never replaced; same-consonant spelling no rule covers → «uncertain», no replacement; wrong reference judged on its own; optional «script» conversion is formatting, counted apart (`stats.optional_changes`); pause signs no longer split an unmarked copied phrase. 103 tests; held-out: correct quotations given a wrong correction 30 → 1 (a label error); the three older sets re-run byte-identical |
 | 2026-10-02 | `cccd084` | Interface simplified around the editor's task: first screen = title, purpose, sample, text box, one primary button, short safety line, help collapsed; three primary figures; cards that need the editor first in a clear order; correct quotations as collapsed rows; optional formatting apart, neutral, not counted; flat colours; `scripts/ui_uthmani_e2e.mjs` |
 | 2026-10-02 | `1783cfe` + docs | SOURCES for the Uthmani texts; README, EVALUATION, TEST_LOG, CONTINUATION updated; the submission video is captions-only (no system voice) and re-recorded on the revised live interface; deck slides 6–8 updated |
+| 2026-10-02 | (this commit) | **Provenance clean-up of the Uthmani test data and rebuilt history (docs and data provenance only; `app/` unchanged).** The Uthmani fixture and the two evaluation sets had first been taken from a copy of the same text served by another site's API; they are now Tanzil's own text with Tanzil's notice, the two evaluation scripts read Tanzil's XML, and the six commits of 2 October that carried the first versions were rebuilt (map below). No quotation, article or label changed; all Uthmani evaluation numbers were reproduced. Details: `SOURCES.md` §1b, `docs/UTHMANI.md`, `docs/TEST_LOG.md`. |
+
+### History rebuilt on 2 October 2026 — old → new commit IDs
+
+The six commits `845844d` … `cdf151b` were rebuilt on `976395e` because their first versions of the Uthmani fixture and evaluation sets came from a copy of the text served by another site's API instead of Tanzil's own download (the text is identical, letter for letter, see `SOURCES.md` §1b). The rebuilt commits keep the author, the author date and (apart from the source wording) the message; their contents differ only in:
+
+* the fixture and the two evaluation sets: provenance strings (`source`, the `_about` note, and in the dev set the case ids and tags that named the first copy's site); Tanzil's copyright notice added inside each file; no article, quotation, gold label or negative changed (the SHA-256 of each set's content without provenance fields is the same before and after, see `docs/UTHMANI.md`);
+* eight result files in `eval/results/` (case-id and tag labels, Tanzil's notice) and three rule-analysis result files (one text label); every run id and every number is unchanged;
+* `eval/validate_uthmani.py` and `eval/check_uthmani_rules.py` (they read Tanzil's XML through the new `eval/tanzil_text.py`), the docstring of `tests/test_uthmani.py`, a credit comment in `scripts/ui_uthmani_e2e.mjs`;
+* the documentation wording about the source, and the commit IDs quoted in the docs, which are the new ones.
+
+The tag `pre-challenge-baseline` (`532e965`) and everything before `976395e` are untouched. The push of 2 October to GitHub was made under the old IDs.
+
+| Old ID | New ID | Subject | Author date (+03:00) |
+|---|---|---|---|
+| `845844d` | `1bc8cbf` | freeze held-out Uthmani-script set (SHA-256) and record the baseline on 976395e before any matching code is wr… | 2026-10-02 03:03 |
+| `7d78577` | `0eacaaa` | recognise Uthmani-script quotations (documented equivalences) so a correct copy is matched and never gets a wo… | 2026-10-02 03:33 |
+| `5f0613d` | `cccd084` | simplify the interface around the editor's task | 2026-10-02 03:46 |
+| `e3aaa4b` | `1783cfe` | SOURCES — Uthmani texts used for tests/evaluation (Tanzil Uthmani v1.1, Quranpedia mushaf 2) and the video nar… | 2026-10-02 03:47 |
+| `2df2e34` | `ebc5b1d` | Uthmani write-up, README/EVALUATION/TEST_LOG/CHANGELOG/CONTINUATION updated for the released code; live-capabl… | 2026-10-02 04:03 |
+| `cdf151b` | `3a5ba42` | README states the Uthmani matching and interface revision as pre-challenge work; TEST_LOG corrections (docs on… | 2026-10-02 04:05 |
+
+Full IDs, old → new:
+
+```
+845844d4b527ef0eff64e6d973740c5474f0a738 -> 1bc8cbfadbe267fda2b33b318d5d9d9f7e6900b3
+7d785779200e5fdd8f88044095e83b944188a690 -> 0eacaaa7a84502b532a6cd5da702b463e33cc679
+5f0613d6d5f2ba9c74feaa018f4deb45caa70a36 -> cccd0844f90a1d3bad7763543ae67b68f1640757
+e3aaa4bbc3ad5038eec754405a5e2d53e92f607f -> 1783cfe58e7ff06cd9f8ed90744aae782bfaa927
+2df2e34f20caeffcbfaa54bf19b3c5a2431d91bb -> ebc5b1da69d6c91aa4f14a7958b0e1e907479837
+cdf151b0264e7ab65f659dc183965b652ac296d0 -> 3a5ba42aebe1ecfe9b8dcd4092b13c1849aced54
+```
 
 ## Pre-challenge baseline — 2026-09-28
 
