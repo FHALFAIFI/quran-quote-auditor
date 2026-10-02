@@ -276,7 +276,7 @@ A first Vercel deployment (pre-challenge baseline) was blocked from deploying ne
   a single documented request that returns all 6,236 verses.
 - A process keeps the text in memory for up to 24 h, matching the API's own `Cache-Control`,
   so Quranpedia's ongoing corrections arrive within a day. It also writes a copy to the
-  machine's temp directory. Nothing is re-published and the text is not committed to Git.
+  machine's temp directory. The app does not re-publish or export it, and the whole text is not committed to Git; the only copy in the repository is a 36-verse, credited test fixture (`tests/fixtures/hafs_subset.json`, see SOURCES.md §1).
 - If a refresh fails, a copy younger than 7 days **on the same machine** is used with a
   visible warning. Otherwise every quotation is marked *uncertain — source unavailable*.
   The app never substitutes AI-generated or hard-coded Quran text.
