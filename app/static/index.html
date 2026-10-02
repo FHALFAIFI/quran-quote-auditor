@@ -33,7 +33,7 @@
       <div class="card-head">
         <h2 id="input-title">نص المقال</h2>
         <div class="samples">
-          <label for="sample-select">مثال جاهز:</label>
+          <label for="sample-select">أمثلة أخرى:</label>
           <select id="sample-select">
             <option value="">— اختر —</option>
             <option value="sample-demo">المقال التجريبي: الصبر</option>
@@ -42,6 +42,10 @@
             <option value="sample-3">مثال: مقال بلا أقواس</option>
           </select>
         </div>
+      </div>
+      <div id="demo-hero" class="demo-hero">
+        <button id="demo-btn" type="button" class="btn primary demo-btn">جرّب المقال التجريبي</button>
+        <p class="demo-copy">مقال قصير فيه أربعة اقتباسات، منها خطآن مقصودان كُتبا لهذا العرض (لفظ وإحالة). نقرة واحدة تحمّله وتدقّقه وتوصلك إلى ما يحتاج قرارك. أو الصق مقالك في المربع أدناه.</p>
       </div>
       <textarea id="article" rows="11" dir="rtl" spellcheck="false" placeholder="الصق هنا مقالًا عربيًا قصيرًا يتضمن آيات قرآنية…"></textarea>
       <div class="input-foot">
@@ -69,6 +73,7 @@
     <div id="status" class="status" role="status" aria-live="polite"></div>
 
     <section id="results" hidden>
+      <section id="verdict" class="verdict" aria-labelledby="verdict-title"></section>
       <div id="notices"></div>
       <div id="summary" class="summary"></div>
       <div id="boundary-note" class="boundary-note" role="note" hidden></div>
@@ -116,6 +121,17 @@
           <div class="editor-actions"><span id="reply-count" class="muted"></span><button id="reply-copy" type="button" class="btn">نسخ المسودة</button></div>
         </details>
       </section>
+
+      <div id="review-dock" class="dock" role="region" aria-label="تقدّم المراجعة" hidden>
+        <div class="dock-info">
+          <p id="dock-text" class="dock-text" role="status" aria-live="polite"></p>
+          <p id="dock-warn" class="dock-warn" hidden></p>
+        </div>
+        <div class="dock-actions">
+          <button id="dock-next" type="button" class="btn" aria-label="التالي: ما يحتاج قرارك" title="التالي: ما يحتاج قرارك">التالي</button>
+          <button id="dock-copy" type="button" class="btn primary">نسخ المقال المعدّل</button>
+        </div>
+      </div>
     </section>
 
     <details class="card legend">

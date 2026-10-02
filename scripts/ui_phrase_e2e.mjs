@@ -107,7 +107,7 @@ async function deterministic(browser, base) {
   const confirmed = page.locator(".finding").filter({ hasText: "وبشر المؤمنين" });
   check((await confirmed.locator(".f-head .chip.manual").count()) === 1, "confirmed phrase is now marked «حدّدتَ هذا المقطع بنفسك»");
   const change = confirmed.locator('.change[data-change$="-wording"]').first();
-  check((await change.locator(".ch-after").innerText()).includes("وبشر الصابرين"), "proposal comes from the source: «المؤمنين» → «الصابرين»");
+  check((await change.locator(".ch-after").textContent()).includes("وبشر الصابرين") && (await change.locator(".d-after").innerText()).includes("الصابرين"), "proposal comes from the source: «المؤمنين» → «الصابرين»");
   check((await page.inputValue("#revised-text")) === article, "nothing changed before approval");
   await change.locator('button[data-act="approved"]').click();
   const revised = await page.inputValue("#revised-text");

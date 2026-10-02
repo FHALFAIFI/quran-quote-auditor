@@ -73,10 +73,10 @@ for (const [vp, size] of viewports) {
   check(g.sw <= g.iw && g.dir === "rtl" && g.bodyDir === "rtl", `${vp}: home has no horizontal overflow (${g.sw}/${g.iw}) and is RTL`);
   const first = await page.evaluate(() => ({
     title: document.querySelector("h1")?.textContent, purpose: document.querySelector(".tagline")?.textContent.length, sample: !!document.getElementById("sample-select"),
-    box: !!document.getElementById("article"), primary: document.querySelectorAll(".input-card .btn.primary").length, bottom: document.getElementById("audit-btn").getBoundingClientRect().bottom,
+    box: !!document.getElementById("article"), demo: (() => { const r = document.getElementById("demo-btn").getBoundingClientRect(); return r.width > 0 && r.bottom <= innerHeight; })(), boxH: document.getElementById("article").getBoundingClientRect().height, bottom: document.getElementById("audit-btn").getBoundingClientRect().bottom,
     height: innerHeight, helpOpen: document.querySelector(".help").open, safety: document.querySelector(".safety")?.textContent.length, bannerInHelp: !!document.querySelector(".help #mode-banner"),
   }));
-  check(first.title && first.purpose > 20 && first.sample && first.box && first.primary === 1 && first.bottom <= first.height, `${vp}: first screen = title, purpose, sample, text box, one primary button (bottom ${Math.round(first.bottom)}/${first.height})`);
+  check(first.title && first.purpose > 20 && first.sample && first.box && first.demo && first.boxH <= first.height * 0.3 && first.bottom <= first.height, `${vp}: first screen = title, purpose, the demo action, a short text box, the audit button (box ${Math.round(first.boxH)} px, bottom ${Math.round(first.bottom)}/${first.height})`);
   check(!first.helpOpen && first.safety > 20 && first.bannerInHelp, `${vp}: help (with the technical status) is collapsed; the safety sentence stays visible`);
   if (shots) await page.screenshot({ path: path.join(shots, `ui-${tag}-home.png`) });
 
@@ -120,10 +120,12 @@ for (const [vp, size] of viewports) {
   // Reading order inside a card that needs review: article text → source → difference/reference → action
   const orderIn = await page.evaluate(() => {
     const body = document.querySelector("#findings .finding.review:not(.weak) .f-body");
-    const labels = [...body.querySelectorAll(":scope > div > .row-label, :scope > .statuses, :scope > .action > .row-label")].map((e) => e.textContent.slice(0, 18));
+    const labels = [...body.querySelectorAll(":scope > .f-quote-line > .row-label, :scope > .action > .row-label, :scope > .f-all > summary")].map((e) => e.textContent.slice(0, 18));
     return labels;
   });
-  check(orderIn[0].includes("النص في المقال") && orderIn[1].includes("النص في المصحف") || orderIn[1].includes("أقرب موضع"), `${vp}: card order starts with the article text, then the source verse (${orderIn.slice(0, 3).join(" | ")})`);
+  check(orderIn[0].includes("في المقال") && orderIn[1].includes("المطلوب منك: قرارك") && orderIn[2].includes("التفاصيل"), `${vp}: card order = the quotation, the decision (difference first), then the folded details (${orderIn.slice(0, 3).join(" | ")})`);
+  const delta = await page.evaluate(() => { const bg = (e) => getComputedStyle(e).backgroundColor; const c = document.querySelector(".action .change:not(.optional)"); return { b: bg(c.querySelector(".d-before")), a: bg(c.querySelector(".d-after")) }; });
+  check(delta.b !== delta.a, `${vp}: the old value and the new value of the difference are coloured differently (${delta.b} vs ${delta.a})`);
 
   const elementShot = async (loc, name) => { if (shots && tag === "desktop") { await loc.scrollIntoViewIfNeeded(); await loc.screenshot({ path: path.join(shots, name) }); } };
   await elementShot(page.locator("#findings .finding.review").first(), "card-correction.png");

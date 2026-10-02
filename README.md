@@ -48,7 +48,7 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 ## Try it (about two minutes)
 
 1. Open https://quran-quote-auditor.onrender.com. **Render Free sleeps when idle**: Render says a spin-up takes about a minute (I measured 23 s once); wait for the page, and expect the first audit afterwards to take a few seconds more (the Quran text is downloaded once per instance).
-2. Choose **«المقال التجريبي: الصبر»** in the list above the text box (file: `app/static/samples/sample-demo.txt`) and press «دقّق الاقتباسات». The article has four quotations; **the two mistakes in it are deliberate misquotations written for the demo, not Quran text**:
+2. Press **«جرّب المقال التجريبي»** on the empty page: one click loads the demonstration article (file: `app/static/samples/sample-demo.txt`) and audits it, announces «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك» and takes you to the first item that needs your decision. For each such item the page shows the decisive difference first («يجزى ← يوفى», «الشرح: ٦ ← ٥») with «اعتماد التصحيح» / «اترك كما هو»; the full verse, the similarity percentage, the API links and the model/source notice sit under the details. The article has four quotations; **the two mistakes in it are deliberate misquotations written for the demo, not Quran text**:
 
 | # | In the article | Expected result (deterministic; the model, if it answers, changes nothing here) |
 |---|---|---|
@@ -57,7 +57,7 @@ Optionally a language model (Groq) proposes *where* quotations may be. It is nev
 | 3 | «إنما **يجزى** الصابرون أجرهم بغير حساب» [الزمر: 10] | «اختلاف — أقرب موضع مقترح» (not a confirmed match); proposal: «يجزى» → «يوفى», taken from Quranpedia's 39:10; the reference stays «غير محسومة» until the wording is settled |
 | 4 | «فإن مع العسر يسرا» [**الشرح: 6**] | words match 94:5; reference «خاطئة»; proposal: «الشرح: 6» → «الشرح: 5» |
 
-3. Approve the two required changes, look at the before/after preview, and press «نسخ المقال المعدّل». Nothing changes without your approval; the article still says nothing about being verified as a whole. `tests/test_demo_article.py` pins these results.
+3. Decide both items; the bar at the bottom then turns into «نسخ المقال المعدّل» (the editor's before/after preview is below the list). Press it. Nothing changes without your approval; the article still says nothing about being verified as a whole. `tests/test_demo_article.py` pins these results.
 4. «تفاصيل هذا التدقيق» (under the status line) says whether the AI model answered, what it proposed and when the Quran text was fetched. If Groq's free tier answers 429 or is unavailable, a warning says so and the audit continues without the model. On the live demo the model has so far proposed nothing for this kind of post; the details then say so, and the result is the deterministic one.
 
 Earlier samples are still in the list («مثال: العلم», «مثال: الصبر (أخطاء شائعة)», «مثال: مقال بلا أقواس») and exercise unmarked quotations and the "possible" tier. The Uthmani quotation in the demo is a verbatim copy of **Tanzil** text (Tanzil Project, https://tanzil.net, CC BY 3.0, version 1.1); the page footer carries the credit and link.
@@ -252,6 +252,7 @@ python -m pytest -q                      # 344 tests offline (a 36-verse excerpt
 node --test tests/revision.test.mjs      # the revision engine alone
 
 # browser end-to-end (Playwright installed in any scratch dir, not a project dependency)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_journey_e2e.mjs --shots ./shots   # the judge's first journey at 1366 px and 390 px: starts its own server with AI off
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs http://localhost:8000 ./shots
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --shots ./shots   # unmarked-phrase workflow: starts its own server with AI off (no Groq call possible)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --live-ai https://<service> # opt-in: ONE audit = one Groq call; exit 2 = model did not answer
@@ -355,7 +356,8 @@ app/
   static/            index.html, styles.css, app.js, revision.js (browser revision engine), samples/*.txt
 tests/               verifier, references, normalization, pipeline, source, Gemini, Groq, corrections,
                      revision-engine (Node) tests
-scripts/live_smoke.mjs one focused journey of the demonstration article on a running instance (one audit; one Groq call if a model is configured)
+scripts/live_smoke.mjs one focused journey of the demonstration article on a running instance (one audit; one Groq call if a model is configured; `--phone` for 390 px)
+scripts/ui_journey_e2e.mjs Playwright check of the first journey (demo action, verdict, first item, decisive difference, folded details, decisions, copy), desktop + phone, own AI-off server
 scripts/e2e_check.py end-to-end API check of a running instance (samples, errors, files not served)
 scripts/ui_e2e.mjs   Playwright browser check of the editor workflow, desktop + mobile
 scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirming a verse, manual selection (own AI-off server);
@@ -375,7 +377,7 @@ SOURCES.md           sources, licences and attribution record
 BASELINE.md          pre-challenge baseline declaration
 ```
 
-Sample articles are in `app/static/samples/` and can be loaded from the «مثال جاهز» menu (the first entry, «المقال التجريبي: الصبر», is the demonstration article).
+Sample articles are in `app/static/samples/` and can be loaded from the «أمثلة أخرى» menu; the demonstration article is also the one-click «جرّب المقال التجريبي» action on the empty page.
 Each contains some deliberately wrong quotations or references so every status can be demonstrated.
 
 ## Dependencies and licences

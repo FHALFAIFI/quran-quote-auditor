@@ -12,6 +12,8 @@ let lastArticle = "";
 let lastResult = null;
 let decisions = {};  // changeId -> "approved" | "rejected"
 let auditedAt = null;
+let demoText = null;  // the text of the demonstration article once it has been loaded in this tab
+let isDemo = false;   // the audited article is the demonstration article (it holds two deliberate misquotations)
 const STORE_KEY = "qqa-session-v1";
 
 function el(tag, attrs, ...children) {
@@ -90,7 +92,7 @@ function allChanges() { return (lastResult?.findings || []).flatMap((f) => f.cha
 // ---------------------------------------------------------------- session state
 function saveSession() {
   try {
-    sessionStorage.setItem(STORE_KEY, JSON.stringify({ article: lastArticle, result: lastResult, decisions, auditedAt }));
+    sessionStorage.setItem(STORE_KEY, JSON.stringify({ article: lastArticle, result: lastResult, decisions, auditedAt, isDemo }));
   } catch { /* storage unavailable: state stays in memory only */ }
 }
 function loadSession() {
@@ -138,18 +140,39 @@ function updateCount() {
   c.classList.toggle("char-over", n > MAX_CHARS);
   const stale = lastResult && $("article").value.replace(/\r\n?/g, "\n") !== lastArticle;
   $("stale-note").hidden = !stale;
+  // An empty page offers the demonstration as one visible action and keeps the empty box short.
+  const empty = !$("article").value.trim();
+  $("demo-hero").hidden = !empty;
+  document.querySelector(".input-card").classList.toggle("is-empty", empty);
 }
 
-async function loadSample(name) {
-  if (!name) return;
+const DEMO_NOTE = "هذا مقال تجريبي كُتب لهذا العرض؛ فيه خطآن مقصودان في الاقتباس (لفظ وإحالة)، وهما من صنع المثال وليسا نصًا قرآنيًا.";
+
+async function loadSample(name, thenAudit) {
+  if (!name) return false;
   try {
     const res = await fetch(`/static/samples/${encodeURIComponent(name)}.txt`);
     if (!res.ok) throw new Error();
     $("article").value = (await res.text()).trim();
+    if (name === "sample-demo") demoText = $("article").value.replace(/\r\n?/g, "\n");
     updateCount();
-    if (name === "sample-demo") setStatus("حُمّل مقال تجريبي كُتب لهذا العرض؛ فيه خطآن مقصودان في الاقتباس (لفظ وإحالة)، وهما من صنع المثال وليسا نصًا قرآنيًا. اضغط «دقّق الاقتباسات».");
+    if (name === "sample-demo" && !thenAudit) setStatus(DEMO_NOTE + " اضغط «دقّق الاقتباسات».");
+    return true;
   } catch {
     setStatus("تعذّر تحميل المثال.", true);
+    return false;
+  }
+}
+
+// One click: load the demonstration article and audit it.
+async function runDemo() {
+  const btn = $("demo-btn");
+  btn.disabled = true;
+  setStatus("جارٍ تحميل المقال التجريبي…", false, true);
+  try {
+    if (await loadSample("sample-demo", true)) await runAudit();
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -184,10 +207,11 @@ async function runAudit() {
     lastResult = data;
     decisions = {};
     auditedAt = Date.now() / 1000;
+    isDemo = demoText !== null && article === demoText;
     saveSession();
     render(data, true);
     loadHealth();  // refresh the banner with this call's real outcome
-    setStatus("اكتمل التدقيق. راجع ما يحتاج قرارك أولًا.");
+    setStatus(`اكتمل التدقيق. ${verdictText(data).headline}.`);
   } catch (e) {
     setStatus(e.name === "AbortError" ? "انتهت مهلة الطلب؛ حاول مرة أخرى." : "تعذّر الاتصال بالخادم.", true);
   } finally {
@@ -198,9 +222,12 @@ async function runAudit() {
 
 // ---------------------------------------------------------------- render
 // One quiet line about how this audit was made; the model, timing and source details sit behind it.
+// A server notice that only reports what the model did (not something the editor must act on) belongs in the details.
+const isModelNote = (n) => n.level === "info" && /الذكاء الاصطناعي|النموذج/.test(n.text);
+
 function auditMeta(data) {
   const ai = data.ai || {};
-  const details = [];
+  const details = (data.notices || []).filter(isModelNote).map((n) => el("p", { text: n.text }));
   let line = null, tone = "plain";
   if (data.mode === "reduced") {
     tone = "reduced";
@@ -220,23 +247,131 @@ function auditMeta(data) {
   }
   if (!line && !details.length) return null;
   const box = el("div", { class: `audit-meta ${tone}` });
-  if (line) box.append(el("p", { class: "am-line", text: line }));
-  if (details.length) box.append(el("details", {}, el("summary", { text: "تفاصيل هذا التدقيق" }), ...details));
+  if (tone === "reduced") {
+    // no model took part: that limits what the editor can rely on, so the one-line caveat stays in view
+    box.append(el("p", { class: "am-line", text: line }));
+    if (details.length) box.append(el("details", {}, el("summary", { text: "تفاصيل هذا التدقيق" }), ...details));
+  } else {
+    // how the model and the source were used: one folded line, the wording and the figures inside
+    box.append(el("details", {}, el("summary", { text: "تفاصيل هذا التدقيق (النموذج والمصدر)" }),
+      line ? el("p", { class: "am-line", text: line }) : null, ...details));
+  }
   return box;
 }
 
 function render(data, scroll) {
   $("results").hidden = false;
   const notices = $("notices");
-  notices.replaceChildren(...(data.notices || []).map((n) => el("div", { class: `notice ${n.level}`, text: n.text })));
+  notices.replaceChildren(...(data.notices || []).filter((n) => !isModelNote(n)).map((n) => el("div", { class: `notice ${n.level}`, text: n.text })));
   const meta = auditMeta(data);
   if (meta) notices.append(meta);
+  renderVerdict(data);
   renderSummary(data);
   renderArticle(data.findings);
   renderFindings();
   renderEditor();
   updateCount();
-  if (scroll) $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  if (scroll) goToFirstReview();
+}
+
+// ---------------------------------------------------------------- verdict, first stop, dock
+const motion = () => (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+const needsEditor = (f) => !!f.needs_review;
+const requiredOf = (f) => (f.changes || []).filter((c) => !c.optional);
+
+// «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك»: the counted noun and the verb agree with the number.
+function verdictText(data) {
+  const fs = data.findings || [];
+  const total = fs.length, n = fs.filter(needsEditor).length;
+  const found = total === 1 ? "وجدنا اقتباسًا واحدًا" : total === 2 ? "وجدنا اقتباسين" : `وجدنا ${toArabicDigits(total)} ${total <= 10 ? "اقتباسات" : "اقتباسًا"}`;
+  if (!total) return { headline: "لم نجد اقتباسات قرآنية في النص", total, needing: 0 };
+  let tail;
+  if (n === 0) tail = total === 1 ? "ولا يحتاج إلى قرارك" : "ولا يحتاج أيٌّ منها إلى قرارك";
+  else if (n === total) tail = total === 1 ? "ويحتاج إلى قرارك" : total === 2 ? "يحتاج كلاهما إلى قرارك" : "تحتاج كلها إلى قرارك";
+  else tail = n === 1 ? "يحتاج واحد منها إلى قرارك" : n === 2 ? "يحتاج اثنان إلى قرارك" : `${n <= 10 ? "تحتاج" : "يحتاج"} ${toArabicDigits(n)} منها إلى قرارك`;
+  return { headline: tail.startsWith("و") ? `${found} ${tail}` : `${found}؛ ${tail}`, total, needing: n };
+}
+
+function renderVerdict(data) {
+  const v = verdictText(data);
+  const box = $("verdict");
+  box.className = `verdict ${v.needing ? "has-review" : "clear"}`;
+  box.replaceChildren(
+    el("h2", { id: "verdict-title", tabindex: "-1", text: v.headline }),
+    el("p", { class: "verdict-sub", text: "الفحص يشمل الاقتباسات التي رُصدت فقط، وليس حكمًا على المقال كله." }),
+    isDemo ? el("p", { class: "verdict-demo", text: DEMO_NOTE }) : null,
+    v.needing ? el("div", { class: "verdict-actions" }, el("button", { type: "button", id: "verdict-go", class: "btn primary", onclick: () => goToFirstReview() }, "انتقل إلى أول ما يحتاج قرارك")) : null);
+}
+
+function setActiveFinding(id) {
+  document.querySelectorAll(".finding.active, mark.active").forEach((n) => n.classList.remove("active"));
+  document.getElementById(`finding-${id}`)?.classList.add("active");
+  document.querySelector(`mark[data-id="${id}"]`)?.classList.add("active");
+}
+
+// The first quotation that needs the editor. Where the verdict and that card fit on one screen, both stay in view.
+async function goToFirstReview() {
+  const first = (lastResult?.findings || []).find(needsEditor);
+  const verdict = $("verdict");
+  // web fonts load after the first paint and move everything below them: let the layout settle, then measure
+  void document.body.offsetHeight;
+  try { await document.fonts.ready; } catch { /* no font loading API: measure now */ }
+  if (!first) { verdict.scrollIntoView({ behavior: motion(), block: "start" }); return; }
+  const card = document.getElementById(`finding-${first.id}`);
+  if (!card) return;
+  setActiveFinding(first.id);
+  const gap = card.getBoundingClientRect().top - verdict.getBoundingClientRect().top;
+  (gap < window.innerHeight * 0.45 ? verdict : card).scrollIntoView({ behavior: motion(), block: "start" });
+  card.focus({ preventScroll: true });
+}
+
+// The next quotation still waiting on the editor after finding `fromId`: a pending correction first, then a manual review.
+function nextReviewId(fromId) {
+  const fs = lastResult?.findings || [];
+  const i = Math.max(0, fs.findIndex((f) => f.id === fromId) + 1);
+  const order = [...fs.slice(i), ...fs.slice(0, i)];
+  const pendingFix = (f) => requiredOf(f).some((c) => !decisions[c.id]);
+  const manual = (f) => needsEditor(f) && !requiredOf(f).length;
+  return (order.find(pendingFix) || order.find(manual))?.id ?? null;
+}
+
+let lastTouched = 0;     // the finding whose decision was taken last
+let dockMessage = "";    // a transient line, such as the result of copying
+let dockTimer = null;
+
+function renderDock() {
+  const dock = $("review-dock");
+  if (!lastResult) { dock.hidden = true; return; }
+  const req = allChanges().filter((c) => !c.optional);
+  const pending = req.filter((c) => !decisions[c.id]);
+  const manual = lastResult.findings.filter((f) => needsEditor(f) && !requiredOf(f).length);
+  if (!req.length && !manual.length) { dock.hidden = true; return; }
+  dock.hidden = false;
+  const finished = req.length > 0 && !pending.length;
+  dock.classList.toggle("done", finished);
+  const approved = req.filter((c) => decisions[c.id] === "approved").length;
+  const left = req.length - approved;
+  const text = $("dock-text"), warn = $("dock-warn");
+  if (dockMessage) text.textContent = dockMessage;
+  else if (finished) text.replaceChildren(el("b", { text: `اكتملت قراراتك (${toArabicDigits(req.length)} من ${toArabicDigits(req.length)})` }),
+    ` — ${[approved ? `اعتمدتَ ${toArabicDigits(approved)}` : "", left ? `تركتَ ${toArabicDigits(left)} كما هو` : ""].filter(Boolean).join(" و")}. المقال المعدّل جاهز للنسخ.`);
+  else if (req.length && pending.length === req.length) text.replaceChildren(el("b", { text: verdictText(lastResult).headline }), ` — قراراتك: ٠ من ${toArabicDigits(req.length)}.`);
+  else if (req.length) text.replaceChildren(el("b", { text: `قراراتك: ${toArabicDigits(req.length - pending.length)} من ${toArabicDigits(req.length)}` }), ` — بقي ${toArabicDigits(pending.length)}.`);
+  else text.replaceChildren(el("b", { text: "لا توجد تصحيحات مقترحة. " }), `بقي ${toArabicDigits(manual.length)} للمراجعة اليدوية.`);
+  const unresolved = R.unresolvedFindings(lastResult.findings, decisions).length;
+  warn.hidden = !(finished && unresolved);
+  warn.textContent = warn.hidden ? "" : `ما زال ${toArabicDigits(unresolved)} من الاقتباسات غير محسوم ويحتاج مراجعتك بنفسك؛ ولا تشهد الأداة بأن المقال كله متحقق منه.`;
+  const next = nextReviewId(lastTouched);
+  $("dock-next").hidden = next === null || (finished && !manual.length);
+  $("dock-copy").hidden = !finished;
+  $("copy-btn").classList.toggle("ready", finished);
+}
+
+function showDockMessage(text) {
+  dockMessage = text;
+  clearTimeout(dockTimer);
+  dockTimer = setTimeout(() => { dockMessage = ""; renderDock(); }, 7000);
+  renderDock();
 }
 
 function renderSummary(data) {
@@ -246,11 +381,11 @@ function renderSummary(data) {
   const big = (n, l, cls) => el("div", { class: `tile stat ${cls || ""}` }, el("div", { class: "n", text: toArabicDigits(n) }), el("div", { class: "l", text: l }));
   const minor = (n, l) => el("div", { class: "tile minor" }, el("span", { class: "n", text: toArabicDigits(n) }), " ", el("span", { class: "l", text: l }));
   $("summary").replaceChildren(
-    el("div", { class: "stats" },
-      big(s.needs_review, "تحتاج مراجعة", s.needs_review ? "attention" : ""),
-      big(fixes, "تصحيحات مقترحة", "fix"),
-      big(s.total, "اقتباسات مرصودة")),
-    el("details", { class: "more-stats" }, el("summary", { text: "أعداد أخرى" }),
+    el("details", { class: "more-stats" }, el("summary", { text: "أعداد التدقيق" }),
+      el("div", { class: "stats" },
+        big(s.needs_review, "تحتاج مراجعة", s.needs_review ? "attention" : ""),
+        big(fixes, "تصحيحات مقترحة", "fix"),
+        big(s.total, "اقتباسات مرصودة")),
       el("div", { class: "minor-grid" },
         minor(s.matched, "ألفاظ مطابقة"), minor(s.difference, "اختلافات في الألفاظ"), minor(s.uncertain, "غير محسومة"),
         minor(s.possible || 0, "عبارات «قد تكون اقتباسًا»"), minor(s.ref_incorrect, "إحالات خاطئة"), minor(s.ref_missing, "بلا إحالة"),
@@ -284,7 +419,7 @@ function focusFinding(id) {
   const card = document.getElementById(`finding-${id}`);
   const mark = document.querySelector(`mark[data-id="${id}"]`);
   if (mark) mark.classList.add("active");
-  if (card) { card.classList.add("active"); card.scrollIntoView({ behavior: "smooth", block: "center" }); }
+  if (card) { card.classList.add("active"); card.scrollIntoView({ behavior: motion(), block: "center" }); }
 }
 
 function renderFindings() {
@@ -339,6 +474,8 @@ function pairsList(pairs) {
 function setDecision(id, value) {
   if (decisions[id] === value) delete decisions[id];
   else decisions[id] = value;
+  lastTouched = allChanges().find((c) => c.id === id)?.finding_id ?? lastTouched;
+  dockMessage = "";
   saveSession();
   document.querySelectorAll(`[data-change="${CSS.escape(id)}"]`).forEach(updateChangeNode);
   renderEditor();
@@ -351,7 +488,7 @@ function updateChangeNode(node) {
   node.classList.toggle("approved", d === "approved");
   node.classList.toggle("rejected", d === "rejected");
   const state = node.querySelector(".ch-state");
-  if (state) state.textContent = d === "approved" ? (opt ? "مطبَّق" : "معتمد") : d === "rejected" ? (opt ? "متجاهَل" : "مرفوض") : opt ? "لن يُطبَّق ما لم تختره" : "بانتظار قرارك";
+  if (state) state.textContent = d === "approved" ? (opt ? "مطبَّق" : "معتمد") : d === "rejected" ? (opt ? "متجاهَل" : "تُرك كما هو") : opt ? "لن يُطبَّق ما لم تختره" : "بانتظار قرارك";
   node.querySelectorAll("button[data-act]").forEach((b) => b.setAttribute("aria-pressed", String(d === b.getAttribute("data-act"))));
 }
 
@@ -376,6 +513,52 @@ function changeCard(c) {
     el("div", { class: "ch-actions" },
       el("button", { type: "button", class: "btn small approve", "data-act": "approved", "aria-pressed": "false", onclick: () => setDecision(c.id, "approved") }, opt ? "تطبيق" : "اعتماد"),
       el("button", { type: "button", class: "btn small reject", "data-act": "rejected", "aria-pressed": "false", onclick: () => setDecision(c.id, "rejected") }, opt ? "تجاهل" : "رفض")),
+  );
+  updateChangeNode(node);
+  return node;
+}
+
+// «الشرح: ٦ ← ٥» / «يجزى ← يوفى»: the one thing that differs, split so the old and the new value can be coloured.
+const REF_SPLIT = /^(.*?:\s*)(.+)$/;
+function deltaParts(c) {
+  if (c.kind === "reference") {
+    const a = REF_SPLIT.exec(c.original || ""), b = REF_SPLIT.exec(c.replacement || "");
+    if (a && b && a[1] === b[1]) return { prefix: toArabicDigits(a[1]), before: toArabicDigits(a[2]), after: toArabicDigits(b[2]) };
+    return { prefix: "", before: toArabicDigits(c.original || "—"), after: toArabicDigits((c.replacement || "").trim()) };
+  }
+  return { prefix: "", before: c.original || "—", after: (c.replacement || "").trim() };
+}
+
+// A required correction as the editor decides it: the difference first, why it is not certain, the source, two buttons.
+// The whole quotation before and after, and the longer explanation, sit one click away.
+function decisionCard(c, f) {
+  const quoteLevel = c.kind !== "reference" && c.kind !== "reference_add";
+  const d = deltaParts(c);
+  const warns = (f.review_reasons || []).filter((x) => x !== c.reason).slice(0, 2);
+  const lead = c.kind === "reference" || !warns.length ? [c.reason] : warns;
+  const node = el("div", { class: "change decide", "data-change": c.id },
+    el("div", { class: "ch-head" },
+      el("b", { text: KIND[c.kind] || c.kind }),
+      el("span", { class: "ch-state", text: "" })),
+    el("p", { class: "ch-delta", dir: "rtl" },
+      el("span", { class: "sr-only", text: "من " }),
+      d.prefix ? el("span", { class: "d-prefix", text: d.prefix }) : null,
+      el("span", { class: "d-before", text: d.before }),
+      el("span", { class: "d-arrow", "aria-hidden": "true", text: "←" }),
+      el("span", { class: "sr-only", text: " إلى " }),
+      el("span", { class: "d-after", text: d.after })),
+    ...lead.filter(Boolean).map((x) => el("p", { class: "ch-reason ch-lead", text: x })),
+    el("div", { class: "ch-src" }, "المصدر: ", el("b", { text: c.label }), " — ",
+      ...c.source_urls.map((u, i) => el("a", { href: u, target: "_blank", rel: "noopener", text: i ? ` (${toArabicDigits(i + 1)})` : "قرآنبيديا" }))),
+    el("div", { class: "ch-actions" },
+      el("button", { type: "button", class: "btn small approve", "data-act": "approved", "aria-pressed": "false", onclick: () => setDecision(c.id, "approved") }, "اعتماد التصحيح"),
+      el("button", { type: "button", class: "btn small reject", "data-act": "rejected", "aria-pressed": "false", onclick: () => setDecision(c.id, "rejected") }, "اترك كما هو")),
+    el("details", { class: "ch-more" }, el("summary", { text: quoteLevel ? "الاقتباس كاملًا قبل التصحيح وبعده، وسبب الاقتراح" : "سبب الاقتراح" }),
+      quoteLevel ? el("div", { class: "ch-diff" },
+        el("div", {}, el("span", { class: "row-label", text: "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: c.quote_before })),
+        el("div", {}, el("span", { class: "row-label", text: "بعد" }), el("div", { class: "ch-after quran", dir: "rtl", text: c.quote_after }))) : null,
+      el("p", { class: "ch-reason", text: c.reason }),
+      c.kind === "diacritics" ? el("p", { class: "muted small", text: "تختلف طبعات المصاحف في بعض علامات الضبط (كشدّة الإدغام)؛ تأكد قبل الاعتماد." }) : null),
   );
   updateChangeNode(node);
   return node;
@@ -417,6 +600,7 @@ function renderFinding(f) {
   const changes = f.changes || [];
   const required = changes.filter((c) => !c.optional), optional = changes.filter((c) => c.optional);
   const compact = !f.needs_review && !required.length && !weak;  // nothing for the editor to do: a short row, details on demand
+  const decisionFirst = !compact && !weak && required.length > 0;  // the difference and the two buttons first; the verse and the rest folded
 
   const head = el(compact ? "summary" : "div", { class: "f-head" },
     el("span", { class: "f-num", text: toArabicDigits(f.id) }),
@@ -426,10 +610,11 @@ function renderFinding(f) {
   );
 
   const body = el("div", { class: "f-body" });
+  const sink = decisionFirst ? el("div", { class: "f-detail" }) : body;  // where the long material goes
   // 1. what is written, 2. what the source says
-  body.append(el("div", {}, el("div", { class: "row-label", text: compact ? `النص في المقال — السطر ${toArabicDigits(f.line)}، الحرف ${toArabicDigits(f.column)}` : "النص في المقال" }), el("div", { class: "quote-text", dir: "rtl", text: f.quote })));
+  sink.append(el("div", {}, el("div", { class: "row-label", text: compact ? `النص في المقال — السطر ${toArabicDigits(f.line)}، الحرف ${toArabicDigits(f.column)}` : "النص في المقال" }), el("div", { class: "quote-text", dir: "rtl", text: f.quote })));
   if (f.source) {
-    body.append(el("div", {},
+    sink.append(el("div", {},
       el("div", { class: "row-label", text: w.level === "fuzzy" ? "أقرب موضع مقترح في المصحف (غير مؤكد)" : "النص في المصحف (حفص — قرآنبيديا)" }),
       sourceBox(f.source)));
   }
@@ -440,22 +625,23 @@ function renderFinding(f) {
   if (w.level === "fuzzy" && w.similarity != null) wBox.append(el("p", { class: "muted", text: `نسبة التشابه: ${toArabicDigits(Math.round(w.similarity * 100))}٪` }));
   if (w.level === "diacritics" && w.status === "matched") wBox.append(el("p", { class: "muted", text: "الحروف مطابقة؛ التشكيل ناقص أو غائب لكنه غير مخالف، فليس خطأً." }));
   if (w.level === "literal") wBox.append(el("p", { class: "muted", text: "مطابق حرفًا وتشكيلًا (بعد تجاهل علامات الوقف)." }));
-  body.append(el("div", { class: "statuses" }, wBox, referenceRow(r)));
+  sink.append(el("div", { class: "statuses" }, wBox, referenceRow(r)));
   if (nonEqual.length) {
-    body.append(el("div", {}, el("div", { class: "row-label", text: "الفرق بالكلمات" }), diffView(w.diff),
+    sink.append(el("div", {}, el("div", { class: "row-label", text: "الفرق بالكلمات" }), diffView(w.diff),
       el("div", { class: "diff-legend", text: "الأحمر المشطوب: في المقال لا في المصحف · الأخضر: في المصحف لا في المقال" })));
   }
-  if (w.unresolved_words?.length) body.append(el("div", {}, el("div", { class: "row-label", text: "رسم لم تستطع الأداة مطابقته (المقال ← المصحف) — قد يكون صحيحًا" }), pairsList(w.unresolved_words)));
-  if (w.diacritic_conflicts?.length) body.append(el("div", {}, el("div", { class: "row-label", text: "تشكيل مخالف (المقال ← المصحف)" }), pairsList(w.diacritic_conflicts)));
+  if (w.unresolved_words?.length) sink.append(el("div", {}, el("div", { class: "row-label", text: "رسم لم تستطع الأداة مطابقته (المقال ← المصحف) — قد يكون صحيحًا" }), pairsList(w.unresolved_words)));
+  if (w.diacritic_conflicts?.length) sink.append(el("div", {}, el("div", { class: "row-label", text: "تشكيل مخالف (المقال ← المصحف)" }), pairsList(w.diacritic_conflicts)));
   const sig = (w.script_diffs || []).filter((d) => d.kind !== "benign" || w.status !== "matched");
-  if (sig.length) body.append(el("div", {}, el("div", { class: "row-label", text: "فروق الرسم (المقال ← المصحف)" }), pairsList(sig)));
+  if (sig.length) sink.append(el("div", {}, el("div", { class: "row-label", text: "فروق الرسم (المقال ← المصحف)" }), pairsList(sig)));
   const sn = scriptNote(w);
-  if (sn) body.append(sn);
+  if (sn) sink.append(sn);
 
   // 5. what the editor has to do
   const action = el("div", { class: "action" });
   if (required.length) {
-    action.append(el("div", { class: "row-label", text: "المطلوب منك: اعتمد التصحيح أو ارفضه — لا يُغيَّر شيء قبل ذلك" }), ...required.map(changeCard));
+    action.append(el("div", { class: "row-label", text: decisionFirst ? "المطلوب منك: قرارك على التصحيح — لا يتغيّر شيء في مقالك قبله" : "المطلوب منك: اعتمد التصحيح أو ارفضه — لا يُغيَّر شيء قبل ذلك" }),
+      ...required.map((c) => (decisionFirst ? decisionCard(c, f) : changeCard(c))));
   }
   const boundary = boundaryBox(f);
   if (boundary) action.append(boundary);
@@ -466,18 +652,18 @@ function renderFinding(f) {
   } else if (f.correction?.status === "review_only" && f.needs_review) {
     action.append(el("div", { class: "no-fix" }, el("b", { text: "المطلوب منك: مراجعة يدوية؛ لا يُقترح تصحيح تلقائي. " }), f.correction.reason || "الموضع المقصود غير محسوم."));
   }
-  if (action.childNodes.length) body.append(action);
+  if (action.childNodes.length && !decisionFirst) body.append(action);
 
   // 6. optional formatting: apart from the corrections, neutral, never counted as an error
   if (optional.length) {
-    body.append(el("details", { class: "optional-box" },
+    sink.append(el("details", { class: "optional-box" },
       el("summary", { text: `تنسيق اختياري — ليس تصحيحًا (${toArabicDigits(optional.length)})` }),
       el("p", { class: "muted small", text: "نصك صحيح هنا. هذه خيارات تنسيق لا تُطبَّق إلا إذا اخترتها." }),
       ...optional.map(changeCard)));
   }
 
   // 7. the rest, on demand
-  const more = el("details", { class: "more" }, el("summary", { text: "تفاصيل إضافية" }));
+  const more = el(decisionFirst ? "div" : "details", { class: "more" }, decisionFirst ? null : el("summary", { text: "تفاصيل إضافية" }));
   if (det.reasons?.length && ["phrase", "ai"].includes(det.kind)) {
     more.append(el("div", { class: `detect-note ${det.tier}` }, el("b", { text: det.label + ": " }), det.reasons.join(" ")));
   }
@@ -494,11 +680,17 @@ function renderFinding(f) {
   more.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => detectedChip(f, d))));
   const aiNote = aiSpanNote(f);
   if (aiNote) more.append(aiNote);
-  body.append(more);
+  sink.append(more);
+  if (decisionFirst) {
+    body.append(
+      el("div", { class: "f-quote-line" }, el("span", { class: "row-label", text: "في المقال:" }), " ", el("span", { class: "quote-excerpt", dir: "rtl", text: excerpt(f.quote) })),
+      action,
+      el("details", { class: "f-all" }, el("summary", { text: "التفاصيل: الآية كاملة، نسبة التشابه، روابط المصدر وطريقة الرصد" }), sink));
+  }
 
   const cls = `finding ${f.needs_review || required.length ? "review" : "ok"} ${weak ? "weak" : ""}`;
   if (compact) return el("li", { id: `finding-${f.id}`, class: cls }, el("details", { class: "f-compact" }, head, body));
-  return el("li", { id: `finding-${f.id}`, class: cls }, head, body);
+  return el("li", { id: `finding-${f.id}`, class: cls, tabindex: "-1" }, head, body);
 }
 
 // ---------------------------------------------------------------- uncertain boundaries: explanation + easy manual highlighting
@@ -673,6 +865,7 @@ function renderEditor() {
   $("revised-text").value = text;
   $("reply-text").value = R.replyDraft(lastResult.findings, changes, decisions);
   updateReplyCount();
+  renderDock();
 }
 
 function updateReplyCount() {
@@ -690,15 +883,21 @@ function copyFeedback(btn, note, text, ok) {
   btn._copyTimer = setTimeout(() => { btn.textContent = label; if (note) note.textContent = ""; }, ok ? 4000 : 8000);
 }
 
-async function copyRevised() {
+async function copyRevised(e) {
   const text = $("revised-text").value;
+  const fromDock = e?.currentTarget?.id === "dock-copy";
   try {
     await navigator.clipboard.writeText(text);
-    copyFeedback($("copy-btn"), $("copy-note"), "نُسخ المقال المعدّل. الأداة فحصت الاقتباسات القرآنية فقط؛ وما بقي غير محسوم يحتاج مراجعتك.", true);
+    const msg = "نُسخ المقال المعدّل. الأداة فحصت الاقتباسات القرآنية فقط؛ وما بقي غير محسوم يحتاج مراجعتك.";
+    copyFeedback($("copy-btn"), $("copy-note"), msg, true);
+    if (fromDock) copyFeedback($("dock-copy"), null, "", true);
+    showDockMessage(msg);
     setStatus("نُسخ المقال المعدّل. تذكير: الأداة فحصت الاقتباسات القرآنية فقط، والحالات غير المحسومة تحتاج مراجعة.");
   } catch {
     showTab("text"); $("revised-text").select();
+    if (fromDock) $("revised-text").scrollIntoView({ behavior: motion(), block: "center" });
     copyFeedback($("copy-btn"), $("copy-note"), "تعذّر النسخ التلقائي؛ النص المعدّل محدد الآن، انسخه يدويًا (Ctrl+C).", false);
+    showDockMessage("تعذّر النسخ التلقائي؛ النص المعدّل محدد في الأسفل، انسخه يدويًا (Ctrl+C).");
     setStatus("تعذّر النسخ التلقائي؛ النص محدد الآن، انسخه يدويًا (Ctrl+C).", true);
   }
 }
@@ -780,15 +979,26 @@ document.addEventListener("DOMContentLoaded", () => {
   $("article").addEventListener("input", updateCount);
   $("audit-btn").addEventListener("click", runAudit);
   $("clear-btn").addEventListener("click", () => {
-    $("article").value = ""; lastResult = null; lastArticle = ""; decisions = {}; clearSession();
+    $("article").value = ""; lastResult = null; lastArticle = ""; decisions = {}; isDemo = false; dockMessage = ""; clearSession();
     updateCount(); $("results").hidden = true; setStatus("");
   });
   $("sample-select").addEventListener("change", (e) => loadSample(e.target.value));
+  $("demo-btn").addEventListener("click", runDemo);
+  $("dock-next").addEventListener("click", () => {
+    const id = nextReviewId(lastTouched);
+    if (id === null) return;
+    lastTouched = id;
+    setActiveFinding(id);
+    const card = document.getElementById(`finding-${id}`);
+    card?.scrollIntoView({ behavior: motion(), block: "center" });
+    card?.focus({ preventScroll: true });
+  });
   $("only-review").addEventListener("change", renderFindings);
   $("phrase-btn").addEventListener("click", checkSelection);
   for (const ev of ["select", "keyup", "mouseup", "input", "focus"]) $("article").addEventListener(ev, updateSelectionButton);
   $("article").addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAudit(); });
   $("copy-btn").addEventListener("click", copyRevised);
+  $("dock-copy").addEventListener("click", copyRevised);
   $("reply-text").addEventListener("input", updateReplyCount);
   $("reply-copy").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText($("reply-text").value); copyFeedback($("reply-copy"), null, "", true); setStatus("نُسخت المسودة. راجعها قبل نشرها بنفسك."); }
@@ -806,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const saved = loadSession();
   if (saved) {
-    lastArticle = saved.article; lastResult = saved.result; decisions = saved.decisions || {}; auditedAt = saved.auditedAt || null;
+    lastArticle = saved.article; lastResult = saved.result; decisions = saved.decisions || {}; auditedAt = saved.auditedAt || null; isDemo = !!saved.isDemo;
     $("article").value = lastArticle;
     render(lastResult, false);
     setStatus("استُعيدت نتيجة التدقيق وقراراتك من هذه الجلسة.");
