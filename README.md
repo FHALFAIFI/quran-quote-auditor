@@ -238,11 +238,14 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 | `GROQ_API_KEY` | Groq key (secret). Without it Groq is not used | unset |
 | `GROQ_MODEL` | Groq model; the live demo uses `qwen/qwen3.8-27b` (a Groq *preview* model) | `qwen/qwen3.8-27b` |
 | `EXTRACTION_PROMPT` | prompt version in `app/extraction/prompts.py` | `v2` |
-| `GROQ_MAX_COMPLETION_TOKENS`, `GROQ_REASONING_EFFORT` | advanced Groq tuning. Leave unset: a 512-token cap was tried and may truncate longer answers | unset |
+| `GROQ_MAX_COMPLETION_TOKENS` | output tokens the app asks Groq to reserve per request. **If your Groq account limits this model to 1,000 output tokens/minute (the free tier did for us), set `800`**; see the note below. 512 was tried earlier and may truncate longer answers | 4096 |
+| `GROQ_REASONING_EFFORT` | advanced Groq tuning; leave unset | unset |
 | `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS` | optional alternative provider; never succeeded in our tests (503/429) | unset |
 | `AI_TIMEOUT_SECONDS`, `AI_ATTEMPT_TIMEOUT_SECONDS`, `AI_COOLDOWN_SECONDS` | AI time budget and pause after a failure | 12, 8, 60 |
 | `MAX_ARTICLE_CHARS`, `MAX_CANDIDATES`, `RATE_LIMIT_PER_MINUTE` | input limit, candidate cap, per-IP rate limit (per instance) | 6000, 40, 10 |
 | `SOURCE_TIMEOUT_SECONDS`, `QURAN_CACHE_DIR`, `QURANPEDIA_CONTACT` | Quranpedia timeout, cache directory, optional contact e-mail added to the User-Agent as Quranpedia's policy requests | 20, temp dir, unset |
+
+> **Note on the Groq output-token limit (3 Oct 2026).** Groq answered HTTP 429 («Request too large … output tokens per minute (OTPM): Limit 1000, Requested 1100–1994») to audits of the live service on 30 Sep–3 Oct 2026 while the app reserved the default 4096 output tokens per request; Groq's own «Requested» figure was never 4096 and its estimate is not documented, so the cause is observed, not proven. On 3 Oct 2026 `GROQ_MAX_COMPLETION_TOKENS=800` was set on Render and two live audits of the demonstration article (one audit, one video take) both answered HTTP 200 (`ai.outcome` ok, 4 proposed, 4 located, 0 added by the model). That is two calls, not a controlled test. The demonstration article needs about 75–90 output tokens, but an answer longer than the cap is cut off and the whole AI result is dropped (the deterministic result stands, AI is skipped for the cooldown), so an article with many quotations may need a higher value. Without a model the app still works and the audit is deterministic. See `docs/TEST_LOG.md` (3 Oct 2026 note) for the record.
 
 ### Tests
 

@@ -34,6 +34,7 @@ such as `3.12.13`. In the build log, check that the line with the Python version
 | `GROQ_API_KEY` | *your key: type it into Render only, never into chat, a file or a screenshot* |
 | `GROQ_MODEL` | `qwen/qwen3.8-27b` |
 | `EXTRACTION_PROMPT` | `v2` |
+| `GROQ_MAX_COMPLETION_TOKENS` | `800` (see below: needed on a Groq account limited to 1,000 output tokens/minute; the code default is 4096) |
 | `QURANPEDIA_CONTACT` | *(optional)* a contact e-mail for Quranpedia's User-Agent |
 
 Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; do not add it.
@@ -65,3 +66,4 @@ Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; d
   which only costs one fetch.
 - Groq's free tier: each audit sends about 550–615 input tokens, and the limit is 7,000 input tokens per minute
   (roughly 11–12 audits per minute). After a 429 the app skips AI for 120 s and says so in each result.
+- **A second limit, on output tokens (note of 3 Oct 2026).** Groq answered HTTP 429 («Request too large … output tokens per minute (OTPM): Limit 1000, Requested 1100–1994») to audits of the live service on 30 Sep–3 Oct 2026 while the app reserved the default 4096 output tokens per request; Groq's own «Requested» figure was never 4096 and its estimate is not documented, so the cause is observed, not proven. On 3 Oct 2026 `GROQ_MAX_COMPLETION_TOKENS=800` was set on Render and two live audits of the demonstration article (one audit, one video take) both answered HTTP 200 (`ai.outcome` ok, 4 proposed, 4 located, 0 added by the model). That is two calls, not a controlled test. The demonstration article needs about 75–90 output tokens, but an answer longer than the cap is cut off and the whole AI result is dropped (the deterministic result stands, AI is skipped for the cooldown), so an article with many quotations may need a higher value. Set `GROQ_MAX_COMPLETION_TOKENS=800` in the Render dashboard (Environment) before relying on the model; it is not in `render.yaml`.
