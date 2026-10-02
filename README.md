@@ -14,7 +14,7 @@ taken only from that text, and lets an editor approve them one by one.
 
 > **Pre-challenge work.** Everything in this repository was built **before 4 October 2026**: the git tag
 > `pre-challenge-baseline` marks the first baseline commit, and every later commit dated before 4 October (the Groq
-> provider, the editor workflow, the unmarked-phrase search, the boundary rules, the AI-provenance rules) is also
+> provider, the editor workflow, the unmarked-phrase search, the boundary rules, the AI-provenance rules, the Uthmani-script matching and the interface revision of 2 October) is also
 > pre-challenge work. Only work committed during 4–6 October 2026 counts as challenge work.
 > See [BASELINE.md](BASELINE.md) and [CHANGELOG.md](CHANGELOG.md).
 > Built by one participant with Claude Code as a coding assistant; Claude is not used at runtime.
