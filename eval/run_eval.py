@@ -52,6 +52,11 @@ def expected_wording(g: dict) -> str:
     return "matched"
 
 
+def fold_text(text: str) -> str:
+    """The words of ``text`` as the matcher folds them (Uthmani spellings written the imla'i way), joined by spaces."""
+    return " ".join(t.fold for t in arabic.tokenize(text))
+
+
 def grade_corrections(hit: dict, g: dict) -> dict:
     """Score the proposed (non-optional) corrections for one detected gold quotation.
 
@@ -69,7 +74,7 @@ def grade_corrections(hit: dict, g: dict) -> dict:
         gold_ref = Reference(0, 0, "", g["surah"], g["ayah_start"], g["ayah_end"])
         words = [t.raw for t in arabic.tokenize(wfix["quote_after"])]
         res = verify(index, words, gold_ref)
-        ok = res["wording"]["status"] == "matched" and arabic.folded(wfix["quote_after"]) == arabic.folded(g["correct_text"])
+        ok = res["wording"]["status"] == "matched" and fold_text(wfix["quote_after"]) == fold_text(g["correct_text"])
         out["wording_fix"] = "ok" if ok else "wrong"
     if rfix:
         r = parse_reference(rfix["replacement"])
@@ -239,6 +244,7 @@ def main() -> int:
         "detected": len(det),
         "detection_by_tag": {},
         "wording": dict(Counter(r["wording_grade"] for r in det)),
+        "wording_levels": dict(Counter(f"{r['wording_actual']}/{r['wording_level']}" for r in det)),
         "reference": dict(Counter(r["reference_grade"] for r in det)),
         "location_ok": dict(Counter(str(r["location_ok"]) for r in det)),
         "false_verified_wording": sum(r["false_verified_wording"] for r in det),

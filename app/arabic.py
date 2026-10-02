@@ -13,6 +13,10 @@ tell the user which kind of match it found:
 
 ``folded`` is what the index searches on. A match found only at ``folded``
 level is never reported as a literal match.
+
+A word of the *submitted* text that shows an Uthmani-script feature (ٱ, small high marks, a dagger alef, a tatweel
+carrying a hamza ...) is folded by ``uthmani.search_fold`` instead, which writes it the way the imla'i source does
+(ٱلصَّلَوٰةَ → الصلاة) so that a correct copy from a Quran app is found; every other word is folded exactly as above.
 """
 
 from __future__ import annotations
@@ -96,7 +100,15 @@ class Token:
     start: int
     end: int
     raw: str  # original substring
-    fold: str  # folded form used for search
+    fold: str  # folded form used for search (Uthmani-aware, see ``uthmani.search_fold``)
+    alts: tuple[str, ...] = ()  # other folds the same Uthmani spelling can stand for (``uthmani.alternatives``)
+
+
+def search_fold(word: str) -> str:
+    """Fold of one submitted word for searching the index (Uthmani spellings are written the imla'i way first)."""
+    from . import uthmani
+
+    return uthmani.search_fold(word)
 
 
 def tokenize(text: str) -> list[Token]:
@@ -121,7 +133,11 @@ def tokenize(text: str) -> list[Token]:
                     for part in f.split(" "):
                         tokens.append(Token(i, j, raw, part))
                 else:
-                    tokens.append(Token(i, j, raw, f))
+                    from . import uthmani
+
+                    for a, b in uthmani.split_vocative(raw):  # يَٰٓأَيُّهَا is two words (يَا أَيُّهَا) in the imla'i text
+                        piece = raw[a:b]
+                        tokens.append(Token(i + a, i + b, piece, uthmani.search_fold(piece), uthmani.alternatives(piece)))
             i = j
         else:
             i += 1

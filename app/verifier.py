@@ -24,7 +24,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
-from . import arabic
+from . import arabic, uthmani
 from .quran_source import QuranIndex, ayah_api_url, ayah_page_url
 from .references import Reference
 from .surahs import NAMES
@@ -48,16 +48,28 @@ class Span:
 # index helpers
 # ---------------------------------------------------------------------------
 
-def find_exact(index: QuranIndex, qf: list[str]) -> list[Span]:
-    """All occurrences of the folded word sequence ``qf`` (may cross ayahs)."""
+def find_exact(index: QuranIndex, qf: list[str], alts: list[tuple[str, ...]] | None = None) -> list[Span]:
+    """All occurrences of the folded word sequence ``qf`` (may cross ayahs).
+
+    ``alts[k]`` lists other folds word k may stand for (an Uthmani spelling the rasm does not settle, see
+    ``uthmani.alternatives``); a place matches when every word equals its fold or one of its alternatives.
+    """
     if not qf:
         return []
     n = len(qf)
+    alts = alts if alts and any(alts) else None
     out: list[Span] = []
-    for s, p in index.positions.get(qf[0], []):
-        stream = index.streams[s]
-        if p + n <= len(stream) and all(stream[p + k][0] == qf[k] for k in range(n)):
-            out.append(Span(s, p, p + n))
+    seen: set[tuple[int, int]] = set()
+    for first in (qf[0], *alts[0]) if alts else (qf[0],):
+        for s, p in index.positions.get(first, []):
+            if (s, p) in seen:
+                continue
+            stream = index.streams[s]
+            if p + n <= len(stream) and all(stream[p + k][0] == qf[k] or (alts is not None and stream[p + k][0] in alts[k]) for k in range(n)):
+                seen.add((s, p))
+                out.append(Span(s, p, p + n))
+    if alts:
+        out.sort(key=lambda sp: (sp.surah, sp.p0))
     return out
 
 
@@ -138,7 +150,10 @@ _BENIGN = {
 
 
 def script_diff_kind(quote_word: str, source_word: str) -> str:
-    """'benign' if the quote only simplifies letter forms of the source, else 'significant'."""
+    """'uthmani' if the quote is a recognised Uthmani spelling of the source word, 'benign' if it only simplifies letter forms
+    of the source, else 'significant'."""
+    if uthmani.equivalent(quote_word, source_word):
+        return "uthmani"
     q, s = arabic.letters(quote_word), arabic.letters(source_word)
     if len(q) != len(s):
         return "significant"
@@ -149,25 +164,51 @@ def script_diff_kind(quote_word: str, source_word: str) -> str:
 
 
 def compare_words(quote_words: list[str], source_words: list[str]) -> dict:
-    """Classify an exact folded match as literal / diacritics / normalized."""
-    script_diffs, diac_conflicts = [], []
+    """Classify an exact folded match as literal / diacritics / normalized / uthmani.
+
+    ``uthmani``: some words are a recognised Uthmani spelling of the source word (``uthmani.explain``); the words
+    themselves are listed in ``uthmani_words`` and a vowel the quote writes differently in ``diacritic_conflicts``.
+    """
+    script_diffs, diac_conflicts, uth_words = [], [], []
     all_literal = True
     for qw, sw in zip(quote_words, source_words):
         if arabic.literal(qw) == arabic.literal(sw):
             continue
         all_literal = False
-        if arabic.letters(qw) != arabic.letters(sw):
+        features = uthmani.explain(qw, sw) if uthmani.features(qw) else None
+        if features is not None:
+            uth_words.append({"quote": qw, "source": sw, "features": list(features)})
+            vowels = uthmani.vowel_conflicts(qw, sw)
+            if vowels:
+                diac_conflicts.append({"quote": qw, "source": sw, "uthmani": True, "marks": [m for _, m in vowels]})
+        elif arabic.letters(qw) != arabic.letters(sw):
             script_diffs.append({"quote": qw, "source": sw, "kind": script_diff_kind(qw, sw)})
         elif arabic.has_diacritics(qw) and diacritics_conflict(qw, sw):
             diac_conflicts.append({"quote": qw, "source": sw})
     if all_literal:
         level = "literal"
+    elif uth_words:
+        level = "uthmani"
     elif script_diffs:
         level = "normalized"
     else:
         level = "diacritics"
     vocalized = any(arabic.has_diacritics(w) for w in quote_words)
-    return {"level": level, "script_diffs": script_diffs, "diacritic_conflicts": diac_conflicts, "quote_vocalized": vocalized}
+    return {"level": level, "script_diffs": script_diffs, "diacritic_conflicts": diac_conflicts, "uthmani_words": uth_words,
+            "quote_vocalized": vocalized}
+
+
+SCRIPT_LABEL = "الرسم العثماني"
+SCRIPT_MESSAGE = ("الكلمات هي كلمات المصحف نفسها، مكتوبةً بالرسم العثماني (كما في المصاحف المطبوعة وتطبيقاتها)، "
+                  "وقد طابقناها بعد توحيد الرسم مع نص قرآنبيديا الإملائي. لا يلزم تصحيح.")
+
+
+def script_block(uth_words: list[dict]) -> dict | None:
+    """Which script convention the matched words are written in, and for which words (None if none needed it)."""
+    if not uth_words:
+        return None
+    features = sorted({f for w in uth_words for f in w["features"]})
+    return {"convention": "uthmani", "label": SCRIPT_LABEL, "features": features, "words": uth_words[:12], "word_count": len(uth_words)}
 
 
 # ---------------------------------------------------------------------------
@@ -254,6 +295,24 @@ def diff_ops(quote_words: list[str], source_words: list[str], opcodes) -> list[d
     return out
 
 
+def script_unresolved(quote_words: list[str], source_words: list[str], ops) -> tuple[dict[int, str], bool]:
+    """Quote words the fuzzy alignment pairs with a source word of the same consonants although the word shows an Uthmani
+    feature: the spelling may be a correct one that no rule covers. ``{quote index: source word}`` and whether *every*
+    difference of the alignment is of this kind (then nothing is known to be wrong)."""
+    found: dict[int, str] = {}
+    other = False
+    for tag, i1, i2, j1, j2 in ops:
+        if tag == "equal":
+            continue
+        pairs = [(i1 + k, quote_words[i1 + k], source_words[j1 + k]) for k in range(i2 - i1)] if tag == "replace" and i2 - i1 == j2 - j1 else []
+        flagged = [(k, qw, sw) for k, qw, sw in pairs if uthmani.features(qw) and uthmani.same_skeleton(qw, sw)]
+        for k, _, sw in flagged:
+            found[k] = sw
+        if not pairs or len(flagged) != len(pairs):
+            other = True
+    return found, bool(found) and not other
+
+
 # ---------------------------------------------------------------------------
 # reference checking
 # ---------------------------------------------------------------------------
@@ -325,8 +384,8 @@ def unavailable_result(ref: Reference | None) -> dict:
     else:
         ref_block["message"] = "الإحالة سليمة الصيغة، لكن تعذّر التحقق من مطابقتها للنص لغياب المصدر."
     return {
-        "wording": {"status": "uncertain", "level": None, "similarity": None, "message": "المصدر غير متاح", "diff": [], "script_diffs": [], "diacritic_conflicts": []},
-        "proposal": {"status": "review_only", "edits": [], "vocalize": [], "reason": "المصدر غير متاح؛ لا يُقترح أي تصحيح."},
+        "wording": {"status": "uncertain", "level": None, "similarity": None, "message": "المصدر غير متاح", "diff": [], "script_diffs": [], "diacritic_conflicts": [], "script": None},
+        "proposal": {"status": "review_only", "edits": [], "vocalize": [], "script": [], "reason": "المصدر غير متاح؛ لا يُقترح أي تصحيح."},
         "source": None,
         "alternatives": [],
         "occurrences": None,
@@ -345,9 +404,10 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None,
     ``hints`` are places the phrase search thinks are close; they are only *offered* to the fuzzy alignment,
     they never make a match count as a reference and they confirm nothing.
     """
-    qf = [arabic.folded(w) for w in quote_words]
+    qf = [arabic.search_fold(w) for w in quote_words]
+    quote_alts = [uthmani.alternatives(w) for w in quote_words]
     reasons: list[str] = []
-    wording: dict = {"status": "uncertain", "level": None, "similarity": None, "message": "", "diff": [], "script_diffs": [], "diacritic_conflicts": []}
+    wording: dict = {"status": "uncertain", "level": None, "similarity": None, "message": "", "diff": [], "script_diffs": [], "diacritic_conflicts": [], "script": None}
     chosen: Span | None = None
     alternatives: list[dict] = []
     occurrences = 0
@@ -355,7 +415,7 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None,
 
     fuzzy_best: Alignment | None = None
     fuzzy_good: list[Alignment] = []
-    exact = find_exact(index, qf)
+    exact = find_exact(index, qf, quote_alts)
     occurrences = len(exact)
     ref_ok = ref if (ref and ref.valid) else None
     loc = ref_ok or (pin if (pin and pin.valid) else None)  # what settles the location: a written reference, else the chosen verse
@@ -378,18 +438,24 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None,
 
         if chosen is not None:
             cmp = compare_words(quote_words, span_words(index, chosen))
-            wording.update({"level": cmp["level"], "similarity": 1.0, "script_diffs": cmp["script_diffs"], "diacritic_conflicts": cmp["diacritic_conflicts"]})
+            wording.update({"level": cmp["level"], "similarity": 1.0, "script_diffs": cmp["script_diffs"], "diacritic_conflicts": cmp["diacritic_conflicts"],
+                            "script": script_block(cmp["uthmani_words"])})
             significant = [d for d in cmp["script_diffs"] if d["kind"] == "significant"]
             if significant or cmp["diacritic_conflicts"]:
                 wording["status"] = "difference"
-                what = "في رسم بعض الحروف (كالهمزات)" if significant else "في التشكيل"
-                msg = f"الكلمات مطابقة بعد التطبيع، لكن {what} اختلاف عن نص المصحف."
-                if not significant:
-                    msg += " قد يرجع بعضه إلى اختلاف طريقة الضبط بين طبعات المصاحف (كعلامات الإدغام)، فيُرجى التأكد."
+                if cmp["uthmani_words"] and not significant:
+                    msg = "الكلمات مطابقة بعد توحيد الرسم العثماني، لكن تشكيل بعضها يخالف نص المصحف؛ يُراجَع يدويًا ولا يُستبدل تلقائيًا (قد يرجع إلى اختلاف طبعات المصاحف في الضبط)."
+                else:
+                    what = "في رسم بعض الحروف (كالهمزات)" if significant else "في التشكيل"
+                    msg = f"الكلمات مطابقة بعد التطبيع، لكن {what} اختلاف عن نص المصحف."
+                    if not significant:
+                        msg += " قد يرجع بعضه إلى اختلاف طريقة الضبط بين طبعات المصاحف (كعلامات الإدغام)، فيُرجى التأكد."
                 wording["message"] = (wording["message"] + " " if wording["message"] else "") + msg
             else:
                 short_unconfirmed = len(qf) < MIN_WORDS and not (loc and ref_overlaps(loc, index, chosen)[0])
                 wording["status"] = "uncertain" if short_unconfirmed else "matched"
+                if wording["status"] == "matched" and cmp["level"] == "uthmani":
+                    wording["message"] = (wording["message"] + " " if wording["message"] else "") + SCRIPT_MESSAGE
             wording["diff"] = [{"op": "equal", "quote": " ".join(quote_words), "source": " ".join(span_words(index, chosen))}]
         else:
             wording["status"] = "uncertain"
@@ -416,6 +482,18 @@ def verify(index: QuranIndex, quote_words: list[str], ref: Reference | None,
                 "diff": diff_ops(quote_words, span_words(index, chosen), best.ops),
             })
             reasons.append("مطابقة تقريبية: الموضع المقترح يحتاج إلى تأكيد بشري.")
+            unresolved, only_script = script_unresolved(quote_words, span_words(index, chosen), best.ops)
+            if unresolved:
+                wording["unresolved_words"] = [{"quote": quote_words[k], "source": w} for k, w in sorted(unresolved.items())]
+                names = "، ".join(quote_words[k] for k in sorted(unresolved))
+                if only_script:
+                    # Every other word equals the source: the only open question is a spelling no rule covers.
+                    wording.update(status="uncertain", message=f"باقي الكلمات مطابقة للمصحف، لكن رسم «{names}» لم نستطع مطابقته آليًا بالرسم العثماني؛ يلزم التحقق يدويًا ولا يُقترح تصحيح.")
+                    fuzzy = False
+                    reasons[:] = [r for r in reasons if not r.startswith("مطابقة تقريبية")]
+                    reasons.append(wording["message"])
+                else:
+                    reasons.append(f"رسم «{names}» لم نستطع مطابقته آليًا بالرسم العثماني، فلا يُستبدل تلقائيًا.")
             alternatives = [
                 {"label": span_label(index, c.span), "similarity": round(c.similarity, 3), "source": _source_block(index, c.span)}
                 for c in good if c is not best
@@ -470,6 +548,8 @@ def _word_fixes(quote_words: list[str], source_words: list[str], q0: int, s0: in
     edits = []
     for k in range(n):
         qw, sw = quote_words[q0 + k], source_words[s0 + k]
+        if uthmani.features(qw) and uthmani.explain(qw, sw) is not None:
+            continue  # a recognised Uthmani spelling: never a wording error (a vowel conflict is for the editor to review)
         if arabic.letters(qw) != arabic.letters(sw):
             if script_diff_kind(qw, sw) == "significant":
                 edits.append((q0 + k, q0 + k + 1, [styled(sw, qw, vocalized)]))
@@ -489,7 +569,7 @@ def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, ch
       * ``review_only`` — the intended source span is not certain; no replacement is offered.
     Edits never extend beyond the quoted excerpt, so a partial quote is never expanded to a full verse.
     """
-    out = {"status": "review_only", "edits": [], "vocalize": [], "reason": ""}
+    out = {"status": "review_only", "edits": [], "vocalize": [], "script": [], "reason": ""}
     vocalized = any(arabic.has_diacritics(w) for w in quote_words)
     if chosen is None:
         out["reason"] = "موضع الاقتباس في المصحف غير محدد (غير موجود أو وارد في أكثر من موضع)، فلا يُقترح تصحيح تلقائي."
@@ -503,10 +583,17 @@ def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, ch
         if edits:
             out.update(status="proposed", edits=edits, reason=wording.get("message") or "")
             return out
+        if any(d.get("uthmani") for d in wording.get("diacritic_conflicts", [])):
+            out["reason"] = "تشكيل بعض الكلمات يخالف نص المصحف (والرسم عثماني)؛ يُراجَع يدويًا ولا يُستبدل تلقائيًا."
+            return out
         out["status"] = "none_needed"
         if wording.get("level") != "literal":
-            out["vocalize"] = [(k, k + 1, [arabic.literal(sw)]) for k, (qw, sw) in enumerate(zip(quote_words, src))
-                               if arabic.literal(qw) != arabic.literal(sw)]
+            differing = [(k, qw, sw) for k, (qw, sw) in enumerate(zip(quote_words, src)) if arabic.literal(qw) != arabic.literal(sw)]
+            as_script = {k for k, qw, sw in differing if uthmani.features(qw) and uthmani.explain(qw, sw) is not None}
+            # Optional formatting, never a correction: the Uthmani spelling is right; these write it the way Quranpedia does.
+            # (one conversion for the whole quotation when any word needs it, else the plain full-vocalisation option)
+            key = "script" if as_script else "vocalize"
+            out[key] = [(k, k + 1, [arabic.literal(sw)]) for k, qw, sw in differing]
         return out
     # fuzzy: only when the location is unambiguous and supported
     if len(quote_words) < MIN_WORDS:
@@ -532,10 +619,18 @@ def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, ch
     elif best.similarity < FUZZY_PROPOSE_NO_REF:
         out["reason"] = "لا توجد إحالة تؤكد الموضع، والتشابه غير كافٍ لاقتراح تصحيح تلقائي."
         return out
+    unresolved, only_script = script_unresolved(quote_words, src, best.ops)
+    if only_script:
+        out["reason"] = "باقي الكلمات مطابقة، لكن رسم كلمة لم نستطع مطابقته آليًا بالرسم العثماني؛ لا يُقترح استبدال."
+        return out
     edits: list[tuple[int, int, list[str]]] = []
     for tag, i1, i2, j1, j2 in best.ops:
         if tag == "equal":
             edits += _word_fixes(quote_words, src, i1, j1, i2 - i1, vocalized)
+        elif tag == "replace" and unresolved and i2 - i1 == j2 - j1:
+            for k in range(i2 - i1):  # one word for one word: the words whose spelling may be correct are left alone
+                if i1 + k not in unresolved:
+                    edits.append((i1 + k, i1 + k + 1, [styled(src[j1 + k], quote_words[i1 + k], vocalized)]))
         elif tag == "replace":
             ql = quote_words[i1:i2]
             edits.append((i1, i2, [styled(src[j], ql[j - j1] if j - j1 < len(ql) else None, vocalized) for j in range(j1, j2)]))

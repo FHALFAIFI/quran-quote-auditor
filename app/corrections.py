@@ -34,6 +34,8 @@ def _apply_edits(quote: str, edits: list[tuple[int, int, list[str]]]) -> tuple[i
         if i0 < i1:  # replace or delete
             s, e = toks[i0].start, toks[i1 - 1].end
             text = " ".join(words)
+            if words and i1 < n and toks[i1].start == e:  # the next word was written joined (يَٰٓأَيُّهَا): keep it a separate word
+                text += " "
             if not words:  # delete: also remove one adjacent separator space
                 if e < len(quote) and quote[e] == " ":
                     e += 1
@@ -105,7 +107,7 @@ def _source_meta(src: dict) -> dict:
 def build_changes(article: str, finding: dict, cand_start: int, ref: Reference | None) -> tuple[list[dict], dict]:
     """Proposed changes for one finding, and a summary of why/why not."""
     fid = finding["id"]
-    prop = finding.get("proposal") or {"status": "review_only", "edits": [], "vocalize": [], "reason": ""}
+    prop = finding.get("proposal") or {"status": "review_only", "edits": [], "vocalize": [], "script": [], "reason": ""}
     src = finding.get("source")
     changes: list[dict] = []
     summary = {"status": prop["status"], "reason": prop.get("reason", "")}
@@ -136,6 +138,11 @@ def build_changes(article: str, finding: dict, cand_start: int, ref: Reference |
         else:
             summary.update(status="review_only", reason="تعذّر بناء تصحيح آمن لهذا المقطع؛ يُراجع يدويًا.")
             location_certain = False
+    if location_certain and prop.get("script"):
+        ch = quote_change("script", prop["script"],
+                          "اختياري: كتابة الكلمات بالرسم الإملائي المعتمد في قرآنبيديا بدل الرسم العثماني. رسمك الحالي صحيح، وهذا تنسيق وليس تصحيح خطأ.", True)
+        if ch:
+            changes.append(ch)
     if location_certain and prop.get("vocalize"):
         ch = quote_change("vocalize", prop["vocalize"], "اختياري: كتابة الاقتباس بضبط المصحف الكامل. النص الحالي صحيح الحروف، وهذا تنسيق وليس تصحيح خطأ.", True)
         if ch:

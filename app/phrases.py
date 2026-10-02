@@ -75,7 +75,7 @@ _QURAN_CUES = [
     "قال تعالى", "قوله تعالى", "يقول تعالى", "وقال تعالى", "والله يقول", "قال الله", "يقول الله", "يقول ربنا", "قال ربنا",
     "قوله سبحانه", "قال سبحانه", "في كتابه", "في القرآن", "القرآن الكريم", "القرآن", "الآية", "آية",
 ]
-_ALLOWED_GAP = " \t ،,؛;"
+_ALLOWED_GAP = " \t ،,؛;ۖۗۘۙۚۛۜ"  # Quranic pause signs (ۖ ۗ ۚ ...) between the words of a copied verse do not end a phrase
 
 
 def _fold_phrase(text: str) -> tuple[str, ...]:
@@ -213,7 +213,7 @@ class _Searcher:
             if kind == "S":
                 return exact_words < 3
             src = source_word(self.index, s, sp)
-            return arabic.letters(self.tokens[ti].raw) != arabic.letters(src) and script_diff_kind(self.tokens[ti].raw, src) != "benign"
+            return arabic.letters(self.tokens[ti].raw) != arabic.letters(src) and script_diff_kind(self.tokens[ti].raw, src) not in ("benign", "uthmani")
 
         pairs = list(pairs)
         while pairs and bad_edge(pairs[0]):

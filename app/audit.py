@@ -379,7 +379,9 @@ def _stats(findings: list[dict]) -> dict:
         "ref_missing": sum(f["reference"]["status"] == "missing" for f in findings),
         "ref_incorrect": sum(f["reference"]["status"] == "incorrect" for f in findings),
         "ref_uncertain": sum(f["reference"]["status"] == "uncertain" for f in findings),
-        "proposed_changes": sum(len(f["changes"]) for f in findings),
+        # corrections only: optional formatting (full vocalisation, Quranpedia spelling, an added reference) is counted apart
+        "proposed_changes": sum(1 for f in findings for c in f["changes"] if not c["optional"]),
+        "optional_changes": sum(1 for f in findings for c in f["changes"] if c["optional"]),
     }
 
 

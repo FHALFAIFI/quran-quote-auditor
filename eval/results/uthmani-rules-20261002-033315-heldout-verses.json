@@ -1,0 +1,30 @@
+{
+ "_note": "The text key 'tanzil' replaces, since 2026-10-02 (the day this file was written), the earlier label of the site the first copy of this text came from: the whole-text analysis ran on a copy that is letter for letter Tanzil Uthmani v1.1 (SOURCES.md \u00a71b); the numbers were reproduced from Tanzil's own XML (docs/UTHMANI.md) and are unchanged.",
+ "when": "2026-10-02T03:33:15+0300",
+ "excluded_heldout_verses": null,
+ "imlai_words_changed_by_the_uthmani_fold": 0,
+ "texts": {
+  "tanzil": {
+   "verses": 41,
+   "verses_fully_explained": 41,
+   "share": 1.0,
+   "word_boundary_mismatch_verses": 0,
+   "words_differing_from_the_imlai_literal": 290,
+   "words_explained": 290,
+   "vowel_conflicts_among_explained": 0,
+   "unexplained_words_distinct": 0,
+   "top_unexplained": []
+  },
+  "mushaf2": {
+   "verses": 41,
+   "verses_fully_explained": 41,
+   "share": 1.0,
+   "word_boundary_mismatch_verses": 0,
+   "words_differing_from_the_imlai_literal": 421,
+   "words_explained": 421,
+   "vowel_conflicts_among_explained": 0,
+   "unexplained_words_distinct": 0,
+   "top_unexplained": []
+  }
+ }
+}
