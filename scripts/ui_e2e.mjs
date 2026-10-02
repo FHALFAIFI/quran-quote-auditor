@@ -30,7 +30,7 @@ page.on("pageerror", (e) => errors.push(String(e)));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 
 await page.goto(base + "/");
-await page.waitForSelector("#mode-banner:not([hidden])");
+await page.waitForSelector("#mode-banner:not([hidden])", { state: "attached" });  // the banner lives in the collapsed help
 await shot(page, "01-home.png");
 
 // sample 2
@@ -57,6 +57,7 @@ await shot(page, "03-approved-change.png");
 
 // reject an optional vocalization change
 const optional = page.locator(".change.optional").first();
+await optional.evaluate((n) => { for (let d = n.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true; });  // optional formatting sits in its own collapsed box, apart from the corrections
 await optional.locator('button[data-act="rejected"]').click();
 check(await optional.evaluate((n) => n.classList.contains("rejected")), "optional change marked rejected");
 
@@ -81,9 +82,9 @@ check(clip === null || clip === revised, "copy button puts the revised article o
 // the confirmation must appear beside the button that was pressed, not only in the page-level status line
 check(clip === null || /تم النسخ/.test(await page.locator("#copy-btn").innerText()), "copy button confirms the copy on the button itself");
 check(clip === null || (await page.locator("#copy-note").innerText()).includes("نُسخ المقال المعدّل"), "a note beside the copy button confirms the copy");
-// the nine summary tiles never leave a single orphan tile on a row (one row on wide screens, a 3 x 3 block below 1000 px)
-const tileRows = await page.$$eval("#summary .tile", (t) => [...new Set(t.map((x) => Math.round(x.getBoundingClientRect().top)))].length);
-check(tileRows === 1 || tileRows === 3, `summary tiles form ${tileRows} row(s) (1 or 3 expected, no orphan tile)`);
+// three primary figures on one row (two rows on a narrow screen), the other counts on demand
+const prim = await page.$$eval("#summary .stats .tile", (t) => t.map((x) => x.textContent.replace(/\s+/g, " ").trim()));
+check(prim.length === 3 && prim[0].includes("تحتاج مراجعة") && prim[1].includes("تصحيحات مقترحة") && prim[2].includes("اقتباسات مرصودة"), `summary shows three primary figures (${prim.join(" | ")})`);
 
 // reply draft for a social post: approved fix only, no claim about the whole post
 await page.click(".reply-box summary");

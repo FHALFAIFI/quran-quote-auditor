@@ -48,6 +48,7 @@ check(boxText.includes("لا يعني أن الألفاظ خاطئة") && boxTex
 check(boxText.includes("فتذكر") && boxText.includes("الآخر"), "the box shows the article's previous word and the Quran's previous word");
 check((await page.locator("#boundary-note").isVisible()) && (await page.locator("#boundary-note").innerText()).includes("لأن حدودها لم تتحدد"), "the summary carries the explanation note");
 check((await box.locator("button").count()) === 2, "two buttons: confirm and adjust");
+await page.click("#summary .more-stats summary");  // the secondary counts are on demand
 check((await page.locator("#summary .tile").filter({ hasText: "غير محسومة" }).locator(".n").innerText()) === "١", "summary counts one uncertain");
 
 // adjust: the span is selected in the textarea, the check button is enabled
@@ -75,7 +76,7 @@ const done = page.locator(".finding");
 check((await done.locator(".boundary-box").count()) === 0, "after «حدود الاقتباس صحيحة» the boundary box is gone");
 check((await done.locator(".f-head .chip.ok").count()) === 1, "the wording now reads «مطابق»");
 check((await page.locator("#boundary-note").isHidden()), "the summary note is hidden when nothing is uncertain");
-check((await done.locator(".quote-text").innerText()) === quote, "the span itself is unchanged");
+check((await done.locator(".quote-text").textContent()) === quote, "the span itself is unchanged");
 await shot(page, "b3-confirmed.png");
 
 check(errors.length === 0, `no page errors${errors.length ? ": " + errors.join(" | ") : ""}`);

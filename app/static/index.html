@@ -18,20 +18,17 @@
     <div class="wrap header-inner">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="34" height="34"><rect width="32" height="32" rx="9" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6150EA"/><stop offset="1" stop-color="#2EF2C2"/></linearGradient></defs><path d="M9 17l4 4 10-10" stroke="#12183F" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 32 32" width="34" height="34"><rect width="32" height="32" rx="9" fill="#6150EA"/><path d="M9 17l4 4 10-10" stroke="#2EF2C2" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         <div>
           <h1>مدقق الاقتباسات القرآنية</h1>
-          <p class="tagline">تحقّق من ألفاظ الآيات المقتبسة وإحالاتها في مقالك، مقارنةً بنص مصحف حفص.</p>
+          <p class="tagline">تقارن الأداة ألفاظ الآيات المقتبسة في مقالك وإحالاتها بنص مصحف حفص، ثم تقترح عليك تصحيحات تعتمدها بنفسك.</p>
         </div>
       </div>
-      <span class="track-chip">المسار الرابع · أدوات المعرفة والتحقق</span>
     </div>
   </header>
 
   <main class="wrap">
-    <div id="mode-banner" class="banner" hidden></div>
-
     <section class="card input-card" aria-labelledby="input-title">
       <div class="card-head">
         <h2 id="input-title">نص المقال</h2>
@@ -50,17 +47,22 @@
         <span id="char-count" class="muted">0 حرف</span>
         <span id="stale-note" class="stale-note" hidden>تغيّر النص بعد آخر تدقيق؛ أعد التدقيق قبل اعتماد التصحيحات.</span>
         <div class="actions">
-          <button id="phrase-btn" type="button" class="btn" disabled title="دقّق المقال أولًا ثم حدّد المقطع">افحص المقطع المحدَّد</button>
           <button id="clear-btn" type="button" class="btn ghost">مسح</button>
           <button id="audit-btn" type="button" class="btn primary">دقّق الاقتباسات</button>
         </div>
       </div>
-      <p class="manual-note"><b>فاتتك عبارة، أو الأداة لم تحدّد حدود اقتباس؟</b> بعد التدقيق: (١) حدّد العبارة بالماوس داخل هذا المربع (أو اضغط «عدّل الحدود بنفسك» في بطاقة الاقتباس فيُحدَّد لك مقطعها)،
-        (٢) اضغط «افحص المقطع المحدَّد»، (٣) اختر موضعها من المصحف إن سُئلت. ما حدّدته أنت يُعامَل حدًّا نهائيًا. العبارات القصيرة جدًا (كلمة أو كلمتان) قد يتعذّر تعيين موضعها يقينًا دون سياق.</p>
-      <p class="scope-note">
-        نطاق الأداة: الاقتباسات القرآنية وإحالاتها فقط. لا تصحّح الأداة لغة المقال، ولا تفسّر الآيات، ولا تُصدر أحكامًا شرعية.
-        النتائج مساعدة للمحرر وتحتاج إلى مراجعة بشرية، وخاصة ما عُلِّم «يحتاج مراجعة».
-      </p>
+      <p class="safety">تفحص الأداة الاقتباسات القرآنية وإحالاتها فقط، ولا يتغيّر شيء في مقالك إلا بما تعتمده أنت.</p>
+      <details class="help">
+        <summary>كيف تعمل الأداة وما حدودها؟</summary>
+        <div class="help-body">
+          <div id="mode-banner" class="banner" hidden></div>
+          <ul>
+            <li>تُفحص الاقتباسات المعلَّمة بـ ﴿ ﴾ أو { } أو علامات تنصيص بعد «قال تعالى» أو قبل إحالة، ويُبحث في بقية النص عن عبارات تطابق المصحف دون علامات. وتُقبل الآيات المنسوخة بالرسم العثماني من المصاحف وتطبيقاتها.</li>
+            <li>لا تُقترح تصحيحات إلا من نص قرآنبيديا، وما كان غير مؤكد يُعرض بعبارة «يحتاج مراجعة» دون نص بديل. لا تصحّح الأداة لغة المقال ولا تفسّر الآيات ولا تُصدر أحكامًا شرعية.</li>
+            <li><b>فاتتك عبارة؟</b> بعد التدقيق حدّد العبارة بالماوس في هذا المربع ثم اضغط «افحص المقطع المحدَّد» (يظهر فوق قائمة المراجعة) واختر موضعها إن سُئلت. ما حدّدته تعدّه الأداة حدًّا نهائيًا. وقد يتعذّر تعيين موضع عبارة من كلمة أو كلمتين.</li>
+          </ul>
+        </div>
+      </details>
     </section>
 
     <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -78,7 +80,8 @@
         <section class="findings-col" aria-labelledby="findings-title">
           <div class="findings-head">
             <h2 id="findings-title">قائمة المراجعة</h2>
-            <label class="filter"><input type="checkbox" id="only-review"> أظهر ما يحتاج مراجعة أو تصحيحًا فقط</label>
+            <label class="filter"><input type="checkbox" id="only-review"> ما يحتاج مراجعة فقط</label>
+            <button id="phrase-btn" type="button" class="btn small" disabled title="دقّق المقال أولًا ثم حدّد المقطع">افحص المقطع المحدَّد في المقال</button>
           </div>
           <ol id="findings" class="findings"></ol>
         </section>
@@ -89,10 +92,7 @@
           <h2 id="editor-title">المقال المعدّل — قبل وبعد</h2>
           <div id="editor-progress" class="editor-progress"></div>
         </div>
-        <p class="editor-note">
-          لا يتغير أي حرف في مقالك إلا بالتصحيحات التي تعتمدها واحدًا واحدًا من قائمة المراجعة. يبقى كل ما سواها كما كتبته، بما في ذلك الأسطر وعلامات الترقيم.
-          <b>لا يعني ذلك أن المقال كله متحقق منه أو جاهز للنشر</b>: الأداة تفحص الاقتباسات القرآنية التي رصدتها وإحالاتها فقط.
-        </p>
+        <p class="editor-note">لا يتغير أي حرف إلا بما تعتمده واحدًا واحدًا؛ وكل ما سواه يبقى كما كتبته. <b>ليس في ذلك شهادة بأن المقال كله متحقق منه أو جاهز للنشر.</b></p>
         <div class="tabs" role="tablist">
           <button id="tab-preview" type="button" role="tab" aria-selected="true" class="tab">المعاينة: المحذوف والمضاف</button>
           <button id="tab-text" type="button" role="tab" aria-selected="false" class="tab">النص المعدّل الكامل</button>
@@ -110,24 +110,24 @@
         <p id="copy-note" class="copy-note" role="status" aria-live="polite"></p>
         <details class="reply-box">
           <summary>مسودة رد على منشور (للنسخ اليدوي بعد مراجعتك)</summary>
-          <p class="editor-note">نص قصير مبني على التصحيحات التي اعتمدتها وما بقي غير محسوم فقط. راجعه وعدّله قبل نشره بنفسك؛ لا تنشر الأداة شيئًا تلقائيًا، ولا يقول الرد إن المنشور كله متحقق منه.</p>
+          <p class="editor-note">مبنية على ما اعتمدته وما بقي غير محسوم. راجعها وانشرها بنفسك؛ لا تنشر الأداة شيئًا.</p>
           <textarea id="reply-text" class="revised-text reply-text" dir="rtl" rows="6" aria-label="مسودة الرد"></textarea>
           <div class="editor-actions"><span id="reply-count" class="muted"></span><button id="reply-copy" type="button" class="btn">نسخ المسودة</button></div>
         </details>
       </section>
     </section>
 
-    <section class="card legend" aria-labelledby="legend-title">
-      <h2 id="legend-title">دليل الحالات</h2>
+    <details class="card legend">
+      <summary>دليل الحالات</summary>
       <div class="legend-grid">
-        <div><span class="chip ok">مطابق</span> وُجد النص في المصدر في موضع محدد. يُبيَّن مستوى المطابقة: <b>حرفية</b>، أو <b>بتجاهل التشكيل</b>، أو <b>بعد توحيد الرسم</b> (مثل كتابة الهمزات).</div>
-        <div><span class="chip diff">اختلاف</span> اختلاف في التشكيل أو رسم الحروف عن نص المصحف، أو لم يوجد النص بحروفه فاقترحت الأداة أقرب موضع (مقترح غير مؤكد).</div>
-        <div><span class="chip warn">غير محسوم</span> عبارة قصيرة، أو واردة في أكثر من موضع، أو غير موجودة، أو المصدر غير متاح.</div>
-        <div><span class="chip cand">مرشَّح لاقتباس قرآني</span> عبارة مميزة تطابق المصحف حرفيًا (بعد التطبيع) ورُصدت دون علامات اقتباس. لا يعني ذلك أن الكاتب قصد الاقتباس، فتأكد من ذلك.</div>
-        <div><span class="chip maybe">قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة</span> عبارة قصيرة أو شائعة، أو تقريبية اختلفت بعض كلماتها، أو سبقتها إشارة إلى حديث أو دعاء. لا تُقترح عليها تصحيحات إلا بعد أن تؤكد أنها اقتباس وتختار موضعها.</div>
-        <div><span class="chip ok">إحالة مطابقة</span> <span class="chip muted-chip">بلا إحالة</span> <span class="chip bad">إحالة خاطئة</span> <span class="chip warn">إحالة غير محسومة</span></div>
+        <div><span class="chip ok">مطابق</span> وُجد النص في موضع محدد: <b>حرفيًا</b>، أو <b>بتجاهل التشكيل</b>، أو <b>بعد توحيد الرسم</b>، أو <b>بالرسم العثماني</b> (ألفاظ المصحف نفسها مكتوبة كما في المصاحف المطبوعة، فلا يلزم تصحيح).</div>
+        <div><span class="chip diff">اختلاف</span> كلمة تخالف نص المصحف، أو تشكيل يخالفه، أو لم يوجد النص بحروفه فاقترحت الأداة أقرب موضع (غير مؤكد).</div>
+        <div><span class="chip warn">غير محسوم</span> عبارة قصيرة أو في أكثر من موضع أو غير موجودة، أو حدود الاقتباس غير مبيّنة، أو رسم لم تستطع الأداة مطابقته، أو المصدر غير متاح.</div>
+        <div><span class="chip cand">مرشَّح لاقتباس قرآني</span> عبارة مميزة تطابق المصحف دون علامات اقتباس. تأكد أنك قصدت الاقتباس.</div>
+        <div><span class="chip maybe">قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة</span> عبارة قصيرة أو شائعة أو تقريبية؛ لا تُقترح عليها تصحيحات حتى تؤكد وتختار موضعها.</div>
+        <div><span class="chip ok">إحالة مطابقة</span> <span class="chip muted-chip">بلا إحالة</span> <span class="chip bad">إحالة خاطئة</span> <span class="chip warn">إحالة غير محسومة</span> (تُحكم الإحالة على حدة ولو طابقت الألفاظ).</div>
       </div>
-    </section>
+    </details>
   </main>
 
   <footer class="site-footer">
@@ -139,7 +139,7 @@
       </p>
       <p class="muted">
         الخصوصية: لا تُخزَّن المقالات على الخادم ولا تُسجَّل، وقرارات التصحيح تبقى في متصفحك. عند تفعيل الذكاء الاصطناعي يُرسل نص المقال إلى <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noopener">Groq</a> (خوادم في الولايات المتحدة) لاقتراح مواضع الاقتباس فقط؛ ولا تحتفظ Groq بالطلبات افتراضيًا، إلا لمدة أقصاها 30 يومًا عند تتبّع الأعطال أو التحقيق في إساءة الاستخدام.
-        · نسخة ما قبل التحدي (خط الأساس) — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026.
+        · عمل ما قبل التحدي — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026، المسار الرابع: أدوات المعرفة والتحقق.
       </p>
     </div>
   </footer>

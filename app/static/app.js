@@ -34,8 +34,15 @@ const toArabicDigits = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧�
 const fmtTime = (secs) => new Date(secs * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
 
 const WORDING = {
-  matched: { literal: ["مطابق حرفيًا", "ok"], diacritics: ["مطابق بتجاهل التشكيل", "ok"], normalized: ["مطابق بعد توحيد الرسم", "ok"] },
-  difference: { diacritics: ["اختلاف في التشكيل", "diff"], normalized: ["اختلاف في رسم الحروف", "diff"], fuzzy: ["اختلاف — أقرب موضع مقترح", "diff"] },
+  matched: { literal: ["مطابق حرفيًا", "ok"], diacritics: ["مطابق بتجاهل التشكيل", "ok"], normalized: ["مطابق بعد توحيد الرسم", "ok"], uthmani: ["مطابق — رسم عثماني", "ok"] },
+  difference: { diacritics: ["اختلاف في التشكيل", "diff"], normalized: ["اختلاف في رسم الحروف", "diff"], uthmani: ["اختلاف في التشكيل (رسم عثماني)", "diff"], fuzzy: ["اختلاف — أقرب موضع مقترح", "diff"] },
+};
+// What a recognised Uthmani spelling was matched through (codes from app/uthmani.py).
+const SCRIPT_FEATURE = {
+  wasla: "ألف الوصل ٱ", small_marks: "علامات الضبط والوقف الصغيرة", dagger_alef: "الألف الخنجرية", waw_alef: "واو بدل الألف (ٱلصَّلَوٰة)",
+  hamza_alef: "همزة قبل الألف (ءَامَنُوا)", hamza_seat: "كرسي الهمزة", madd_sign: "علامة المد (لَآ)", idgham_shadda: "شدّة الإدغام",
+  small_letters: "حروف صغيرة", vocative: "يا النداء متصلة", lam: "لام واحدة بدل لامين", silent_alef: "ألف لا تُكتب إملائيًا",
+  word_spelling: "رسم خاص بالكلمة", lexicon: "رسم خاص بالكلمة", tatweel: "تطويل",
 };
 function wordingChip(w) {
   if (w.status === "uncertain") return ["غير محسوم", "warn"];
@@ -70,9 +77,10 @@ const COVERAGE = { full: "آية كاملة", partial: "جزء من آية", "mu
 const KIND = {
   wording: "تصحيح ألفاظ الاقتباس",
   diacritics: "تصحيح التشكيل",
-  vocalize: "ضبط كامل بتشكيل المصحف (اختياري)",
+  vocalize: "كتابة الاقتباس بالتشكيل الكامل",
+  script: "كتابة الاقتباس بالرسم الإملائي لقرآنبيديا",
   reference: "تصحيح الإحالة",
-  reference_add: "إضافة إحالة (اختياري)",
+  reference_add: "إضافة الإحالة بجوار الاقتباس",
 };
 
 function chip(label, cls) { return el("span", { class: `chip ${cls}`, text: label }); }
@@ -108,22 +116,14 @@ async function loadHealth() {
       // "Configured" is not "working": state what is known about the last real call.
       const last = h.ai_last_call || {};
       banner.className = "banner ai";
-      banner.append(el("strong", { text: "الاستخراج بالذكاء الاصطناعي مُعَدّ" }), " — ", el("bdi", { dir: "ltr", text: h.provider }), ". ");
-      if (last.outcome === "ok") {
-        banner.append("آخر استدعاء له على هذا الخادم نجح. ");
-      } else if (last.outcome === "failed") {
-        banner.append(el("b", { text: "آخر استدعاء له على هذا الخادم فشل" }),
-          last.cooldown_seconds > 0 ? ` ويُتخطّى مؤقتًا (${toArabicDigits(last.cooldown_seconds)} ث). ` : ". ");
-      } else {
-        banner.append("لم يُستدعَ بعدُ على هذا الخادم. ");
-      }
-      banner.append("نتيجة كل تدقيق تبيّن هل استجاب النموذج فعلًا أو استُخدم الوضع الاحتياطي. ",
-        "دوره اقتراح مواضع الاقتباس فقط، ويُتحقق من كل مقترح بمقارنته بنص المقال ثم بنص المصحف من قرآنبيديا.");
+      banner.append(el("strong", { text: "الذكاء الاصطناعي مُعَدّ" }), " — ", el("bdi", { dir: "ltr", text: h.provider }), ". ");
+      if (last.outcome === "ok") banner.append("آخر استدعاء له على هذا الخادم نجح. ");
+      else if (last.outcome === "failed") banner.append(el("b", { text: "آخر استدعاء له على هذا الخادم فشل" }), last.cooldown_seconds > 0 ? ` ويُتخطّى مؤقتًا (${toArabicDigits(last.cooldown_seconds)} ث). ` : ". ");
+      else banner.append("لم يُستدعَ بعدُ على هذا الخادم. ");
+      banner.append("نتيجة كل تدقيق تبيّن هل استجاب النموذج فعلًا. دوره اقتراح مواضع الاقتباس فقط، ويُتحقق من كل مقترح بنص المقال ثم بنص المصحف.");
     } else {
       banner.className = "banner reduced";
-      banner.append(el("strong", { text: "وضع مخفّض — الذكاء الاصطناعي غير مفعّل. " }),
-        "تُفحص الاقتباسات المعلَّمة صراحةً (﴿ ﴾ أو { } أو علامات تنصيص مع «قال تعالى» أو إحالة)، ويُبحث في بقية النص عن عبارات (3 كلمات فأكثر) تطابق المصحف دون علامات؛ ",
-        "وما كان شائعًا أو تقريبيًا يُعرض بعبارة «قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة». قد تفوت بعض الاقتباسات القصيرة، ويمكنك تحديدها بنفسك.");
+      banner.append(el("strong", { text: "الذكاء الاصطناعي غير مفعّل (وضع مخفّض)." }), " تُفحص الاقتباسات المعلَّمة والعبارات التي تطابق المصحف دون علامات؛ وقد تفوت بعض الاقتباسات القصيرة، ويمكنك تحديدها بنفسك.");
     }
   } catch {
     banner.hidden = true;
@@ -233,24 +233,26 @@ function render(data, scroll) {
 
 function renderSummary(data) {
   const s = data.stats;
-  const tile = (n, l, cls) => el("div", { class: `tile ${cls || ""}` }, el("div", { class: "n", text: toArabicDigits(n) }), el("div", { class: "l", text: l }));
+  const fixes = allChanges().filter((c) => !c.optional).length;
+  const optional = allChanges().filter((c) => c.optional).length;
+  const big = (n, l, cls) => el("div", { class: `tile stat ${cls || ""}` }, el("div", { class: "n", text: toArabicDigits(n) }), el("div", { class: "l", text: l }));
+  const minor = (n, l) => el("div", { class: "tile minor" }, el("span", { class: "n", text: toArabicDigits(n) }), " ", el("span", { class: "l", text: l }));
   $("summary").replaceChildren(
-    tile(s.total, "اقتباسات مرصودة", "accent"),
-    tile(s.matched, "ألفاظ مطابقة"),
-    tile(s.possible || 0, "عبارات «قد تكون اقتباسًا»"),
-    tile(s.difference, "اختلافات في الألفاظ"),
-    tile(s.uncertain, "غير محسومة"),
-    tile(s.ref_incorrect, "إحالات خاطئة"),
-    tile(s.ref_missing, "بلا إحالة"),
-    tile(s.needs_review, "تحتاج مراجعة بشرية", "review"),
-    tile(allChanges().filter((c) => !c.optional).length, "تصحيحات مقترحة من المصدر", "fix"),
+    el("div", { class: "stats" },
+      big(s.needs_review, "تحتاج مراجعة", s.needs_review ? "attention" : ""),
+      big(fixes, "تصحيحات مقترحة", "fix"),
+      big(s.total, "اقتباسات مرصودة")),
+    el("details", { class: "more-stats" }, el("summary", { text: "أعداد أخرى" }),
+      el("div", { class: "minor-grid" },
+        minor(s.matched, "ألفاظ مطابقة"), minor(s.difference, "اختلافات في الألفاظ"), minor(s.uncertain, "غير محسومة"),
+        minor(s.possible || 0, "عبارات «قد تكون اقتباسًا»"), minor(s.ref_incorrect, "إحالات خاطئة"), minor(s.ref_missing, "بلا إحالة"),
+        minor(optional, "تنسيقات اختيارية (ليست تصحيحات)"))),
   );
   const unsure = (data.findings || []).filter((f) => f.lead_in || f.continuation).length;
   const note = $("boundary-note");
   note.hidden = !unsure;
   note.replaceChildren(...(unsure ? [el("b", { text: `${toArabicDigits(unsure)} من الاقتباسات «غير محسومة» لأن حدودها لم تتحدد. ` }),
-    "هذا لا يعني أن الألفاظ خاطئة: الأداة لا تعرف هل الكلمة المجاورة للمقطع من الاقتباس أم من كلامك. ",
-    "في بطاقة كل اقتباس منها زرّان: «حدود الاقتباس صحيحة» لتأكيد المقطع كما هو، و«عدّل الحدود بنفسك» ليُحدَّد المقطع في مربع المقال فتعدّله."] : []));
+    "هذا لا يعني أن الألفاظ خاطئة. في بطاقة كل منها زرّان: «حدود الاقتباس صحيحة» و«عدّل الحدود بنفسك»."] : []));
 }
 
 function renderArticle(findings) {
@@ -337,35 +339,62 @@ function setDecision(id, value) {
 function updateChangeNode(node) {
   const id = node.getAttribute("data-change");
   const d = decisions[id];
+  const opt = node.classList.contains("optional");
   node.classList.toggle("approved", d === "approved");
   node.classList.toggle("rejected", d === "rejected");
   const state = node.querySelector(".ch-state");
-  if (state) state.textContent = d === "approved" ? "معتمد" : d === "rejected" ? "مرفوض" : "بانتظار قرارك";
+  if (state) state.textContent = d === "approved" ? (opt ? "مطبَّق" : "معتمد") : d === "rejected" ? (opt ? "متجاهَل" : "مرفوض") : opt ? "لن يُطبَّق ما لم تختره" : "بانتظار قرارك";
   node.querySelectorAll("button[data-act]").forEach((b) => b.setAttribute("aria-pressed", String(d === b.getAttribute("data-act"))));
 }
 
+// A correction (red before / green after) is something the program found wrong. An optional change is formatting of text that is
+// already right (full vocalisation, Quranpedia's spelling, an added reference): neutral colours, never counted as a correction.
 function changeCard(c) {
   const quoteLevel = c.kind !== "reference" && c.kind !== "reference_add";
   const before = quoteLevel ? c.quote_before : c.original || "—";
   const after = quoteLevel ? c.quote_after : (c.original ? c.replacement : c.replacement.trim());
-  const node = el("div", { class: `change ${c.optional ? "optional" : ""}`, "data-change": c.id },
+  const opt = !!c.optional;
+  const node = el("div", { class: `change ${opt ? "optional" : ""}`, "data-change": c.id },
     el("div", { class: "ch-head" },
       el("b", { text: KIND[c.kind] || c.kind }),
-      el("span", { class: "ch-state", text: "بانتظار قرارك" })),
+      el("span", { class: "ch-state", text: "" })),
     el("div", { class: "ch-diff" },
-      el("div", {}, el("span", { class: "row-label", text: "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: before })),
-      el("div", {}, el("span", { class: "row-label", text: "بعد" }), el("div", { class: `ch-after ${quoteLevel ? "quran" : ""}`, dir: "rtl", text: after }))),
+      el("div", {}, el("span", { class: "row-label", text: opt ? "كما كتبته" : "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: before })),
+      el("div", {}, el("span", { class: "row-label", text: opt ? "بعد التنسيق" : "بعد" }), el("div", { class: `ch-after ${quoteLevel ? "quran" : ""}`, dir: "rtl", text: after }))),
     el("p", { class: "ch-reason", text: c.reason }),
-    c.kind === "diacritics" ? el("p", { class: "muted small", text: "تنبيه: تختلف طبعات المصاحف في بعض علامات الضبط (كشدّة الإدغام)؛ تأكد قبل الاعتماد." }) : null,
+    c.kind === "diacritics" ? el("p", { class: "muted small", text: "تختلف طبعات المصاحف في بعض علامات الضبط (كشدّة الإدغام)؛ تأكد قبل الاعتماد." }) : null,
     el("div", { class: "ch-src" }, "المصدر: ", el("b", { text: c.label }), " — ",
       ...c.source_urls.map((u, i) => el("a", { href: u, target: "_blank", rel: "noopener", text: i ? ` (${toArabicDigits(i + 1)})` : "قرآنبيديا" }))),
     el("div", { class: "ch-actions" },
-      el("button", { type: "button", class: "btn small approve", "data-act": "approved", "aria-pressed": "false", onclick: () => setDecision(c.id, "approved") }, "اعتماد"),
-      el("button", { type: "button", class: "btn small reject", "data-act": "rejected", "aria-pressed": "false", onclick: () => setDecision(c.id, "rejected") }, "رفض")),
+      el("button", { type: "button", class: "btn small approve", "data-act": "approved", "aria-pressed": "false", onclick: () => setDecision(c.id, "approved") }, opt ? "تطبيق" : "اعتماد"),
+      el("button", { type: "button", class: "btn small reject", "data-act": "rejected", "aria-pressed": "false", onclick: () => setDecision(c.id, "rejected") }, opt ? "تجاهل" : "رفض")),
   );
   updateChangeNode(node);
   return node;
 }
+
+// The Uthmani convention a matched quotation was written in, with the words it was matched through.
+function scriptNote(w) {
+  const sc = w.script;
+  if (!sc) return null;
+  const box = el("div", { class: "script-note" },
+    el("span", { class: "row-label", text: "رسم الاقتباس" }),
+    el("p", {}, el("b", { text: sc.label }), " — ", (sc.features || []).map((x) => SCRIPT_FEATURE[x] || x).join("، ")));
+  if (sc.words?.length) {
+    box.append(el("details", { class: "script-words" }, el("summary", { text: `الكلمات المطابَقة بعد توحيد الرسم (${toArabicDigits(sc.word_count || sc.words.length)})` }), pairsList(sc.words)));
+  }
+  return box;
+}
+
+function referenceRow(r) {
+  const [rl, rc] = REF[r.status] || ["—", "muted-chip"];
+  const box = el("div", { class: "status-box" }, el("div", { class: "row-label", text: "الإحالة" }), chip(rl, rc));
+  if (r.found) box.append(el("p", {}, "المذكور: ", el("b", { text: r.found.text })));
+  if (r.message) box.append(el("p", { text: r.message }));
+  return box;
+}
+
+const excerpt = (q) => { const w = q.split(/\s+/); return w.length > 7 ? w.slice(0, 7).join(" ") + " …" : q; };
 
 function renderFinding(f) {
   const w = f.wording, r = f.reference;
@@ -377,77 +406,91 @@ function renderFinding(f) {
   if (weak) { wl = "إن كان اقتباسًا: " + wl; wc = "muted-chip"; }
   const [rl, rc] = REF[r.status] || ["—", "muted-chip"];
   const tierChip = det.label ? chip(det.label, TIER_CLASS[det.tier] || "src") : null;
-  const head = el("div", { class: "f-head" },
+  const changes = f.changes || [];
+  const required = changes.filter((c) => !c.optional), optional = changes.filter((c) => c.optional);
+  const compact = !f.needs_review && !required.length && !weak;  // nothing for the editor to do: a short row, details on demand
+
+  const head = el(compact ? "summary" : "div", { class: "f-head" },
     el("span", { class: "f-num", text: toArabicDigits(f.id) }),
-    el("span", { class: "f-loc", text: `السطر ${toArabicDigits(f.line)}، الحرف ${toArabicDigits(f.column)}` }),
+    compact ? el("span", { class: "f-excerpt quran", dir: "rtl", text: excerpt(f.quote) }) : el("span", { class: "f-loc", text: `السطر ${toArabicDigits(f.line)}، الحرف ${toArabicDigits(f.column)}` }),
     tierChip, chip(wl, wc), chip(rl, rc),
     f.needs_review && !weak ? chip("يحتاج مراجعة", "review") : null,
   );
 
   const body = el("div", { class: "f-body" });
-  body.append(el("div", {}, el("div", { class: "row-label", text: "النص في المقال" }), el("div", { class: "quote-text", dir: "rtl", text: f.quote })));
-
+  // 1. what is written, 2. what the source says
+  body.append(el("div", {}, el("div", { class: "row-label", text: compact ? `النص في المقال — السطر ${toArabicDigits(f.line)}، الحرف ${toArabicDigits(f.column)}` : "النص في المقال" }), el("div", { class: "quote-text", dir: "rtl", text: f.quote })));
   if (f.source) {
     body.append(el("div", {},
       el("div", { class: "row-label", text: w.level === "fuzzy" ? "أقرب موضع مقترح في المصحف (غير مؤكد)" : "النص في المصحف (حفص — قرآنبيديا)" }),
       sourceBox(f.source)));
   }
-
-  if (det.reasons?.length && ["phrase", "ai"].includes(det.kind)) {
-    body.append(el("div", { class: `detect-note ${det.tier}` }, el("b", { text: det.label + ": " }), det.reasons.join(" ")));
-  }
-
+  // 3. the exact difference, 4. the reference
+  const nonEqual = (w.diff || []).filter((d) => d.op !== "equal");
   const wBox = el("div", { class: "status-box" }, el("div", { class: "row-label", text: weak ? "مطابقة النص للمصحف (إن كان اقتباسًا)" : "الألفاظ" }), chip(wl, wc));
   if (w.message) wBox.append(el("p", { text: w.message }));
   if (w.level === "fuzzy" && w.similarity != null) wBox.append(el("p", { class: "muted", text: `نسبة التشابه: ${toArabicDigits(Math.round(w.similarity * 100))}٪` }));
-  if (w.level === "diacritics" && w.status === "matched") wBox.append(el("p", { class: "muted", text: "الحروف مطابقة؛ التشكيل في المقال ناقص أو غائب لكنه غير مخالف، فليس خطأً." }));
+  if (w.level === "diacritics" && w.status === "matched") wBox.append(el("p", { class: "muted", text: "الحروف مطابقة؛ التشكيل ناقص أو غائب لكنه غير مخالف، فليس خطأً." }));
   if (w.level === "literal") wBox.append(el("p", { class: "muted", text: "مطابق حرفًا وتشكيلًا (بعد تجاهل علامات الوقف)." }));
-
-  const rBox = el("div", { class: "status-box" }, el("div", { class: "row-label", text: "الإحالة" }), chip(rl, rc));
-  if (r.found) rBox.append(el("p", {}, "المذكور: ", el("b", { text: r.found.text })));
-  if (r.message) rBox.append(el("p", { text: r.message }));
-  body.append(el("div", { class: "statuses" }, wBox, rBox));
-
-  const nonEqual = (w.diff || []).filter((d) => d.op !== "equal");
+  body.append(el("div", { class: "statuses" }, wBox, referenceRow(r)));
   if (nonEqual.length) {
     body.append(el("div", {}, el("div", { class: "row-label", text: "الفرق بالكلمات" }), diffView(w.diff),
-      el("div", { class: "diff-legend", text: "المشطوب الأحمر: في المقال وليس في المصحف · الأخضر: في المصحف وليس في المقال" })));
+      el("div", { class: "diff-legend", text: "الأحمر المشطوب: في المقال لا في المصحف · الأخضر: في المصحف لا في المقال" })));
   }
+  if (w.unresolved_words?.length) body.append(el("div", {}, el("div", { class: "row-label", text: "رسم لم تستطع الأداة مطابقته (المقال ← المصحف) — قد يكون صحيحًا" }), pairsList(w.unresolved_words)));
   if (w.diacritic_conflicts?.length) body.append(el("div", {}, el("div", { class: "row-label", text: "تشكيل مخالف (المقال ← المصحف)" }), pairsList(w.diacritic_conflicts)));
-  if (w.script_diffs?.length) body.append(el("div", {}, el("div", { class: "row-label", text: "فروق الرسم (المقال ← المصحف)" }), pairsList(w.script_diffs)));
+  const sig = (w.script_diffs || []).filter((d) => d.kind !== "benign" || w.status !== "matched");
+  if (sig.length) body.append(el("div", {}, el("div", { class: "row-label", text: "فروق الرسم (المقال ← المصحف)" }), pairsList(sig)));
+  const sn = scriptNote(w);
+  if (sn) body.append(sn);
 
-  if (f.review_reasons?.length && f.needs_review) {
-    body.append(el("div", {}, el("div", { class: "row-label", text: "سبب طلب المراجعة" }), el("ul", { class: "reasons" }, f.review_reasons.map((x) => el("li", { text: x })))));
-  }
-
-  // proposed corrections (source-backed only)
-  const changes = f.changes || [];
-  if (changes.length) {
-    body.append(el("div", { class: "changes" }, el("div", { class: "row-label", text: "تصحيحات مقترحة من نص المصحف — لا يُغيَّر شيء إلا بعد اعتمادك" }), ...changes.map(changeCard)));
+  // 5. what the editor has to do
+  const action = el("div", { class: "action" });
+  if (required.length) {
+    action.append(el("div", { class: "row-label", text: "المطلوب منك: اعتمد التصحيح أو ارفضه — لا يُغيَّر شيء قبل ذلك" }), ...required.map(changeCard));
   }
   const boundary = boundaryBox(f);
-  if (boundary) body.append(boundary);
+  if (boundary) action.append(boundary);
   const confirm = choicesBox(f);
-  if (confirm) body.append(confirm);
+  if (confirm) action.append(confirm);
   if (f.correction?.status === "unconfirmed") {
-    body.append(el("div", { class: "no-fix" }, el("b", { text: "لا تصحيحات مقترحة بعد. " }), f.correction.reason));
+    action.append(el("div", { class: "no-fix" }, el("b", { text: "لا تصحيحات مقترحة بعد. " }), f.correction.reason));
   } else if (f.correction?.status === "review_only" && f.needs_review) {
-    body.append(el("div", { class: "no-fix" }, el("b", { text: "لا يُقترح تصحيح تلقائي. " }), f.correction.reason || "الموضع المقصود غير محسوم."));
+    action.append(el("div", { class: "no-fix" }, el("b", { text: "المطلوب منك: مراجعة يدوية؛ لا يُقترح تصحيح تلقائي. " }), f.correction.reason || "الموضع المقصود غير محسوم."));
+  }
+  if (action.childNodes.length) body.append(action);
+
+  // 6. optional formatting: apart from the corrections, neutral, never counted as an error
+  if (optional.length) {
+    body.append(el("details", { class: "optional-box" },
+      el("summary", { text: `تنسيق اختياري — ليس تصحيحًا (${toArabicDigits(optional.length)})` }),
+      el("p", { class: "muted small", text: "نصك صحيح هنا. هذه خيارات تنسيق لا تُطبَّق إلا إذا اخترتها." }),
+      ...optional.map(changeCard)));
   }
 
+  // 7. the rest, on demand
+  const more = el("details", { class: "more" }, el("summary", { text: "تفاصيل إضافية" }));
+  if (det.reasons?.length && ["phrase", "ai"].includes(det.kind)) {
+    more.append(el("div", { class: `detect-note ${det.tier}` }, el("b", { text: det.label + ": " }), det.reasons.join(" ")));
+  }
+  if (f.review_reasons?.length && f.needs_review) {
+    more.append(el("div", {}, el("div", { class: "row-label", text: "سبب طلب المراجعة" }), el("ul", { class: "reasons" }, f.review_reasons.map((x) => el("li", { text: x })))));
+  }
   if (f.alternatives?.length) {
-    body.append(el("details", { class: "alts" },
-      el("summary", { text: `مواضع أخرى محتملة (${toArabicDigits(f.alternatives.length)}${f.occurrences > f.alternatives.length ? " من " + toArabicDigits(f.occurrences) : ""})` }),
-      el("ul", {}, f.alternatives.map((a) => el("li", {},
+    more.append(el("div", {}, el("div", { class: "row-label", text: `مواضع أخرى محتملة (${toArabicDigits(f.alternatives.length)}${f.occurrences > f.alternatives.length ? " من " + toArabicDigits(f.occurrences) : ""})` }),
+      el("ul", { class: "alts-list" }, f.alternatives.map((a) => el("li", {},
         el("b", { text: a.label }), " — ",
         el("span", { class: "quran", text: a.source.matched_text }),
         a.similarity < 1 ? el("span", { class: "muted", text: ` (${toArabicDigits(Math.round(a.similarity * 100))}٪)` }) : null)))));
   }
-  body.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => detectedChip(f, d))));
+  more.append(el("div", { class: "source-meta muted" }, "طريقة الرصد: ", ...f.detected_by.map((d) => detectedChip(f, d))));
   const aiNote = aiSpanNote(f);
-  if (aiNote) body.append(aiNote);
+  if (aiNote) more.append(aiNote);
+  body.append(more);
 
-  return el("li", { id: `finding-${f.id}`, class: `finding ${f.needs_review ? "review" : ""} ${weak ? "weak" : ""}` }, head, body);
+  const cls = `finding ${f.needs_review || required.length ? "review" : "ok"} ${weak ? "weak" : ""}`;
+  if (compact) return el("li", { id: `finding-${f.id}`, class: cls }, el("details", { class: "f-compact" }, head, body));
+  return el("li", { id: `finding-${f.id}`, class: cls }, head, body);
 }
 
 // ---------------------------------------------------------------- uncertain boundaries: explanation + easy manual highlighting
@@ -527,7 +570,8 @@ function computeStats(findings) {
     ref_missing: n((f) => f.reference.status === "missing"),
     ref_incorrect: n((f) => f.reference.status === "incorrect"),
     ref_uncertain: n((f) => f.reference.status === "uncertain"),
-    proposed_changes: findings.reduce((a, f) => a + (f.changes || []).length, 0),
+    proposed_changes: findings.reduce((a, f) => a + (f.changes || []).filter((c) => !c.optional).length, 0),
+    optional_changes: findings.reduce((a, f) => a + (f.changes || []).filter((c) => c.optional).length, 0),
   };
 }
 
@@ -596,7 +640,7 @@ function renderEditor() {
   const changes = allChanges();
   const nApproved = changes.filter((c) => decisions[c.id] === "approved").length;
   const nRejected = changes.filter((c) => decisions[c.id] === "rejected").length;
-  const nPending = changes.length - nApproved - nRejected;
+  const nPending = changes.filter((c) => !c.optional && !decisions[c.id]).length;  // optional formatting never "waits for a decision"
   const unresolved = R.unresolvedFindings(lastResult.findings, decisions);
   const { text, refused } = R.applyApproved(lastArticle, changes, decisions);
 

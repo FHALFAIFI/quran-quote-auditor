@@ -93,6 +93,7 @@ async function deterministic(browser, base) {
   check((await maybe.locator(".f-head .chip.ok").count()) === 0, "the maybe-card shows no green «matched» chip");
   check((await maybe.locator(".change").count()) === 0 && (await maybe.locator(".confirm-box").count()) === 1, "the maybe-card offers no replacement text, only «confirm»");
   check((await page.locator("#article-view mark.s-possible").count()) === 1, "the maybe is highlighted differently in the article");
+  await page.click("#summary .more-stats summary");  // the secondary counts are on demand
   check((await page.locator("#summary .tile").filter({ hasText: "قد تكون اقتباسًا" }).locator(".n").innerText()) === "١", "summary counts one possible quotation");
 
   // the reply draft for a social post must not name a phrase that may not be a quotation
