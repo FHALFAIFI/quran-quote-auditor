@@ -9,7 +9,7 @@ Workloads (all built from files in this repository, nothing downloaded but the c
   freq-soup     the most frequent Quran words in a row (pathological: stops at the search's work budget and says so)
   long-set      the articles of eval/articles_long_20261003.json when present (realistic long articles, 7,000-19,000 characters)
 
---url mode sends ``"ai": false``: no model is ever called, whatever the server's configuration. Numbers describe THIS machine (or the
+--url mode refuses a server with AI configured: benchmarks must not make repeated model calls. Numbers describe THIS machine (or the
 URL you pass); they are not a promise for another host. Peak memory is the child process's own maximum RSS (in-process mode only).
 """
 
@@ -101,12 +101,16 @@ def http(url: str, runs: int, timeout: int = 240) -> dict:
     sys.path.insert(0, str(ROOT))
     from app.quran_source import source
 
+    with urllib.request.urlopen(url.rstrip("/") + "/api/health", timeout=timeout) as health_response:
+        health = json.load(health_response)
+    if health.get("ai_configured"):
+        raise SystemExit("--url benchmark requires a server without AI configured; use local in-process mode instead")
     idx = source.get()
     res = {"url": url, "timeout_s": timeout, "rows": []}
     for label, n, art in workloads(idx):
         times, last, raw, failed = [], None, b"", None
         for _ in range(runs):
-            req = urllib.request.Request(url.rstrip("/") + "/api/audit", data=json.dumps({"article": art, "ai": False}, ensure_ascii=False).encode("utf-8"),
+            req = urllib.request.Request(url.rstrip("/") + "/api/audit", data=json.dumps({"article": art}, ensure_ascii=False).encode("utf-8"),
                                          headers={"Content-Type": "application/json"})
             t = time.perf_counter()
             try:

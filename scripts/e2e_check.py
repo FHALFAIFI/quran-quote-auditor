@@ -79,8 +79,9 @@ def main(base: str) -> int:
         print("\n=== error handling")
         cases = [
             ("empty article", {"article": "  "}, 400),
-            ("too long (limit + 1)", {"article": "ا" * (limit + 1), "ai": False}, 400),
+            ("too long (limit + 1)", {"article": "ا" * (limit + 1)}, 400),
             ("wrong field", {"text": "x"}, 422),
+            ("removed AI switch", {"article": "نص", "ai": False}, 422),
         ]
         for name, body, want in cases:
             r = c.post(f"{base}/api/audit", json=body)
@@ -92,11 +93,11 @@ def main(base: str) -> int:
         failures += r.status_code != 422
         r = c.post(f"{base}/api/audit", json={"article": "<img src=x onerror=alert(1)> ﴿اقرأ باسم ربك الذي خلق﴾"})
         print(f"  markup in article: HTTP {r.status_code}; echoed article field: {'article' in r.json()}")
-        # at the limit exactly: accepted (the model is never asked: "ai": false)
-        r = c.post(f"{base}/api/audit", json={"article": ("قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 6]. " * 400)[:limit], "ai": False}, timeout=120)
-        ok = r.status_code == 200 and r.json()["ai"]["outcome"] in ("skipped_writer", "not_configured")
+        # at the limit exactly: accepted; the model's shorter limit excludes this article
+        r = c.post(f"{base}/api/audit", json={"article": ("قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 6]. " * 400)[:limit]}, timeout=120)
+        ok = r.status_code == 200 and r.json()["ai"]["outcome"] in ("skipped_length", "not_configured")
         failures += not ok
-        print(f"  article of exactly {limit} characters, model off: HTTP {r.status_code} {'OK' if ok else 'FAIL'}")
+        print(f"  article of exactly {limit} characters, beyond model limit: HTTP {r.status_code} {'OK' if ok else 'FAIL'}")
         print("\n=== verse suggestion and trust pages")
         r = c.post(f"{base}/api/suggest", json={"before": "قال تعالى: وما خلقت الجن والإنس إلا", "request_id": 5})
         j = r.json()

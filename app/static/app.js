@@ -12,7 +12,6 @@ const R = window.Revision;
 const W = window.Workspace;
 let MAX_CHARS = 20000;
 let AI_MAX_CHARS = 6000;
-let aiConfigured = false;
 let lastArticle = "";    // the CURRENT text of the editor (not the text of the last audit: see auditedText)
 let auditedText = "";    // the text the last audit was made on
 let baseText = "";       // the text as first audited: the writer's original
@@ -255,8 +254,6 @@ async function loadHealth() {
     const h = await res.json();
     MAX_CHARS = h.max_chars || MAX_CHARS;
     AI_MAX_CHARS = h.ai_max_chars || AI_MAX_CHARS;
-    aiConfigured = !!h.ai_configured;
-    $("opt-ai-row").hidden = !aiConfigured;
     $("limit-note").textContent = arabicCount(MAX_CHARS);
     updateCount();
     banner.hidden = false;
@@ -451,11 +448,10 @@ async function runAudit() {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 100000);
   try {
-    const useAi = aiConfigured ? $("opt-ai").checked : true;
     const res = await fetch("/api/audit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ article: sent, ai: useAi }),
+      body: JSON.stringify({ article: sent }),
       signal: ctrl.signal,
     });
     let data;
@@ -1508,6 +1504,7 @@ function showTab(which) {
 function aiRecordText(data) {
   const ai = data.ai || {};
   if (!ai.configured) return "لم يُستخدم الذكاء الاصطناعي (وضع مخفّض): فُحصت الاقتباسات المعلَّمة والعبارات المطابقة لنص المصحف دون علامات، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.";
+  if (ai.outcome === "skipped_length") return `لم يُستدعَ النموذج لأن المقال أطول من ${arabicCount(AI_MAX_CHARS)} حرف؛ فُحص كامل المقال بالعلامات والبحث في المصحف، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
   if (ai.responded) return `نعم — استجاب النموذج ${ai.model} (${ai.provider}) في هذا التدقيق خلال ${((ai.elapsed_ms || 0) / 1000).toFixed(1)} ث؛ اقترح ${ai.proposed} مقطعًا، وُجد منها في المقال ${ai.located}، واستُبعد ${ai.discarded}.${aiShare(ai)} دوره اقتراح المواضع فقط.`;
   return `لا — كان ${ai.provider} مُعَدًّا لكنه لم يستجب في هذا التدقيق (${ai.error || ai.outcome})، فاستُخدم الوضع الاحتياطي الحتمي، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
 }

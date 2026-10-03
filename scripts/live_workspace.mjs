@@ -1,5 +1,5 @@
-// Live journey of the writing workspace on a DEPLOYED instance (Playwright, Chromium), with the model switched off by the writer:
-// no Groq call is possible, and every audit response is checked to say so (`ai.outcome` is "skipped_writer" or "not_configured").
+// Live journey of the writing workspace on a DEPLOYED instance (Playwright, Chromium).
+// WARNING: on a service with a model configured, short audit requests in this script attempt real model calls.
 //
 //   NODE_PATH=<scratch>/node_modules node scripts/live_workspace.mjs https://quran-quote-auditor.onrender.com [--shots DIR]
 //
@@ -30,7 +30,6 @@ let health = null;
 for (let i = 0; i < 6 && !health; i++) { try { health = await (await fetch(base + "/api/health", { signal: AbortSignal.timeout(90000) })).json(); } catch { /* waking */ } }
 console.log(`INFO  health answered after ${((Date.now() - t0) / 1000).toFixed(1)} s: build ${health?.build}, mode ${health?.mode}, max_chars ${health?.max_chars}, ai_max_chars ${health?.ai_max_chars}, ai_last_call ${JSON.stringify(health?.ai_last_call?.outcome)}`);
 check(!!health && health.status === "ok", "the service answers");
-const aiBefore = JSON.stringify(health?.ai_last_call);
 await fetch(base + "/api/phrase", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ article: "اقرأ باسم ربك الذي خلق", start: 0, end: 22 }), signal: AbortSignal.timeout(120000) }).catch(() => {});
 
 const browser = await chromium.launch();
@@ -49,12 +48,8 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   await page.evaluate(() => { sessionStorage.clear(); localStorage.clear(); });
   await page.reload();
   await page.waitForSelector("#article");
-  // the writer switches the model off (the option exists only where a model is configured)
   await page.evaluate(() => { document.getElementById("options").open = true; });
-  if (health.ai_configured) await page.waitForSelector("#opt-ai", { state: "visible", timeout: 30000 });   // the row appears once the page has read /api/health
-  if (await page.locator("#opt-ai").isVisible()) await page.uncheck("#opt-ai");
-  // refuse to go on if the model option is still on where a model is configured: nothing below may call it
-  if (health.ai_configured && await page.locator("#opt-ai").isChecked()) { console.log("FAIL  the model option could not be switched off; stopping before any audit"); process.exit(1); }
+  check((await page.locator("#opt-ai").count()) === 0, "there is no per-audit model switch");
   check(norm(await page.textContent("#limit-note")) === arN(health.max_chars), `the page states the limit (${await page.textContent("#limit-note")})`);
   for (const [href, h1] of [["/sources", "المصادر وطريقة التحقق"], ["/privacy", "الخصوصية"], ["/limitations", "الحدود"]]) {
     check((await page.locator(`.site-footer a[href="${href}"]`).count()) === 1 && (await page.locator(`.site-nav a[href="${href}"]`).count()) === 1, `${href} is linked from the header and the footer`);
@@ -100,7 +95,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   check((await page.inputValue("#revised-text")).includes("يوفى"), "the revised text applies it");
   await shot("4-rechecked");
 
-  // a long article (17,500 characters of the older frozen articles; model off by size and by choice)
+  // a long article (17,500 characters of the older frozen articles; above the model's size limit)
   await page.click("#clear-btn");
   const long = [frozen[0], frozen[2], frozen[3], frozen[0], frozen[2], frozen[3]].join("\n\n").slice(0, 19000);
   await page.fill("#article", long);
@@ -116,8 +111,8 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
 }
 await browser.close();
 console.log("\nINFO  audit responses:", JSON.stringify(audits));
-check(audits.length > 0 && audits.every((a) => a.status === 200 && (a.ai === "skipped_writer" || a.ai === "not_configured" || a.ai === "skipped_length")), "every audit made by this script skipped the model (no Groq call)");
+check(audits.length > 0 && audits.every((a) => a.status === 200 && ["ok", "failed", "not_configured", "skipped_length"].includes(a.ai)), "audits report whether the model answered, failed, or was unavailable for this article");
 const h2 = await (await fetch(base + "/api/health")).json();
-check(JSON.stringify(h2.ai_last_call) === aiBefore || h2.ai_last_call?.outcome === health?.ai_last_call?.outcome, `the model's last-call record is unchanged (${JSON.stringify(h2.ai_last_call?.outcome)})`);
+check(!health.ai_configured || ["ok", "failed"].includes(h2.ai_last_call?.outcome), `the configured model was attempted (${JSON.stringify(h2.ai_last_call?.outcome)})`);
 console.log(failures ? `\nfailures: ${failures}` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

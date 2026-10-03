@@ -88,7 +88,7 @@
           <span id="stale-note" class="stale-note" hidden></span>
           <button id="recheck-btn" type="button" class="btn small primary" hidden>أعد التدقيق</button>
         </div>
-        <p id="editor-hint" class="paste-note muted small">بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> نقترح تكملة الآية من المصحف؛ <span class="hint-kbd">Tab لإدراجها، وEsc لتجاهلها.</span><span class="hint-touch">المس «أدرج» لإدراجها، أو أكمل الكتابة لتجاهلها.</span> مقالك لا يُحفظ على الخادم؛ <a href="/privacy">ما الذي يُرسَل بالضبط؟</a></p>
+        <p id="editor-hint" class="paste-note muted small">بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> نقترح تكملة الآية من المصحف؛ <span class="hint-kbd">Tab لإدراجها، وEsc لتجاهلها.</span><span class="hint-touch">المس «أدرج» لإدراجها، أو أكمل الكتابة لتجاهلها.</span> عند التدقيق يُرسَل المقال إلى Groq إن كان النموذج متاحًا والمقال لا يتجاوز ٦٬٠٠٠ حرف. لا يُحفظ مقالك على خادمنا؛ <a href="/privacy">تفاصيل الخصوصية</a>.</p>
 
         <div class="samples">
           <label for="sample-select">أمثلة أخرى</label>
@@ -106,7 +106,6 @@
           <div class="options-body">
             <label class="opt"><input type="checkbox" id="opt-suggest" checked> اقتراح الآيات أثناء الكتابة (بعد إشارة قرآنية أو قوس مفتوح)</label>
             <label class="opt"><input type="checkbox" id="opt-distinct"> اقتراح أيضًا عند كتابة عبارة مميزة من آية دون إشارة <span class="muted small">(تُرسَل الكلمات التي قبل المؤشر إلى الخادم كلما توقفتَ عن الكتابة)</span></label>
-            <label class="opt" id="opt-ai-row" hidden><input type="checkbox" id="opt-ai" checked> استخدام الذكاء الاصطناعي لاقتراح مواضع الاقتباس عند التدقيق <span class="muted small">(اختياري؛ يعمل التدقيق بدونه)</span></label>
             <div class="draft-tools">
               <p class="small muted">لا يُحفظ شيء في هذا المتصفح بعد إغلاق التبويب إلا إذا اخترتَ ذلك:</p>
               <div class="actions-row">

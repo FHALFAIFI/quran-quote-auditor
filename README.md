@@ -3,7 +3,7 @@
 An Arabic, right-to-left **writing workspace** for people who quote the Quran. You write or paste an article (up to 20,000 characters);
 when you start a verse after «قال تعالى» or inside ﴿ ﴾ it can suggest the next words **from the Hafs text served by [Quranpedia](https://quranpedia.net)**,
 and when you ask for a check it compares the **wording** and the **reference** of every quotation with that text, proposes corrections taken only from it,
-and lets you approve them one by one while the article stays on the page and editable. A language model is optional and never a source of Quran text.
+and lets you approve them one by one while the article stays on the page and editable. On a configured service, every audit of an article up to 6,000 characters attempts model-based location proposals. The model is never a source of Quran text.
 
 **AI Challenge Serving Islamic Content 2026 — Track 4: knowledge and verification tools.**
 
@@ -45,7 +45,7 @@ Value innovation, kept to four moves: **remove** unapproved automatic changes; *
 | Drafts lived in the tab. | Saving a draft in the browser is an explicit button (plus delete and export); nothing is stored on the server. |
 | No privacy or limits page. | Separate pages: [المصادر](app/static/sources.html), [الخصوصية](app/static/privacy.html), [الحدود](app/static/limitations.html) (served at `/sources`, `/privacy`, `/limitations`), linked from the header, the footer and the paste box. |
 
-The model (Groq) is optional per audit («استخدام الذكاء الاصطناعي» in the options), is not used for an article over 6,000 characters, and **is never involved in suggestions**.
+On a service with Groq configured, an audit of an article up to 6,000 characters automatically attempts the model. Longer articles, unavailable providers and failed model calls continue through source-based checks with a visible explanation. **The model is never involved in suggestions while writing.** The full short article is sent to Groq for audit proposals; see the privacy page before using the service with sensitive text.
 
 ## What it does
 

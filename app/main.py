@@ -12,12 +12,13 @@ import threading
 import time
 from collections import defaultdict, deque
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .audit import InputError, run_audit, run_phrase
 from .config import settings
@@ -36,9 +37,9 @@ app = FastAPI(title="مدقق الاقتباسات القرآنية", docs_url=N
 
 
 class AuditRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     article: str = Field(..., max_length=settings.max_chars * 2)
-    # False: do not call the language model for this audit (the writer's choice; also used by rechecks). Default: use it when configured.
-    ai: bool = True
+    ai: Literal[True] = True  # accept an older cached page's ai:true; ai:false cannot disable the model
 
 
 class SuggestRequest(BaseModel):
@@ -155,7 +156,7 @@ def audit(body: AuditRequest, request: Request):
     if _rate_limited(_client_ip(request)):
         return JSONResponse({"error": "عدد الطلبات كبير؛ حاول بعد دقيقة."}, status_code=429)
     try:
-        return run_audit(body.article, use_ai=body.ai)
+        return run_audit(body.article)
     except InputError as exc:
         return JSONResponse({"error": str(exc)}, status_code=400)
 

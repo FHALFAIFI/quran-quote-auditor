@@ -395,8 +395,8 @@ def _clean_article(article: str) -> str:
     return article
 
 
-def run_audit(article: str, use_ai: bool = True) -> dict:
-    """Audit an article. ``use_ai=False`` skips the language model (the writer's choice, or a recheck without it)."""
+def run_audit(article: str) -> dict:
+    """Audit an article, using the configured model when the article is within its size limit."""
     article = _clean_article(article)
     started = time.monotonic()
     notices: list[dict] = []
@@ -414,9 +414,8 @@ def run_audit(article: str, use_ai: bool = True) -> dict:
         notices.append({"level": "error", "text": "تعذّر الوصول إلى قرآنبيديا الآن، فلن يُحكم على أي اقتباس. أعد المحاولة لاحقًا."})
 
     configured = get_provider()
-    # The model is optional: a writer who switched it off, and an article longer than the model can be asked about, are audited
-    # without it (markers + the search of the Quran text), and the result says so.
-    skipped = None if configured is None else "writer" if not use_ai else "length" if len(article) > settings.ai_max_chars else None
+    # Articles longer than the model limit continue through the source-based checks, and the result says so.
+    skipped = "length" if configured is not None and len(article) > settings.ai_max_chars else None
     provider = None if skipped else configured
     mode = "ai" if provider else "reduced"
     candidates: list[Candidate] = extract_marked(article, refs)

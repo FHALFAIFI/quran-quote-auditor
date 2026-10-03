@@ -206,11 +206,11 @@ console.log("\n== late answers");
   await ctx.close();
 }
 
-// ---- the model is the writer's choice: the request says so ------------------------------------------------------------
-console.log("\n== model opt-out");
+// ---- the browser has no model switch: the configured server decides whether an attempt is possible --------------
+console.log("\n== automatic model attempt");
 {
   const { page, errors, ctx } = await openPage(browser, server.base, { width: 1366, height: 900 }, false, "WS-ai");
-  // this server has no model; the page is told it has one so that the option appears, and the audit request is inspected (nothing is sent anywhere)
+  // this server has no model; the page is told it has one to verify the UI still offers no per-audit switch
   await page.route("**/api/health", async (route) => { const r = await route.fetch(); const j = await r.json(); route.fulfill({ response: r, json: { ...j, ai_configured: true, mode: "ai", provider: "stub", ai_last_call: { outcome: "never_called" } } }); });
   const bodies = [];
   page.on("request", (r) => { if (r.url().endsWith("/api/audit")) bodies.push(JSON.parse(r.postData())); });
@@ -218,16 +218,14 @@ console.log("\n== model opt-out");
   await page.evaluate(() => { sessionStorage.clear(); localStorage.clear(); });
   await page.reload();
   await page.evaluate(() => { document.getElementById("options").open = true; });
-  await page.waitForSelector("#opt-ai", { state: "visible" });
-  check(await page.isChecked("#opt-ai"), "where a model is configured the option is on by default and visible in the options");
+  check((await page.locator("#opt-ai").count()) === 0, "no per-audit AI switch, even when a model is configured");
   await page.fill("#article", "قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 6]");
   await page.click("#audit-btn");
   await page.waitForSelector("#panel:not([hidden]) #current article");
-  await page.uncheck("#opt-ai");
   await page.click("#recheck-btn").catch(async () => { await page.fill("#article", "قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 5]"); await page.click("#recheck-btn"); });
   await page.waitForFunction(() => !edited(), null, { timeout: 30000 }).catch(() => {});
   await page.waitForTimeout(500);
-  check(bodies.length >= 2 && bodies[0].ai === true && bodies[bodies.length - 1].ai === false, `the first audit asks for the model, after unchecking the option the audit says ai:false (${bodies.map((b) => b.ai).join(",")})`);
+  check(bodies.length >= 2 && bodies.every((b) => Object.keys(b).join() === "article"), "audit and recheck send the article without a model toggle");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
   await ctx.close();
 }

@@ -1,4 +1,4 @@
-"""Audit behaviour added for the writing workspace: the model is optional per audit, a long article is audited without it and says so,
+"""Audit behaviour added for the writing workspace: a configured model is attempted for short articles, a long article is audited without it and says so,
 and no passage is dropped silently when there are more than the cap. Offline (36-verse fixture, fake provider)."""
 
 import dataclasses
@@ -15,7 +15,7 @@ def with_provider(monkeypatch, provider):
     monkeypatch.setattr(audit, "get_provider", lambda: provider)
 
 
-def test_the_writer_can_switch_the_model_off_for_one_audit(use_source, monkeypatch):
+def test_a_configured_model_is_attempted_for_each_short_audit(use_source, monkeypatch):
     calls = []
 
     class Spy(Proposes):
@@ -24,12 +24,12 @@ def test_the_writer_can_switch_the_model_off_for_one_audit(use_source, monkeypat
             return super().extract(article)
 
     with_provider(monkeypatch, Spy("وتعاونوا على البر والتقوى"))
-    res = run_audit(ARTICLE, use_ai=False)
-    assert calls == [] and res["mode"] == "reduced"
-    assert res["ai"]["configured"] is True and res["ai"]["responded"] is False and res["ai"]["outcome"] == "skipped_writer"
-    assert [f["quote"] for f in res["findings"]] == ["وتعاونوا على البر والتقوى"]      # the marked quotation is audited as ever
-    res_on = run_audit(ARTICLE)
-    assert len(calls) == 1 and res_on["mode"] == "ai"
+    first = run_audit(ARTICLE)
+    second = run_audit(ARTICLE)
+    assert calls == [ARTICLE, ARTICLE]
+    assert first["mode"] == second["mode"] == "ai"
+    assert first["ai"]["responded"] and second["ai"]["responded"]
+    assert [f["quote"] for f in first["findings"]] == ["وتعاونوا على البر والتقوى"]
 
 
 def test_an_article_longer_than_the_model_limit_is_audited_without_the_model_and_says_so(use_source, monkeypatch):

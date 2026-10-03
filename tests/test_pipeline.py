@@ -149,4 +149,6 @@ def test_api_escaping_and_errors(use_source):
     assert body["findings"][0]["quote"] == "اقرأ باسم ربك الذي خلق"
     assert client.post("/api/audit", json={"article": ""}).status_code == 400
     assert client.post("/api/audit", json={"text": "x"}).status_code == 422
+    assert client.post("/api/audit", json={"article": "نص", "ai": False}).status_code == 422  # no per-request model switch
+    assert client.post("/api/audit", json={"article": "نص", "ai": True}).status_code == 200  # older cached frontend remains usable
     assert client.get("/").status_code == 200
