@@ -50,7 +50,7 @@ async function deterministic(browser) {
   check((await page.locator('#article-view mark[data-id="2"]').count()) === 0, "dismissed: the mark leaves the article");
   check(/استبعدتَ الاقتباس ٢/.test(norm(await page.textContent("#undo-line"))), "the page says what happened, with «تراجع»");
   check((await page.locator("#queue .q-group.off li").count()) === 1, "it is listed under «استبعدتَها»");
-  check(norm(await page.textContent("#final-summary")).includes("استبعدتَ ١ مقطعًا ليس اقتباسًا"), "the final check mentions it");
+  check(norm(await page.textContent("#final-summary")).includes("واستبعدتَ مقطعًا واحدًا ليس اقتباسًا"), "the final check mentions it");
   check((await page.inputValue("#revised-text")) === article, "dismissing changes nothing in the article");
   await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
   check(norm(await page.locator("#print-record").innerText()).includes("مقاطع استبعدها المحرر"), "the record lists what the writer dismissed");

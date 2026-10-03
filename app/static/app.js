@@ -101,8 +101,10 @@ const DETECTED = { marked: "معلَّم بأقواس أو علامات", phrase
 // phrase search found the span too, the model merely proposed the same one (it added nothing for this finding).
 const AI_ROLE = { only: "اقترحه الذكاء الاصطناعي وحده (لم يجده البحث الآلي)", also: "اقترح الذكاء الاصطناعي المقطع نفسه أيضًا" };
 const detectedLabel = (f, d) => (d === "ai" ? (AI_ROLE[f.detection?.ai_role] || "اقترح الذكاء الاصطناعي هذا المقطع") : (DETECTED[d] || d));
-// "مقطعًا" after a number: the counted noun is plural for 3–10 («٣ مقاطع»), singular accusative from 11 («١١ مقطعًا»)
-const maqatiAr = (n) => (n === 1 ? "مقطعًا واحدًا" : n === 2 ? "مقطعين" : `${toArabicDigits(n)} ${n <= 10 ? "مقاطع" : "مقطعًا"}`);
+// A counted noun in Arabic: one and two are said without a numeral («تغيير واحد», «تغييرين»), 3–10 take the plural («٣ تغييرات»),
+// 11 and above the singular in the accusative («١١ تغييرًا»). Each form is the whole phrase, so what follows the noun agrees with it.
+const countAr = (n, one, two, few, many) => (n === 1 ? one : n === 2 ? two : `${toArabicDigits(n)} ${n <= 10 ? few : many}`);
+const maqatiAr = (n) => countAr(n, "مقطعًا واحدًا", "مقطعين", "مقاطع", "مقطعًا");
 const aiShare = (ai) => (ai.added_only === undefined || !ai.proposed ? "" : ` ومن النتائج ${ai.added_only} لم يجدها غير النموذج، و${ai.also_found} اقترح فيها المقطع نفسه الذي وجدته وسيلة أخرى${ai.overlapped ? `، و${ai.overlapped} اقترح فيها مقطعًا مختلفًا يتداخل معها فبقي الحكم لما وجده البرنامج` : ""}.`);
 // A model span that overlaps a finding the program made: shown beside it, never in its place.
 const AI_RELATION = { wider: "أوسع منه", narrower: "أضيق منه", shifted: "يتداخل معه جزئيًا" };
@@ -296,7 +298,7 @@ function updateCount() {
   note.hidden = !edited();
   if (edited()) {
     note.textContent = stale
-      ? `عدّلتَ المقال بعد آخر تدقيق: ${stale === 1 ? "موضع واحد يحتاج" : stale === 2 ? "موضعان يحتاجان" : `${toArabicDigits(stale)} مواضع تحتاج`} إلى إعادة التدقيق.`
+      ? `عدّلتَ المقال بعد آخر تدقيق: ${countAr(stale, "موضع واحد يحتاج", "موضعان يحتاجان", "مواضع تحتاج", "موضعًا يحتاج")} إلى إعادة التدقيق.`
       : "عدّلتَ المقال بعد آخر تدقيق. لم يمسّ تعديلك اقتباسًا مرصودًا، لكن لم يُفحص ما كتبتَه بعده.";
   }
   $("recheck-btn").hidden = !edited();
@@ -499,7 +501,7 @@ async function runAudit() {
       const parts = [
         carryNote.carried ? `حُفظ ${toArabicDigits(carryNote.carried)} من قراراتك لاقتباسات لم يتغيّر نصها` : null,
         dropped ? `سقط ${toArabicDigits(dropped)} لأن النص تغيّر` : null,
-        movedMeanwhile ? `عدّلتَ ${toArabicDigits(movedMeanwhile)} موضعًا أثناء التدقيق فأعد التدقيق مرة أخرى` : null,
+        movedMeanwhile ? `عدّلتَ ${countAr(movedMeanwhile, "موضعًا واحدًا", "موضعين", "مواضع", "موضعًا")} أثناء التدقيق فأعد التدقيق مرة أخرى` : null,
       ].filter(Boolean);
       const msg = `أُعيد التدقيق على نصّك الحالي${parts.length ? ". " + parts.join("، ") : ""}.`;
       notify(msg, null);
@@ -1401,14 +1403,14 @@ function renderFinal() {
   const left = requiredOfAll().filter((c) => decisions[c.id] === "rejected").length;
   const off = allFindings().filter((f) => dismissed[f.id]).length;
   const sentence = [
-    rows.length ? `سيُنسخ مقالك بعد ${toArabicDigits(rows.length)} ${rows.length === 1 ? "تغيير اعتمدتَه" : rows.length === 2 ? "تغييرين اعتمدتَهما" : rows.length <= 10 ? "تغييرات اعتمدتَها" : "تغييرًا اعتمدتَها"}` : "لم تعتمد أي تغيير؛ سيُنسخ مقالك كما كتبتَه",
-    left ? `أبقيتَ ${toArabicDigits(left)} كما كتبتَ` : null,
-    off ? `واستبعدتَ ${toArabicDigits(off)} ${off === 1 ? "مقطعًا ليس اقتباسًا" : "مقاطع ليست اقتباسات"}` : null,
+    rows.length ? `سيُنسخ مقالك بعد ${countAr(rows.length, "تغيير واحد اعتمدتَه", "تغييرين اعتمدتَهما", "تغييرات اعتمدتَها", "تغييرًا اعتمدتَها")}` : "لم تعتمد أي تغيير؛ سيُنسخ مقالك كما كتبتَه",
+    left ? `وأبقيتَ ${countAr(left, "موضعًا واحدًا كما كتبتَه", "موضعين كما كتبتَهما", "مواضع كما كتبتَها", "موضعًا كما كتبتَها")}` : null,
+    off ? `واستبعدتَ ${countAr(off, "مقطعًا واحدًا ليس اقتباسًا", "مقطعين ليسا اقتباسين", "مقاطع ليست اقتباسات", "مقطعًا ليست اقتباسات")}` : null,
   ].filter(Boolean).join("، ") + ".";
   const staleN = staleList().length;
   $("final-summary").replaceChildren(...[
     el("p", { class: "final-sentence", text: sentence }),
-    edited() ? el("p", { class: "final-sentence final-stale", text: `عدّلتَ المقال بعد آخر تدقيق، والنص أدناه هو نصّك الحالي.${staleN ? ` ${toArabicDigits(staleN)} ${staleN === 1 ? "موضع مرصود مسّه تعديلك وسقط قراره" : "مواضع مرصودة مسّها تعديلك وسقطت قراراتها"}.` : ""} ما كتبتَه بعد التدقيق لم يُفحص؛ اضغط «أعد التدقيق» قبل النسخ إن أردت فحصه.` }) : null,
+    edited() ? el("p", { class: "final-sentence final-stale", text: `عدّلتَ المقال بعد آخر تدقيق، والنص أدناه هو نصّك الحالي.${staleN ? ` ${countAr(staleN, "موضع مرصود واحد مسّه تعديلك وسقط قراره", "موضعان مرصودان مسّهما تعديلك وسقط قراراهما", "مواضع مرصودة مسّها تعديلك وسقطت قراراتها", "موضعًا مرصودًا مسّها تعديلك وسقطت قراراتها")}.` : ""} ما كتبتَه بعد التدقيق لم يُفحص؛ اضغط «أعد التدقيق» قبل النسخ إن أردت فحصه.` }) : null,
   ].filter(Boolean));
 
   fill($("final-changes"), rows.length ? el("div", {}, el("h3", { text: "التغييرات التي ستظهر في النص" }),
@@ -1436,7 +1438,7 @@ function renderFinal() {
   updateReplyCount();
   $("copy-btn").classList.toggle("ready", !pend.length);
   $("copy-note").classList.toggle("copy-bad", $("copy-note").classList.contains("copy-bad"));
-  if (refused.length) $("final-changes").append(el("p", { class: "notice error", text: `تعذّر تطبيق ${toArabicDigits(refused.length)} تغييرًا (تداخل أو إزاحة)؛ لن يظهر في النص المنسوخ.` }));
+  if (refused.length) $("final-changes").append(el("p", { class: "notice error", text: `تعذّر تطبيق ${countAr(refused.length, "تغيير واحد", "تغييرين", "تغييرات", "تغييرًا")} (تداخل أو إزاحة)؛ يبقى النص المنسوخ في ذلك كما كتبتَه.` }));
 }
 const requiredOfAll = () => activeFindings().flatMap(requiredOf);
 function unresolvedSpans() { return unresolvedNow().map((f) => ({ start: f.start, end: f.end, id: f.id })); }
@@ -1485,7 +1487,7 @@ async function copyRevised() {
   try {
     await navigator.clipboard.writeText(text);
     const pend = pendingList().length;
-    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${toArabicDigits(pend)} ${pend === 1 ? "اقتباس" : "اقتباسات"} لم تقرّر فيها كما كتبتَها` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط؛ وما بقي غير محسوم يحتاج مراجعتك.`;
+    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${countAr(pend, "اقتباس واحد لم تقرّر فيه فنُسخ كما كتبتَه", "اقتباسان لم تقرّر فيهما فنُسخا كما كتبتَهما", "اقتباسات لم تقرّر فيها فنُسخت كما كتبتَها", "اقتباسًا لم تقرّر فيها فنُسخت كما كتبتَها")}` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط؛ وما بقي غير محسوم يحتاج مراجعتك.`;
     copyFeedback($("copy-btn"), $("copy-note"), msg, true);
     announce(msg);
   } catch {

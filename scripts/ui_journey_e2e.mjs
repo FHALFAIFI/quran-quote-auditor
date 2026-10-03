@@ -110,7 +110,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
     await page.locator("#final").scrollIntoViewIfNeeded();
   }
   const fin = norm(await page.textContent("#final"));
-  check(/سيُنسخ مقالك بعد ١ تغيير اعتمدتَه/.test(fin) && /أبقيتَ ١ كما كتبتَ/.test(fin), "the final check states what will be copied and what was left as written");
+  check(fin.includes("سيُنسخ مقالك بعد تغيير واحد اعتمدتَه، وأبقيتَ موضعًا واحدًا كما كتبتَه.") && !/[٠-٩] تغيير/.test(fin), "the final check states what will be copied and what was left as written");
   check(norm(await page.textContent("#final-changes")).includes("إنما") && (await page.locator("#final-changes del").count()) === 1 && (await page.locator("#final-changes ins").count()) === 1, "the change is shown in its sentence (old struck, new marked)");
   check(norm(await page.textContent("#final-pending")).includes("فإن مع العسر يسرا") && norm(await page.textContent("#final-pending")).includes("لم تحسمه الأداة"), "the quotation whose wrong reference was left stays listed as not settled");
   check(fin.includes("ليس شهادة بأن المقال كله متحقق منه"), "the final check says it does not certify the whole article");
@@ -121,7 +121,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await page.waitForTimeout(700);
   await page.locator('[data-change="4-reference"] button[data-act="approved"]').click();
   await page.waitForTimeout(500);
-  check(/سيُنسخ مقالك بعد ٢ تغييرين اعتمدتَهما/.test(norm(await page.textContent("#final"))), "changing a decision updates the final check");
+  check(norm(await page.textContent("#final-summary")).startsWith("سيُنسخ مقالك بعد تغييرين اعتمدتَهما."), "changing a decision updates the final check («بعد تغييرين», no numeral)");
   await page.locator("#final").scrollIntoViewIfNeeded();
   await page.click("#copy-btn");
   await page.waitForTimeout(500);
@@ -141,7 +141,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   }
   await page.reload({ waitUntil: "load" });
   await page.waitForSelector("#panel:not([hidden]) #current article");
-  check(/سيُنسخ مقالك بعد ٢ تغييرين اعتمدتَهما/.test(norm(await page.textContent("#final"))), "after a reload the decisions are restored");
+  check(norm(await page.textContent("#final-summary")).startsWith("سيُنسخ مقالك بعد تغييرين اعتمدتَهما."), "after a reload the decisions are restored");
   await page.click("#clear-btn");
   check(await page.locator("#demo-hero").isVisible() && await page.locator("#results").isHidden(), "clearing brings the demo action back and hides the results");
   await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));

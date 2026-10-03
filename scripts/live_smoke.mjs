@@ -92,7 +92,7 @@ await page.waitForTimeout(700);
 check(norm(await page.textContent("#panel-progress")).startsWith("حسمتَ كل ما يحتاج قرارك"), "nothing is left waiting");
 await page.locator("#final").scrollIntoViewIfNeeded();
 const fin = norm(await page.textContent("#final"));
-check(/سيُنسخ مقالك بعد ٢ تغييرين اعتمدتَهما/.test(fin) && (await page.locator("#final-changes del").count()) === 2, "the final check lists both changes in their sentences");
+check(fin.includes("سيُنسخ مقالك بعد تغييرين اعتمدتَهما") && (await page.locator("#final-changes del").count()) === 2, "the final check lists both changes in their sentences");
 check(fin.includes("ليس شهادة بأن المقال كله متحقق منه"), "and says it does not certify the whole article");
 const revised = (await page.inputValue("#revised-text")).replace(/\r\n?/g, "\n");
 const expected = article.replace("يجزى", "يوفى").replace("[الشرح: 6]", "[الشرح: 5]");

@@ -53,7 +53,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1280, height: 800 }, fals
   const revised = await page.inputValue("#revised-text");
   check(revised.includes("[الشرح: 5]") && !revised.includes("ٱلنَّبِىَّ") && revised.includes("يَـٰٓأَيُّهَا") && revised.includes("[النور: 56]"), "after approving only the two corrections the article differs only there; the correct Uthmani text is untouched");
   check(revised.split("\n").length === art.split("\n").length, "line structure preserved");
-  check(norm(await page.textContent("#final-summary")).includes("٢ تغييرين"), "the final check counts the two approved changes, not optional formatting");
+  check(norm(await page.textContent("#final-summary")).includes("بعد تغييرين اعتمدتَهما"), "the final check counts the two approved changes, not optional formatting");
   await page.locator("#final").scrollIntoViewIfNeeded();
   await page.click("#copy-btn");
   await page.waitForTimeout(300);
