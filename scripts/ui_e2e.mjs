@@ -21,12 +21,12 @@ await page.waitForFunction(() => document.getElementById("article").value.length
 const original = (await page.inputValue("#article")).replace(/\r\n?/g, "\n");
 check(original === readSample("sample-2"), "the sample loaded");
 await page.click("#audit-btn");
-await page.waitForSelector("#results:not([hidden]) #current article", { timeout: 60000 });
+await page.waitForSelector("#panel:not([hidden]) #current article", { timeout: 60000 });
 await page.waitForTimeout(600);
 await shot("02-results");
 check((await page.locator("#queue .row").count()) === 7, `sample 2 lists 7 quotations (got ${await page.locator("#queue .row").count()})`);
 check((await page.inputValue("#revised-text")) === original, "revised article equals the original before any approval");
-check(!(await page.textContent("#input-summary")).includes("null") && (await page.locator("#input-body").isHidden()), "after the audit the pasted text gives way to one summary line (the article is shown once)");
+check((await page.locator("#article").isVisible()) && (await page.locator("#article").isEditable()) && (await page.locator("#article-view mark").count()) >= 1, "after the audit the article stays on the page, editable, with the quotations marked behind the text");
 
 // find the finding with the wrong reference through the page's own state, open it from the list and approve
 const target = await page.evaluate(() => { const f = lastResult.findings.find((x) => x.quote.includes("فإن مع العسر يسرا") && x.changes.some((c) => c.kind === "reference" && !c.optional)); return { id: f.id, change: f.changes.find((c) => c.kind === "reference" && !c.optional).id }; });
@@ -80,15 +80,14 @@ await shot("04-print-record", true);
 await page.emulateMedia({ media: "screen" });
 
 await page.reload();
-await page.waitForSelector("#results:not([hidden]) #current article");
+await page.waitForSelector("#panel:not([hidden]) #current article");
 check((await page.inputValue("#revised-text")) === expected, "decisions survive a reload (sessionStorage)");
 
 // markup in the article is shown as text, never parsed
-await page.click("#edit-btn");
 await page.click("#clear-btn");
 await page.fill("#article", '<img src=x onerror="window.__pwned=1"> قال تعالى: ﴿اقرأ باسم ربك الذي خلق﴾ [العلق: 2] <script>window.__pwned=2</script>');
 await page.click("#audit-btn");
-await page.waitForSelector("#results:not([hidden]) #current article");
+await page.waitForSelector("#panel:not([hidden]) #current article");
 const fix = await page.evaluate(() => lastResult.findings.flatMap((f) => f.changes).find((c) => c.kind === "reference" && !c.optional)?.id);
 if (fix) { await page.locator(`[data-change="${fix}"] button[data-act="approved"]`).click(); }
 check(await page.evaluate(() => window.__pwned === undefined), "no script executed from article text");
@@ -100,7 +99,7 @@ await m.page.goto(server.base);
 await m.page.selectOption("#sample-select", "sample-2");
 await m.page.waitForFunction(() => document.getElementById("article").value.length > 100);
 await m.page.click("#audit-btn");
-await m.page.waitForSelector("#results:not([hidden]) #current article", { timeout: 60000 });
+await m.page.waitForSelector("#panel:not([hidden]) #current article", { timeout: 60000 });
 check((await m.overflowX()) <= 1, `phone: no horizontal scroll (overflow ${await m.overflowX()}px)`);
 await m.shot("06-top");
 check(errors.length === 0 && m.errors.length === 0, `no console errors (${[...errors, ...m.errors].join(" | ")})`);

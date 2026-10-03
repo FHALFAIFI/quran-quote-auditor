@@ -1,4 +1,4 @@
-// Browser check of a long article (5,809 of 6,000 characters), the review sequence, keyboard focus against the bottom bar, 320 px reflow,
+// Browser check of a long article (5,809 characters, the longest of the older frozen set; the 20,000-character limit is exercised in ui_workspace_e2e.mjs), the review sequence, keyboard focus against the bottom bar, 320 px reflow,
 // mixed-direction text, a slow or failing server, the no-findings state and the model-failed state (Playwright, Chromium).
 //
 //   NODE_PATH=<scratch>/node_modules node scripts/ui_long_e2e.mjs [--shots DIR] [--server URL] [--python PATH]
@@ -20,8 +20,9 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await page.goto(server.base);
   await page.evaluate(() => sessionStorage.clear());
   await page.fill("#article", cases.L1);
-  check(Array.from(cases.L1).length > 5700 && Array.from(cases.L1).length <= 6000, `the article has ${Array.from(cases.L1).length} characters (limit 6000)`);
-  check(norm(await page.textContent("#char-count")) === "٥٨٠٩ / ٦٠٠٠ حرف" && !(await page.locator("#audit-btn").isDisabled()), "the counter shows the length against the limit and the audit is allowed");
+  check(Array.from(cases.L1).length > 5700 && Array.from(cases.L1).length <= 6000, `the article has ${Array.from(cases.L1).length} characters`);
+  const ar = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+  check(norm(await page.textContent("#char-count")) === `${ar(Array.from(cases.L1).length)} / ${ar(server.health.max_chars)} حرف` && !(await page.locator("#audit-btn").isDisabled()), "the counter shows the length against the limit and the audit is allowed");
   await audit(cases.L1);
   await page.waitForTimeout(600);
   check((await overflowX()) <= 1, "results: no horizontal overflow");
@@ -42,10 +43,11 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   }
   check(seen.slice(0, state.pending.length).join() === state.pending.join() && seen[state.pending.length] === state.pending[0], `«التالي» walks the waiting quotations in order and wraps (${seen.join("→")})`);
   if (!mobile) {
-    const vis = await page.evaluate(() => { const m = document.querySelector("#article-view mark.current"), v = document.getElementById("article-view"); if (!m) return false; const a = m.getBoundingClientRect(), b = v.getBoundingClientRect(); return a.top >= b.top - 1 && a.bottom <= b.bottom + 1; });
-    check(vis, "wide screen: the quotation in the card is outlined and in view in the article beside it");
-    const both = await page.evaluate(() => { document.getElementById("workbench").scrollIntoView({ block: "start" }); const p = document.getElementById("panel").getBoundingClientRect(), a = document.getElementById("article-col").getBoundingClientRect(); return p.top >= 0 && p.bottom <= innerHeight + 1 && a.top >= 0 && a.bottom <= innerHeight + 1; });
-    check(both, "wide screen: the decision panel and the article column each fit the screen, side by side (the article scrolls inside its column)");
+    const together = await page.evaluate(() => {
+      const m = document.querySelector("#article-view mark.current")?.getBoundingClientRect(), p = document.getElementById("panel").getBoundingClientRect();
+      return !!m && m.top >= 0 && m.bottom <= innerHeight && p.top >= 0 && p.top < innerHeight * 0.5 && p.bottom <= innerHeight + 1;
+    });
+    check(together, "wide screen: the quotation in the card is outlined and in the viewport, and the decision panel is in view beside it");
     await page.evaluate(() => window.scrollTo(0, 0));
   }
 
@@ -98,16 +100,18 @@ console.log("\n== mixed-direction text");
   await page.goto(server.base);
   await page.evaluate(() => sessionStorage.clear());
   await audit(cases.L3);
-  const runs = await page.$$eval("#article-view bdi", (b) => b.map((x) => ({ text: x.textContent, dir: x.getAttribute("dir"), ub: getComputedStyle(x).unicodeBidi })));
-  const url = runs.find((r) => r.text.startsWith("https://"));
-  check(url && url.text === "https://example.org/athkar?id=153" && url.dir === "ltr" && url.ub === "isolate", `the URL is an isolated left-to-right run without the sentence's full stop (${url?.text})`);
-  check(runs.some((r) => r.text === "Al-Baqarah 2:186" && r.dir === "ltr"), "the Latin reference «Al-Baqarah 2:186» is an isolated left-to-right run");
-  check(runs.some((r) => r.text === "example.org") === false, "no run is split in the middle of the URL");
   const dirs = await page.evaluate(() => ({ html: document.documentElement.dir, lang: document.documentElement.lang, view: document.getElementById("article-view").dir, ta: document.getElementById("article").dir }));
-  check(dirs.html === "rtl" && dirs.lang === "ar" && dirs.view === "rtl" && dirs.ta === "rtl", "the page, the article view and the text box declare Arabic and right-to-left");
-  check((await page.inputValue("#revised-text")) === cases.L3, "the characters themselves are unchanged by the isolation");
-  const overlap = await page.evaluate(() => { const b = document.querySelector("#article-view bdi.ltr"), r = b.getBoundingClientRect(); return r.right <= innerWidth + 1 && r.left >= -1; });
-  check(overlap && (await overflowX()) <= 1, "the long URL stays inside the screen (no horizontal scroll)");
+  check(dirs.html === "rtl" && dirs.lang === "ar" && dirs.view === "rtl" && dirs.ta === "rtl", "the page, the highlight layer and the text box declare Arabic and right-to-left");
+  check((await page.inputValue("#revised-text")) === cases.L3 && (await page.inputValue("#article")) === cases.L3, "the characters themselves are unchanged");
+  // the highlight layer wraps exactly like the text box (same number of lines), URL and Latin reference included, so the marks sit under the words
+  const wrap = await page.evaluate(() => {
+    const ta = document.getElementById("article"), v = document.getElementById("article-view");
+    const keep = v.style.height; v.style.height = "auto"; v.style.position = "relative"; v.style.inset = "auto";
+    const a = { ta: ta.scrollHeight, view: v.scrollHeight }; v.style.height = keep; v.style.position = ""; v.style.inset = "";
+    return a;
+  });
+  check(Math.abs(wrap.ta - wrap.view) <= 2, `the highlight layer and the text box have the same height, so they wrap alike (${wrap.ta} / ${wrap.view} px)`);
+  check((await overflowX()) <= 1, "the long URL stays inside the screen (no horizontal scroll)");
   await shot("1-url");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
 }
@@ -157,7 +161,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check((await overflowX()) <= 1, "no findings: no horizontal overflow");
   await shot("1-no-findings", true);
   // a phrase the search missed can still be selected in the article
-  const ok = await page.evaluate(() => { const w = document.createTreeWalker(document.getElementById("article-view"), NodeFilter.SHOW_TEXT); for (let n = w.nextNode(); n; n = w.nextNode()) { const i = n.textContent.indexOf("الوقت كالسيف"); if (i >= 0) { const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 12); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return true; } } return false; });
+  const ok = await page.evaluate(() => { const ta = document.getElementById("article"), i = ta.value.indexOf("الوقت كالسيف"); if (i < 0) return false; ta.focus(); ta.setSelectionRange(i, i + 12); return true; });
   await page.waitForTimeout(200);
   check(ok && await page.locator("#sel-bar").isVisible() && (await page.inputValue("#article")) === cases.L5, "a selection in the article offers «افحص المحدَّد»");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);

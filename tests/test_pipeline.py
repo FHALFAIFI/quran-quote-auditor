@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import app.audit as audit
+from app.config import settings
 from app.audit import InputError, run_audit
 from app.extraction.base import ExtractionError, ExtractionProvider, RawSuggestion
 from app.extraction.gemini import parse_model_json
@@ -86,7 +87,7 @@ def test_input_limits(use_source):
     with pytest.raises(InputError):
         run_audit("   ")
     with pytest.raises(InputError):
-        run_audit("ا" * 7000)
+        run_audit("ا" * (settings.max_chars + 1))
 
 
 def test_ornate_brackets_pair_in_order():

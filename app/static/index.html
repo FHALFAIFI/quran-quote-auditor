@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>مدقق الاقتباسات القرآنية</title>
-  <meta name="description" content="أداة تتحقق من ألفاظ الاقتباسات القرآنية وإحالاتها في المقالات العربية بمقارنتها بنص مصحف حفص من قرآنبيديا.">
+  <meta name="description" content="مساحة كتابة عربية تقترح تكملة الآية من نص مصحف حفص في قرآنبيديا، وتراجع الاقتباسات القرآنية في مقالك وإحالاتها، ولا تغيّر شيئًا إلا بقرارك.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
@@ -12,32 +12,48 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2324312d'/%3E%3Cpath d='M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17' stroke='%23fffefa' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
   <script src="/static/surahs.js" defer></script>
   <script src="/static/revision.js" defer></script>
+  <script src="/static/workspace.js" defer></script>
+  <script src="/static/suggest-ui.js" defer></script>
   <script src="/static/app.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#article">انتقل إلى مربع المقال</a>
   <header class="site-header">
     <div class="wrap header-inner">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="6" fill="#24312d"/><path d="M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17" stroke="#fffefa" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
-      </span>
-      <div>
-        <h1>مدقق الاقتباسات القرآنية</h1>
-        <p class="tagline">يقارن الآيات المقتبسة في مقالك بنص المصحف، ولا يغيّر فيه شيئًا إلا بموافقتك.</p>
-      </div>
+      <a class="brand" href="/" aria-label="مدقق الاقتباسات القرآنية — الصفحة الرئيسية">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="6" fill="#24312d"/><path d="M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17" stroke="#fffefa" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="brand-name">مدقق الاقتباسات القرآنية</span>
+      </a>
+      <nav class="site-nav" aria-label="صفحات الموقع">
+        <a href="/sources">المصادر</a>
+        <a href="/privacy">الخصوصية</a>
+        <a href="/limitations">الحدود</a>
+      </nav>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="input-card" id="input-card" aria-labelledby="input-title">
-      <div class="input-summary" id="input-summary" hidden>
-        <p><span id="summary-text"></span></p>
-        <button id="edit-btn" type="button" class="btn">عدّل النص أو ألصق مقالًا آخر</button>
-      </div>
-      <div id="input-body">
-        <div class="card-head">
-          <h2 id="input-title">نص المقال</h2>
+  <main class="wrap" id="main">
+    <section class="intro" id="intro" aria-labelledby="intro-title">
+      <h1 id="intro-title">اكتب مقالك، وراجع كل آية فيه على المصحف</h1>
+      <p>ألصق مقالك أو اكتبه هنا. إذا بدأتَ آية بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> اقترحنا عليك تكملتها من نص المصحف، وإذا دقّقتَ المقال ظهر ما يحتاج قرارك بجوار نصّك. لا يتغيّر شيء في مقالك إلا بقرارك.</p>
+    </section>
+
+    <div id="sr-live" class="sr-only" role="status" aria-live="polite"></div>
+    <div id="draft-banner" class="notice draft-banner" hidden></div>
+
+    <div id="results" hidden>
+      <section id="verdict" class="verdict" aria-labelledby="verdict-title"></section>
+      <div id="notices"></div>
+    </div>
+
+    <div id="workbench" class="workbench no-panel">
+      <section id="article-col" class="article-col" aria-labelledby="article-title">
+        <div class="col-head">
+          <h2 id="article-title">مقالك</h2>
           <div class="samples">
-            <label for="sample-select">أمثلة أخرى:</label>
+            <label for="sample-select">أمثلة:</label>
             <select id="sample-select">
               <option value="">— اختر —</option>
               <option value="sample-demo">المقال التجريبي: الصبر</option>
@@ -47,109 +63,123 @@
             </select>
           </div>
         </div>
+
         <div id="demo-hero" class="demo-hero">
           <button id="demo-btn" type="button" class="btn primary demo-btn">جرّب المقال التجريبي</button>
-          <p class="demo-copy">شاهد كيف تراجع اقتباسًا وتصحيحًا قبل نسخه. أو ألصق مقالك أدناه.</p>
+          <p class="demo-copy">شاهد كيف تُراجَع الآية وتُقرَّر قبل نسخ النص. أو ألصق مقالك في المربع.</p>
         </div>
-        <textarea id="article" rows="11" dir="rtl" spellcheck="false" aria-label="نص المقال" placeholder="ألصق هنا مقالك العربي…"></textarea>
+
+        <div class="toolbar" role="group" aria-label="أدوات الكتابة والتدقيق">
+          <button id="complete-btn" type="button" class="btn small" aria-keyshortcuts="Alt+Q" title="اقتراح تكملة الآية من نص المصحف عند المؤشر (Alt+Q)">أكمل من المصحف</button>
+          <button id="audit-btn" type="button" class="btn primary small">دقّق الاقتباسات</button>
+          <button id="clear-btn" type="button" class="btn ghost small">مسح</button>
+          <span class="toolbar-note muted small">حدّ المقال <span id="limit-note"></span> حرف</span>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+
+        <div id="sel-bar" class="sel-bar" hidden>
+          <span id="sel-text" class="sel-text"></span>
+          <span class="sel-actions">
+            <button id="sel-complete" type="button" class="btn small">أكمل من المصحف</button>
+            <button id="phrase-btn" type="button" class="btn small primary">افحص المحدَّد</button>
+          </span>
+        </div>
+
+        <div class="editor" id="editor">
+          <div id="article-view" class="backdrop ed-text" dir="rtl" aria-hidden="true"></div>
+          <textarea id="article" class="ed-text" dir="rtl" rows="3" spellcheck="false" aria-label="نص المقال" aria-describedby="editor-hint" placeholder="ألصق مقالك العربي هنا، أو اكتبه…"></textarea>
+          <div id="suggest" class="suggest" role="group" aria-label="اقتراح من المصحف" hidden></div>
+        </div>
+
         <div class="input-foot">
           <span id="char-count" class="muted">0 حرف</span>
-          <span id="stale-note" class="stale-note" hidden>تغيّر النص بعد آخر تدقيق؛ أعد التدقيق قبل اعتماد التصحيحات.</span>
-          <div class="actions">
-            <button id="clear-btn" type="button" class="btn ghost">مسح</button>
-            <button id="audit-btn" type="button" class="btn primary">دقّق الاقتباسات</button>
-          </div>
+          <span id="stale-note" class="stale-note" hidden></span>
+          <button id="recheck-btn" type="button" class="btn small primary" hidden>أعد التدقيق</button>
         </div>
-        <details class="help">
-          <summary>كيف تعمل الأداة وما حدودها؟</summary>
-          <div class="help-body">
-            <div id="mode-banner" class="banner" hidden></div>
-            <ul>
-              <li>تُفحص الاقتباسات المعلَّمة بـ ﴿ ﴾ أو { } أو علامات تنصيص بعد «قال تعالى» أو قبل إحالة، ويُبحث في بقية النص عن عبارات تطابق المصحف دون علامات. وتُقبل الآيات المنسوخة بالرسم العثماني.</li>
-              <li>لا تُقترح تصحيحات إلا من نص قرآنبيديا، وما لم يتأكد يُعرض سؤالًا لا حكمًا. لا تصحّح الأداة لغة المقال ولا تفسّر الآيات ولا تُصدر أحكامًا شرعية.</li>
-              <li>فاتتك عبارة؟ بعد التدقيق حدّدها بالماوس أو بإصبعك في المقال المعروض، ثم اضغط «افحص المحدَّد».</li>
-            </ul>
-          </div>
-        </details>
-      </div>
-    </section>
+        <p id="editor-hint" class="paste-note muted small">اكتب «قال تعالى» ثم أول كلمات الآية، أو افتح ﴿، وسنقترح التكملة؛ اضغط Tab لإدراجها أو Esc لتجاهلها. مقالك لا يُحفظ على الخادم؛ <a href="/privacy">ما الذي يُرسَل بالضبط؟</a></p>
 
-    <div id="status" class="status" role="status" aria-live="polite"></div>
-    <div id="sr-live" class="sr-only" role="status" aria-live="polite"></div>
-
-    <section id="results" hidden>
-      <section id="verdict" class="verdict" aria-labelledby="verdict-title"></section>
-      <div id="notices"></div>
-
-      <div id="workbench" class="workbench">
-        <section id="panel" class="panel" aria-labelledby="panel-title">
-          <div class="panel-head">
-            <h2 id="panel-title" tabindex="-1">قرارك الآن</h2>
-            <p id="panel-progress" class="panel-progress"></p>
-            <div id="panel-nav" class="panel-nav">
-              <button id="prev-btn" type="button" class="btn small">السابق</button>
-              <button id="next-btn" type="button" class="btn small">التالي</button>
+        <details class="options" id="options">
+          <summary>الخيارات والمسودة</summary>
+          <div class="options-body">
+            <label class="opt"><input type="checkbox" id="opt-suggest" checked> اقتراح الآيات أثناء الكتابة (بعد إشارة قرآنية أو قوس مفتوح)</label>
+            <label class="opt"><input type="checkbox" id="opt-distinct"> اقتراح أيضًا عند كتابة عبارة مميزة من آية دون إشارة <span class="muted small">(تُرسَل الكلمات التي قبل المؤشر إلى الخادم كلما توقفتَ عن الكتابة)</span></label>
+            <label class="opt" id="opt-ai-row" hidden><input type="checkbox" id="opt-ai" checked> استخدام الذكاء الاصطناعي لاقتراح مواضع الاقتباس عند التدقيق <span class="muted small">(اختياري؛ يعمل التدقيق بدونه)</span></label>
+            <div class="draft-tools">
+              <p class="small muted">لا يُحفظ شيء في هذا المتصفح بعد إغلاق التبويب إلا إذا اخترتَ ذلك:</p>
+              <div class="actions-row">
+                <button id="draft-save" type="button" class="btn small">احفظ المسودة في هذا المتصفح</button>
+                <button id="draft-delete" type="button" class="btn small ghost">احذف المسودة المحفوظة</button>
+                <button id="draft-export" type="button" class="btn small">نزّل المقال (نص)</button>
+                <button id="draft-export-json" type="button" class="btn small">نزّل المسودة مع القرارات</button>
+              </div>
+              <label class="opt" id="draft-auto-row" hidden><input type="checkbox" id="draft-auto"> حدّث المسودة المحفوظة تلقائيًا أثناء الكتابة</label>
+              <p id="draft-note" class="small muted" role="status" aria-live="polite"></p>
             </div>
+            <div id="mode-banner" class="banner" hidden></div>
           </div>
-          <p id="undo-line" class="undo-line" role="status" aria-live="polite" hidden></p>
-          <div id="current"></div>
-          <div id="queue" class="queue"></div>
-        </section>
-
-        <section id="article-col" class="article-col" aria-labelledby="article-title">
-          <h2 id="article-title">مقالك مع مواضع الاقتباس</h2>
-          <p class="article-hint">اضغط على اقتباس لمراجعته، أو حدّد عبارة لم تجدها لفحصها.</p>
-          <div id="sel-bar" class="sel-bar" hidden>
-            <span id="sel-text" class="sel-text"></span>
-            <button id="phrase-btn" type="button" class="btn small primary">افحص المحدَّد</button>
-          </div>
-          <div id="article-view" class="article-view" dir="rtl" role="region" aria-label="نص مقالك مع الاقتباسات المعلَّمة"></div>
-        </section>
-      </div>
-
-      <section id="final" class="final" aria-labelledby="final-title">
-        <h2 id="final-title" tabindex="-1">المراجعة الأخيرة قبل النسخ</h2>
-        <div id="final-summary"></div>
-        <div id="final-changes"></div>
-        <div id="final-pending"></div>
-        <p class="final-scope">هذا فحص للاقتباسات التي رُصدت فقط، وليس شهادة بأن المقال كله متحقق منه أو جاهز للنشر.</p>
-        <div class="final-actions">
-          <button id="copy-btn" type="button" class="btn primary">نسخ المقال المعدّل</button>
-          <button id="print-btn" type="button" class="btn">سجل مراجعة الاقتباسات (طباعة / PDF)</button>
-          <button id="reset-btn" type="button" class="btn ghost">إلغاء كل القرارات</button>
-        </div>
-        <p id="copy-note" class="copy-note" role="status" aria-live="polite"></p>
-        <details class="full-text">
-          <summary>المقال المعدّل كاملًا (قبل وبعد)</summary>
-          <div class="tabs" role="tablist">
-            <button id="tab-preview" type="button" role="tab" aria-selected="true" class="tab">المحذوف والمضاف</button>
-            <button id="tab-text" type="button" role="tab" aria-selected="false" class="tab">النص المعدّل</button>
-          </div>
-          <div id="preview-view" class="article-view preview-view" dir="rtl" tabindex="0" role="region" aria-label="معاينة المقال المعدّل"></div>
-          <textarea id="revised-text" class="revised-text" dir="rtl" rows="12" readonly hidden aria-label="النص المعدّل الكامل"></textarea>
-          <div class="preview-legend">
-            <span><del>نص محذوف</del></span> <span><ins>نص معتمد</ins></span> <span><span class="unresolved">اقتباس لم يُحسم</span></span>
-          </div>
-        </details>
-        <details class="reply-box">
-          <summary>مسودة رد على منشور (للنسخ اليدوي بعد مراجعتك)</summary>
-          <p class="editor-note">مبنية على ما اعتمدته وما بقي غير محسوم. راجعها وانشرها بنفسك؛ لا تنشر الأداة شيئًا.</p>
-          <textarea id="reply-text" class="revised-text reply-text" dir="rtl" rows="6" aria-label="مسودة الرد"></textarea>
-          <div class="final-actions"><span id="reply-count" class="muted"></span><button id="reply-copy" type="button" class="btn">نسخ المسودة</button></div>
         </details>
       </section>
 
-      <div id="review-dock" class="dock" role="region" aria-label="تقدّم المراجعة" hidden>
-        <p id="dock-text" class="dock-text"></p>
-        <button id="dock-next" type="button" class="btn primary">التالي</button>
+      <section id="panel" class="panel" aria-labelledby="panel-title" hidden>
+        <div class="panel-head">
+          <h2 id="panel-title" tabindex="-1">قرارك الآن</h2>
+          <p id="panel-progress" class="panel-progress"></p>
+          <div id="panel-nav" class="panel-nav">
+            <button id="prev-btn" type="button" class="btn small">السابق</button>
+            <button id="next-btn" type="button" class="btn small">التالي</button>
+          </div>
+        </div>
+        <p id="undo-line" class="undo-line" role="status" aria-live="polite" hidden></p>
+        <div id="current"></div>
+        <div id="queue" class="queue"></div>
+      </section>
+    </div>
+
+    <section id="final" class="final" aria-labelledby="final-title" hidden>
+      <h2 id="final-title" tabindex="-1">المراجعة الأخيرة قبل النسخ</h2>
+      <div id="final-summary"></div>
+      <div id="final-changes"></div>
+      <div id="final-pending"></div>
+      <p class="final-scope">هذا فحص للاقتباسات التي رُصدت فقط، وليس شهادة بأن المقال كله متحقق منه أو جاهز للنشر.</p>
+      <div class="final-actions">
+        <button id="copy-btn" type="button" class="btn primary">نسخ المقال المعدّل</button>
+        <button id="print-btn" type="button" class="btn">سجل مراجعة الاقتباسات (طباعة / PDF)</button>
+        <button id="reset-btn" type="button" class="btn ghost">إلغاء كل القرارات</button>
       </div>
+      <p id="copy-note" class="copy-note" role="status" aria-live="polite"></p>
+      <details class="full-text">
+        <summary>المقال المعدّل كاملًا (قبل وبعد)</summary>
+        <div class="tabs" role="tablist">
+          <button id="tab-preview" type="button" role="tab" aria-selected="true" class="tab">المحذوف والمضاف</button>
+          <button id="tab-text" type="button" role="tab" aria-selected="false" class="tab">النص المعدّل</button>
+        </div>
+        <div id="preview-view" class="article-view preview-view" dir="rtl" tabindex="0" role="region" aria-label="معاينة المقال المعدّل"></div>
+        <textarea id="revised-text" class="revised-text" dir="rtl" rows="12" readonly hidden aria-label="النص المعدّل الكامل"></textarea>
+        <div class="preview-legend">
+          <span><del>نص محذوف</del></span> <span><ins>نص معتمد</ins></span> <span><span class="unresolved">اقتباس لم يُحسم</span></span>
+        </div>
+      </details>
+      <details class="reply-box">
+        <summary>مسودة رد على منشور (للنسخ اليدوي بعد مراجعتك)</summary>
+        <p class="editor-note">مبنية على ما اعتمدته وما بقي غير محسوم. راجعها وانشرها بنفسك؛ لا تنشر الأداة شيئًا.</p>
+        <textarea id="reply-text" class="revised-text reply-text" dir="rtl" rows="6" aria-label="مسودة الرد"></textarea>
+        <div class="final-actions"><span id="reply-count" class="muted"></span><button id="reply-copy" type="button" class="btn">نسخ المسودة</button></div>
+      </details>
     </section>
+
+    <div id="review-dock" class="dock" role="region" aria-label="تقدّم المراجعة" hidden>
+      <p id="dock-text" class="dock-text"></p>
+      <button id="dock-open" type="button" class="btn" hidden>افتح القرار</button>
+      <button id="dock-next" type="button" class="btn primary">التالي</button>
+    </div>
 
     <details class="legend" id="legend" hidden>
       <summary>كيف نقرأ الحالات؟</summary>
       <dl class="legend-grid">
         <div><dt><span class="state need">يحتاج قرارك</span></dt><dd>اقتباس لم تُحسم مسألة فيه: تصحيح مقترح، أو آية لم نتأكد منها، أو حدود غير واضحة.</dd></div>
         <div><dt><span class="state done">تم</span></dt><dd>مطابق للمصحف، أو قرّرتَ فيه بنفسك (اعتمدتَ التصحيح أو أبقيتَ كلامك).</dd></div>
+        <div><dt><span class="state stale">عُدّل بعد التدقيق</span></dt><dd>غيّرتَ النص في هذا الموضع أو بجواره؛ سقط قرارك السابق فيه وتحتاج إلى إعادة التدقيق.</dd></div>
         <div><dt><span class="state off">استبعدتَه</span></dt><dd>قلتَ إنه ليس اقتباسًا قرآنيًا. يمكنك التراجع في أي وقت.</dd></div>
         <div><dt>قبل ← بعد</dt><dd>الأحمر المشطوب هو ما كتبتَه، والأخضر هو ما في المصحف. لا يتغيّر شيء في مقالك إلا بموافقتك.</dd></div>
       </dl>
@@ -158,18 +188,13 @@
 
   <footer class="site-footer">
     <div class="wrap footer-inner">
-      <p>نص التحقق: <a href="https://quranpedia.net" target="_blank" rel="noopener">قرآنبيديا</a> · نص المثال العثماني: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a></p>
-      <details class="privacy">
-        <summary>المصادر وطريقة التحقق</summary>
-        <p>تُقارن الاقتباسات بمصحف حفص عن عاصم عبر <a href="https://api.quranpedia.net/" target="_blank" rel="noopener">واجهة قرآنبيديا</a>. يقترح الذكاء الاصطناعي مواضع للفحص؛ ولا يُستخدم مصدرًا لنص القرآن أو حكمًا على صحته. الآية العثمانية في المقال التجريبي نسخة حرفية من نص Tanzil العثماني، الإصدار 1.1، وفق رخصة CC BY 3.0.</p>
-      </details>
-      <details class="privacy">
-        <summary>الخصوصية وحدود الاستخدام</summary>
-        <p>
-          لا تُخزَّن المقالات على الخادم ولا تُسجَّل، وقرارات التصحيح تبقى في متصفحك. عند تفعيل الذكاء الاصطناعي يُرسل نص المقال إلى <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noopener">Groq</a> (خوادم في الولايات المتحدة) لاقتراح مواضع الاقتباس فقط؛ ولا تحتفظ Groq بالطلبات افتراضيًا، إلا لمدة أقصاها 30 يومًا عند تتبّع الأعطال أو التحقيق في إساءة الاستخدام. لا تلصق نصًا سريًا.
-        </p>
-        <p>الاستضافة المجانية تنام عند الخمول، فقد يتأخر أول طلب بعد فترة سكون (تذكر Render نحو دقيقة، وقيس مرة واحدة 23 ثانية). الأداة فحص أولي للاقتباسات وإحالاتها ولا تغني عن مراجعة بشرية.</p>
-      </details>
+      <nav class="footer-nav" aria-label="صفحات الثقة">
+        <a href="/sources">المصادر وطريقة التحقق</a>
+        <a href="/privacy">الخصوصية</a>
+        <a href="/limitations">الحدود وما لا تفعله الأداة</a>
+        <a href="https://github.com/FHALFAIFI/quran-quote-auditor" target="_blank" rel="noopener">الشيفرة المصدرية</a>
+      </nav>
+      <p>نص التحقق: <a href="https://quranpedia.net" target="_blank" rel="noopener">قرآنبيديا</a> (مصحف حفص). الأداة فحص أولي لا يغني عن مراجعة بشرية.</p>
     </div>
   </footer>
 

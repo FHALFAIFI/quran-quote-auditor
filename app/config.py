@@ -41,9 +41,13 @@ class Settings:
     ai_attempt_timeout: float = _float("AI_ATTEMPT_TIMEOUT_SECONDS", 8.0)  # cap per request
     ai_cooldown: float = _float("AI_COOLDOWN_SECONDS", 60.0)  # skip AI this long after a failure
     source_timeout: float = _float("SOURCE_TIMEOUT_SECONDS", 20.0)
-    max_chars: int = _int("MAX_ARTICLE_CHARS", 6000)
-    max_candidates: int = _int("MAX_CANDIDATES", 40)
+    max_chars: int = _int("MAX_ARTICLE_CHARS", 20000)
+    # The model is asked about an article only up to this length (Groq's free tier refuses large requests: see docs/TEST_LOG.md);
+    # a longer article is still audited in full, by markers and by the search of the Quran text, without the model.
+    ai_max_chars: int = _int("AI_MAX_ARTICLE_CHARS", 6000)
+    max_candidates: int = _int("MAX_CANDIDATES", 150)
     rate_limit_per_minute: int = _int("RATE_LIMIT_PER_MINUTE", 10)
+    suggest_rate_limit_per_minute: int = _int("SUGGEST_RATE_LIMIT_PER_MINUTE", 240)
     cache_dir: str | None = os.environ.get("QURAN_CACHE_DIR") or None
     contact: str = os.environ.get("QURANPEDIA_CONTACT", "").strip()
 

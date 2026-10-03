@@ -34,7 +34,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
 
   // ---- 2. one click: load + audit
   await page.click("#demo-btn");
-  await page.waitForSelector("#results:not([hidden]) #finding-3", { timeout: 60000 });
+  await page.waitForSelector("#panel:not([hidden]) #finding-3", { timeout: 60000 });
   await page.waitForTimeout(1500);
   check((await page.inputValue("#article")).replace(/\r\n?/g, "\n") === demo, "one click loaded the demonstration article");
   check(norm(await page.textContent("#verdict-title")) === "وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك", "the verdict: «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك»");
@@ -140,9 +140,8 @@ for (const [name, vp, mobile] of VIEWPORTS) {
     check(big.every((x) => x >= 44), `buttons are at least 44 px (${[...new Set(big)].join(", ")})`);
   }
   await page.reload({ waitUntil: "load" });
-  await page.waitForSelector("#results:not([hidden]) #current article");
+  await page.waitForSelector("#panel:not([hidden]) #current article");
   check(/سيُنسخ مقالك بعد ٢ تغييرين اعتمدتَهما/.test(norm(await page.textContent("#final"))), "after a reload the decisions are restored");
-  await page.click("#edit-btn");
   await page.click("#clear-btn");
   check(await page.locator("#demo-hero").isVisible() && await page.locator("#results").isHidden(), "clearing brings the demo action back and hides the results");
   await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));

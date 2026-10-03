@@ -49,7 +49,7 @@ APPROX_MIN_WORDS = 4       # ... and the fewest matched words (exact or near) in
 SOFT_RATIO = 0.75          # letter similarity at which two different words count as a near match
 ANCHOR_IDF = 5.0           # a lone exact word beyond an edit counts as support only if it is this rare (idf)
 MAX_EDITS = 2              # whole-word substitutions / insertions / omissions inside one approximate phrase
-MAX_SEED_STEPS = 80_000    # work budget per article (seed occurrences visited); real articles need <= ~41,000, repeated frequent words would need far more
+MAX_SEED_STEPS = 160_000   # work budget per article (seed occurrences visited); dense real articles need about 4 steps per character (≈78,000 at 20,000 characters), repeated frequent words would need far more
 MAX_SPANS = 60             # Quran places kept for one phrase
 
 # Phrases used as everyday formulae (folded words). They ARE Quran text, but a writer who uses one is rarely

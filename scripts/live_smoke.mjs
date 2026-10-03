@@ -42,7 +42,7 @@ check(norm(await page.textContent("#demo-btn")) === "جرّب المقال ال�
 await shot("0-empty");
 const t1 = Date.now();
 await page.click("#demo-btn");
-await page.waitForSelector("#results:not([hidden]) #finding-3", { timeout: 90000 });
+await page.waitForSelector("#panel:not([hidden]) #finding-3", { timeout: 90000 });
 console.log(`INFO  load + audit answered in ${((Date.now() - t1) / 1000).toFixed(1)} s (wall)`);
 await page.waitForTimeout(1800);
 const article = (await page.inputValue("#article")).replace(/\r\n?/g, "\n");

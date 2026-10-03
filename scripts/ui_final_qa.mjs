@@ -147,10 +147,13 @@ for (const [name, vp, mobile] of VIEWPORTS) {
     } else {
       check(!!(await tabTo(page, (s) => s.name === "textarea#article", 10, log)), `keyboard (${label}): Tab reaches the text box`);
       await page.keyboard.insertText(text);
-      check(!!(await tabTo(page, (s) => s.name === "button#audit-btn", 5, log)), `keyboard (${label}): Tab reaches «دقّق الاقتباسات»`);
+      // the toolbar sits above the text box: Shift+Tab goes back to «دقّق الاقتباسات»; Ctrl+Enter audits from the text box itself
+      let back = null;
+      for (let i = 0; i < 4 && !back; i++) { await page.keyboard.press("Shift+Tab"); const f = await focusState(page); log(f); if (f.name === "button#audit-btn") back = f; }
+      check(!!back, `keyboard (${label}): Shift+Tab from the text box reaches «دقّق الاقتباسات»`);
       await page.keyboard.press("Enter");
     }
-    await page.waitForSelector("#results:not([hidden]) #current article", { timeout: 60000 });
+    await page.waitForSelector("#panel:not([hidden]) #current article", { timeout: 60000 });
     await page.waitForTimeout(1200);
     const first = await focusState(page);
     check(first.name?.startsWith("article#finding-") || first.name?.startsWith("div#finding-") || /finding-/.test(first.name || ""), `keyboard (${label}): focus lands on the first quotation that needs a decision (${first.name})`);

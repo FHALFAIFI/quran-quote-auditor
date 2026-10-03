@@ -66,7 +66,7 @@ export async function openPage(browser, base, vp, mobile, tag) {
   const audit = async (text) => {
     await page.fill("#article", text);
     await page.click("#audit-btn");
-    await page.waitForSelector("#results:not([hidden]) #current article", { timeout: 60000 });
+    await page.waitForSelector("#panel:not([hidden]) #current article", { timeout: 60000 });
     await page.waitForTimeout(900);
   };
   return { ctx, page, errors, shot, inView, overflowX, audit };

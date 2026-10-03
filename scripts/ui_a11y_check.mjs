@@ -5,7 +5,7 @@
 //
 // Rules: WCAG 2.0/2.1/2.2 A and AA tags plus best-practice. States: empty, the demo's first decision, a boundary question with the span
 // editor open, a possible quotation with the verse form open, the long article, the final check with every <details> opened, no findings,
-// and the model-failed state. Starts its OWN AI-off server unless --server is given.
+// the model-failed state, a verse suggestion open (one verse; several verses), the stale state after an edit, and the three trust pages. Starts its OWN AI-off server unless --server is given.
 import { createRequire } from "module";
 import { chromium, check, readSample, testServer, openPage, openRow, finish } from "./_ui_common.mjs";
 import fs from "fs";
@@ -36,5 +36,16 @@ for (const [name, vp, mobile] of [["320", { width: 320, height: 640 }, true], ["
   await fresh(); await audit(cases.L1); await run(page, `${name}px long article`);
   await fresh(); await audit(readSample("sample-demo")); await page.locator('#current button[data-act="approved"]').first().click(); await page.waitForTimeout(500); await page.locator('#current button[data-act="rejected"]').first().click(); await page.waitForTimeout(500); await run(page, `${name}px final check, details open`);
   await fresh(); await audit(cases.L5).catch(() => {}); await page.waitForSelector("#results:not([hidden])"); await run(page, `${name}px no findings`);
+  // verse suggestion while writing: the box with one verse, and with several verses (second one open)
+  const typeAt = async (text) => { await page.click("#article"); await page.keyboard.type(text, { delay: 3 }); await page.waitForFunction(() => { const b = document.getElementById("suggest"); return b && !b.hidden && b.querySelector(".sg-item"); }, null, { timeout: 5000 }); };
+  await fresh(); await typeAt("قال تعالى: وما خلقت الجن والإنس إلا"); await run(page, `${name}px verse suggestion (one verse)`);
+  await fresh(); await typeAt("قال تعالى: وما خلقت الجن والإنس إلا لعبادتي"); await run(page, `${name}px probable correction`);
+  await fresh(); await typeAt("قال تعالى: يا أيها الذين آمنوا كتب"); await page.keyboard.press("ArrowDown"); await run(page, `${name}px several verses, one open`);
+  // the stale state: an edit inside a quotation after the audit
+  await fresh(); await audit(readSample("sample-demo"));
+  await page.evaluate(() => { const ta = document.getElementById("article"); const f = lastResult.findings[3]; const u = W.cpToUnit(ta.value, f.start + 3); ta.focus(); ta.setSelectionRange(u, u); });
+  await page.keyboard.type("ز", { delay: 3 }); await page.waitForTimeout(500); await run(page, `${name}px stale quotation after an edit`);
+  // the three trust pages
+  for (const pg of ["/sources", "/privacy", "/limitations"]) { await page.goto(server.base + pg); await run(page, `${name}px ${pg}`); }
 }
 finish(server, browser);

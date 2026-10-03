@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>الخصوصية — مدقق الاقتباسات القرآنية</title>
+  <meta name="description" content="ما الذي يُرسَل من مقالك، ولمن، وما الذي يبقى في متصفحك، وما الذي لا يُحفظ على الخادم.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2324312d'/%3E%3Cpath d='M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17' stroke='%23fffefa' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body class="doc-page">
+  <a class="skip-link" href="#main">انتقل إلى المحتوى</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/" aria-label="مدقق الاقتباسات القرآنية — العودة إلى مساحة الكتابة">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="6" fill="#24312d"/><path d="M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17" stroke="#fffefa" stroke-width="2" fill="none" stroke-linejoin="round"/></svg></span>
+        <span class="brand-name">مدقق الاقتباسات القرآنية</span>
+      </a>
+      <nav class="site-nav" aria-label="صفحات الموقع">
+        <a href="/sources">المصادر</a>
+        <a href="/privacy" aria-current="page">الخصوصية</a>
+        <a href="/limitations">الحدود</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap doc" id="main">
+    <p class="doc-back"><a href="/">← العودة إلى مساحة الكتابة</a></p>
+    <h1>الخصوصية: ما يحدث لمقالك</h1>
+    <p class="doc-lead">لا حسابات ولا ملفات تعريف ارتباط ولا إحصاءات ولا إعلانات. لا يحتفظ الخادم بمقالك بعد انتهاء الطلب. إليك ما يُرسَل وما يبقى، كما هو في الشيفرة اليوم.</p>
+
+    <div class="doc-note">
+      <strong>قبل أن تلصق مقالًا غير منشور:</strong> يُرسَل نصه إلى خادم الأداة (على Render) عند التدقيق. ولا يُرسَل إلى جهة ثالثة إلا إذا كان الذكاء الاصطناعي مفعّلًا على الخادم ولم تُعطّله (الجدول أدناه). إن لم يكن مسموحًا لك بإرسال المقال إلى خدمة خارجية، عطّل «استخدام الذكاء الاصطناعي» في «الخيارات والمسودة» قبل التدقيق.
+    </div>
+
+    <h2>ما الذي يُرسَل ولمن</h2>
+    <div class="doc-table-wrap">
+      <table class="doc-table">
+        <thead><tr><th scope="col">متى</th><th scope="col">ما يُرسَل</th><th scope="col">إلى من</th><th scope="col">هل يُحفظ؟</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">«دقّق الاقتباسات» أو «أعد التدقيق»</th><td data-label="ما يُرسَل">نص المقال كاملًا</td><td data-label="إلى من">خادم الأداة</td><td data-label="هل يُحفظ؟">لا. يُعالَج في ذاكرة الخادم أثناء الطلب فقط، ولا يُكتب في ملف أو قاعدة بيانات ولا في سجل التطبيق.</td></tr>
+          <tr><th scope="row">«افحص المحدَّد»</th><td data-label="ما يُرسَل">نص المقال مع موضع المقطع الذي حدّدتَه</td><td data-label="إلى من">خادم الأداة (لا نموذج لغوي)</td><td data-label="هل يُحفظ؟">كما سبق.</td></tr>
+          <tr><th scope="row">اقتراح الآية أثناء الكتابة أو «أكمل من المصحف»</th><td data-label="ما يُرسَل">الكلمات التي قبل المؤشر (حتى ٧٠٠ حرف) والتي بعده (حتى ١٠٠ حرف) فقط، لا المقال كله</td><td data-label="إلى من">خادم الأداة (لا نموذج لغوي)</td><td data-label="هل يُحفظ؟">لا. ولا يُرسَل شيء أثناء الكتابة العادية: يُسأل الخادم فقط بعد «قال تعالى» ونحوها أو داخل ﴿ ﴾ أو « »، أو حين تضغط «أكمل من المصحف»، أو إن فعّلتَ خيار «العبارة المميزة» في الخيارات.</td></tr>
+          <tr><th scope="row">التدقيق مع الذكاء الاصطناعي (إن كان مفعّلًا على الخادم، ولم تعطّله، والمقال لا يزيد عن ٦٬٠٠٠ حرف)</th><td data-label="ما يُرسَل">نص المقال كاملًا مع تعليمات للنموذج</td><td data-label="إلى من">Groq (api.groq.com)، بمفتاح الخدمة لا بمفتاحك</td><td data-label="هل يُحفظ؟">تقول Groq في <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noopener">صفحة بياناتها</a> إنها لا تحتفظ بطلبات الاستدلال افتراضيًا، وإنها قد تحتفظ ببيانات مؤقتًا لأغراض الموثوقية ومراقبة إساءة الاستخدام (حتى ٣٠ يومًا) ما لم يُفعَّل «عدم الاحتفاظ». لا نملك التحكم في ذلك، ولا نعرف إعداد حساب الخدمة عندها.</td></tr>
+          <tr><th scope="row">كل مرة يبدأ الخادم أو بعد ٢٤ ساعة</th><td data-label="ما يُرسَل">طلب جلب المصحف (لا شيء من مقالك ولا من زائر)</td><td data-label="إلى من">قرآنبيديا (api.quranpedia.net)</td><td data-label="هل يُحفظ؟">يرى عنوان الخادم لا عنوانك.</td></tr>
+          <tr><th scope="row">حين تضغط رابط «قرآنبيديا» في بطاقة</th><td data-label="ما يُرسَل">يفتح متصفحك صفحة الآية عندهم، دون إحالة (Referrer)</td><td data-label="إلى من">قرآنبيديا</td><td data-label="هل يُحفظ؟">تنطبق سياستهم عليك كزائر لموقعهم.</td></tr>
+          <tr><th scope="row">كل تحميل للصفحة</th><td data-label="ما يُرسَل">طلب الخطوط (عنوان IP ومعلومات المتصفح)، لا نص المقال</td><td data-label="إلى من">خطوط جوجل (fonts.googleapis.com وfonts.gstatic.com)</td><td data-label="هل يُحفظ؟">تنطبق سياسة جوجل على هذا الطلب.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>ما يبقى في متصفحك</h2>
+    <ul>
+      <li><strong>الجلسة الحالية</strong> (<code>sessionStorage</code>): مقالك ونتيجة التدقيق وقراراتك، لتبقى عند إعادة تحميل الصفحة. تُمحى عند إغلاق التبويب، أو بزر «مسح»، ولا تُرسَل إلى أي مكان.</li>
+      <li><strong>تفضيلاتك</strong> (<code>localStorage</code>، مفتاح <code>qqa-suggest-v1</code>): هل الاقتراح مفعّل وهل «العبارة المميزة» مفعّلة. لا تتضمن نصًا.</li>
+      <li><strong>مسودة محفوظة</strong> (<code>localStorage</code>، مفتاح <code>qqa-draft-v1</code>): <em>لا تُنشأ إلا إذا ضغطتَ «احفظ المسودة»</em>. تحوي نص المقال فقط (لا القرارات ولا النتائج)، وتبقى في هذا المتصفح حتى تحذفها بـ«احذف المسودة المحفوظة» أو تمسح بيانات الموقع. «حدّث المسودة تلقائيًا» خيار منفصل تفعّله بنفسك. «نزّل المقال» و«نزّل المسودة مع القرارات» ينزّلان ملفًا إلى جهازك.</li>
+      <li>لا نستعمل ملفات تعريف ارتباط ولا أي مكتبة تتبّع أو إحصاء.</li>
+    </ul>
+
+    <h2>على الخادم</h2>
+    <ul>
+      <li><strong>لا يُخزَّن</strong> مقال ولا مقطع ولا اقتراح. لا حسابات ولا قاعدة بيانات.</li>
+      <li>سجل الخادم يكتب سطرًا لكل طلب: الطريقة والمسار (مثل <code>POST /api/audit</code>) ورمز الاستجابة وعنوان المتصل كما يراه الخادم (خلف وسيط Render يكون غالبًا عنوان الوسيط). لا يكتب جسم الطلب، فلا يظهر نص مقالك ولا كلمات الاقتراح فيه. وعند خطأ غير متوقع يُسجَّل نوع الخطأ والمسار فقط.</li>
+      <li>لتحديد الاستخدام المفرط نعدّ الطلبات لكل عنوان IP (من رأس <code>X-Forwarded-For</code> إن وُجد) في ذاكرة الخادم لدقيقة، ولا يُكتب هذا العدّاد في أي ملف. يزول بإعادة تشغيل الخادم.</li>
+      <li>الخادم مستضاف على <a href="https://render.com" target="_blank" rel="noopener">Render</a>، وللمستضيف سجلاته الخاصة خارج تحكمنا ومدة احتفاظه بها عنده؛ راجع سياسة Render. نصوص المقالات تُرسَل في جسم الطلب لا في الرابط، فلا تظهر في مسارات السجل.</li>
+      <li>الملف المؤقت الوحيد الذي يكتبه الخادم هو نسخة نص المصحف من قرآنبيديا (٢٤ ساعة).</li>
+    </ul>
+
+    <h2>مسؤوليتك</h2>
+    <p>أنت المسؤول عن صلاحية إرسال النص الذي تلصقه إلى خدمات خارجية، وعن كل تغيير تعتمده في مقالك. الأداة تقترح ولا تنشر ولا تغيّر نصك دون ضغطتك.</p>
+
+    <p class="doc-meta">راجعنا هذه الصفحة على الشيفرة في ٣ أكتوبر ٢٠٢٦. هذا وصف تقني لما تفعله الأداة، وليس استشارة قانونية. إن تغيّر السلوك تغيّرت هذه الصفحة في المستودع مع التغيير.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <nav class="footer-nav" aria-label="صفحات الثقة">
+        <a href="/">مساحة الكتابة</a>
+        <a href="/sources">المصادر وطريقة التحقق</a>
+        <a href="/privacy" aria-current="page">الخصوصية</a>
+        <a href="/limitations">الحدود وما لا تفعله الأداة</a>
+        <a href="https://github.com/FHALFAIFI/quran-quote-auditor" target="_blank" rel="noopener">الشيفرة المصدرية</a>
+      </nav>
+      <p>نص التحقق: <a href="https://quranpedia.net" target="_blank" rel="noopener">قرآنبيديا</a> (مصحف حفص).</p>
+    </div>
+  </footer>
+</body>
+</html>

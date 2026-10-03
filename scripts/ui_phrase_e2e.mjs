@@ -95,15 +95,14 @@ async function deterministic(browser) {
 
   // a phrase the search does not report: selected in the article itself
   const found = await page.evaluate(() => {
-    const view = document.getElementById("article-view");
-    const w = document.createTreeWalker(view, NodeFilter.SHOW_TEXT);
-    for (let n = w.nextNode(); n; n = w.nextNode()) {
-      const i = n.textContent.indexOf("مع الصابرين");
-      if (i >= 0) { const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + "مع الصابرين".length); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return true; }
-    }
-    return false;
+    const ta = document.getElementById("article");
+    const i = ta.value.indexOf("مع الصابرين");
+    if (i < 0) return false;
+    ta.focus();
+    ta.setSelectionRange(i, i + "مع الصابرين".length);
+    return true;
   });
-  check(found, "test precondition: the two-word phrase is in the article view");
+  check(found, "test precondition: the two-word phrase is in the editor");
   await page.waitForSelector("#sel-bar:not([hidden])");
   check(norm(await page.textContent("#sel-text")).includes("مع الصابرين"), "the selection bar shows what was selected");
   await page.click("#phrase-btn");
@@ -119,11 +118,10 @@ async function deterministic(browser) {
   check((await page.locator('#current .where a[href*="quranpedia"]').count()) === 1, "after choosing, the source link is shown");
 
   // the text changed after the audit → the stale note
-  await page.click("#edit-btn");
   await page.fill("#article", article + " ");
   check(await page.locator("#stale-note").isVisible(), "an edit after the audit is flagged");
   await page.reload();
-  await page.waitForSelector("#results:not([hidden]) #current article");
+  await page.waitForSelector("#panel:not([hidden]) #current article");
   check((await page.locator("#queue .row").count()) === 3, "the findings (including the one selected by hand) survive a reload");
 
   // phone
@@ -156,7 +154,7 @@ async function liveAi(browser, base) {
     await ctx.close();
     return "inconclusive";
   }
-  await page.waitForSelector("#results:not([hidden]) #current article", { timeout: 60000 });
+  await page.waitForSelector("#panel:not([hidden]) #current article", { timeout: 60000 });
   await shot("1-results");
   const cps = Array.from(article);
   const fs_ = data.findings;

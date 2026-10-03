@@ -395,7 +395,8 @@ def _clean_article(article: str) -> str:
     return article
 
 
-def run_audit(article: str) -> dict:
+def run_audit(article: str, use_ai: bool = True) -> dict:
+    """Audit an article. ``use_ai=False`` skips the language model (the writer's choice, or a recheck without it)."""
     article = _clean_article(article)
     started = time.monotonic()
     notices: list[dict] = []
@@ -412,16 +413,20 @@ def run_audit(article: str) -> dict:
         index = None
         notices.append({"level": "error", "text": "تعذّر الوصول إلى قرآنبيديا الآن، فلن يُحكم على أي اقتباس. أعد المحاولة لاحقًا."})
 
-    provider = get_provider()
+    configured = get_provider()
+    # The model is optional: a writer who switched it off, and an article longer than the model can be asked about, are audited
+    # without it (markers + the search of the Quran text), and the result says so.
+    skipped = None if configured is None else "writer" if not use_ai else "length" if len(article) > settings.ai_max_chars else None
+    provider = None if skipped else configured
     mode = "ai" if provider else "reduced"
     candidates: list[Candidate] = extract_marked(article, refs)
     # What really happened with AI on THIS audit (configured ≠ responded).
     ai: dict = {
-        "configured": provider is not None,
-        "provider": provider.name if provider else None,
-        "model": getattr(provider, "model", None) if provider else None,
+        "configured": configured is not None,
+        "provider": configured.name if configured else None,
+        "model": getattr(configured, "model", None) if configured else None,
         "responded": False,
-        "outcome": "not_configured" if provider is None else "not_called",
+        "outcome": "not_configured" if configured is None else f"skipped_{skipped}" if skipped else "not_called",
         "http_status": None,
         "elapsed_ms": None,
         "proposed": 0,
@@ -435,6 +440,8 @@ def run_audit(article: str) -> dict:
         "overlapped": 0,
     }
     discarded = 0
+    if skipped == "length":
+        notices.append({"level": "info", "text": f"لم يُستخدم الذكاء الاصطناعي لأن المقال أطول من {settings.ai_max_chars} حرف؛ فُحص المقال كاملًا بالعلامات وبالبحث في نص المصحف."})
     if provider:
         t_ai = time.monotonic()
         try:
@@ -468,7 +475,13 @@ def run_audit(article: str) -> dict:
             c.phrase = h
             candidates.append(c)
 
-    candidates = [c for c in merge(candidates)][: settings.max_candidates]
+    merged_candidates = list(merge(candidates))
+    candidates = merged_candidates[: settings.max_candidates]
+    capped = len(merged_candidates) - len(candidates)
+    if capped > 0:
+        # Never cut the end of an article off silently: say how many passages were left out and where the list stops.
+        stop_line = article.count("\n", 0, candidates[-1].end) + 1
+        notices.append({"level": "warning", "text": f"وُجد {len(merged_candidates)} موضعًا يشبه اقتباسًا، وعُرض أول {len(candidates)} فقط (حتى السطر {stop_line})؛ لم يُفحص {capped} موضعًا بعده. قسّم المقال أو دقّق الجزء الأخير على حدة."})
     attached = attach_references(article, candidates, refs)
 
     findings = [_finding(article, index, n, c, ref) for n, (c, ref) in enumerate(zip(candidates, attached), start=1)]
@@ -507,6 +520,7 @@ def run_audit(article: str) -> dict:
         "findings": findings,
         "stats": _stats(findings),
         "phrases": phrase_info,
+        "candidates_capped": max(capped, 0),
         "elapsed_ms": int((time.monotonic() - started) * 1000),
     }
 

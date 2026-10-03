@@ -9,6 +9,7 @@ Expected values describe the tiers chosen in app/phrases.py; they are regression
 import pytest
 
 from app import arabic
+from app import phrases as ph
 from app.phrases import find_phrases
 from app.quran_source import QuranSource, settings
 
@@ -66,10 +67,12 @@ def test_search_builds_no_phrase_dictionary():
 
 def test_work_budget_cuts_off_pathological_input_but_not_real_text():
     words = sorted(INDEX.doc_freq, key=lambda w: -INDEX.doc_freq[w])[:60]
-    soup = " ".join(words[(k * 7) % 60] for k in range(900))[:5900]        # frequent words only: no real article looks like this
+    soup = " ".join(words[(k * 7) % 60] for k in range(3000))[:19900]      # frequent words only: no real article looks like this
     found, sc = hits(soup)
-    assert sc.truncated and sc.steps <= 80_000 + 400                        # stopped by the budget, and says so
-    real = " ".join(INDEX.ayahs[k].text for k in sorted(INDEX.ayahs)[300:420])[:5900]  # 6,000 characters of real mushaf text
+    assert sc.truncated and sc.steps <= ph.MAX_SEED_STEPS + 400            # stopped by the budget, and says so
+    # The budget was 80,000 steps for the old 6,000-character limit; the limit is now 20,000 characters and the budget doubled (a dense
+    # real article needs about 4 steps per character), so 20,000 characters of real mushaf text must still be searched in full.
+    real = " ".join(INDEX.ayahs[k].text for k in sorted(INDEX.ayahs)[300:560])[:19900]
     found, sc = hits(real)
     assert not sc.truncated and found
 

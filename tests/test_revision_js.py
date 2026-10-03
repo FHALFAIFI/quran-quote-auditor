@@ -14,3 +14,10 @@ def test_revision_engine_node():
     root = Path(__file__).resolve().parent.parent
     r = subprocess.run([NODE, "--test", str(root / "tests" / "revision.test.mjs")], capture_output=True, text=True, timeout=60)
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+@pytest.mark.skipif(NODE is None, reason="node not installed")
+def test_workspace_edit_tracking_node():
+    root = Path(__file__).resolve().parent.parent
+    r = subprocess.run([NODE, "--test", str(root / "tests" / "workspace.test.mjs")], capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stdout + r.stderr
