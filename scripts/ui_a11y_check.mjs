@@ -31,7 +31,7 @@ for (const [name, vp, mobile] of [["320", { width: 320, height: 640 }, true], ["
   await fresh(); await run(page, `${name}px empty`);
   await fresh(); await audit(readSample("sample-demo")); await run(page, `${name}px demo, first decision`);
   await page.evaluate(() => document.querySelectorAll("details").forEach((d) => (d.open = false)));
-  await fresh(); await audit(cases.L3); await page.locator('[data-act="adjust-bounds"]').first().click(); await run(page, `${name}px boundary question with the span editor`);
+  await fresh(); await audit(cases.L3); await page.locator('[data-act="adjust-bounds"]').first().click(); await page.waitForTimeout(1500); /* the editor scrolls into view smoothly; measure after it settles */ await run(page, `${name}px boundary question with the span editor`);
   await fresh(); await audit(cases.L2); await openRow(page, 3); await page.locator('[data-act="other-verse"]').first().click(); await run(page, `${name}px possible quotation with the verse form`);
   await fresh(); await audit(cases.L1); await run(page, `${name}px long article`);
   await fresh(); await audit(readSample("sample-demo")); await page.locator('#current button[data-act="approved"]').first().click(); await page.waitForTimeout(500); await page.locator('#current button[data-act="rejected"]').first().click(); await page.waitForTimeout(500); await run(page, `${name}px final check, details open`);

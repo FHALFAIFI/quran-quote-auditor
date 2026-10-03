@@ -1071,6 +1071,9 @@ function moreDetails(f) {
 async function requestPhrase(start, end, choice, findingId, why) {
   if (!lastResult) return;
   const f = findingById(findingId);
+  // Where the writer is now. If they open another quotation while the request runs,
+  // the answer updates its own finding but does not pull them away from that card.
+  const startedOn = String(current);
   cardError = null;
   const card = $("current").firstElementChild;
   card?.querySelectorAll("button").forEach((b) => { b.disabled = true; });
@@ -1086,18 +1089,18 @@ async function requestPhrase(start, end, choice, findingId, why) {
     if (!res.ok) {
       const message = data.error || "تعذّر فحص المقطع.";
       setStatus("");
-      if (String(current) === String(findingId)) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
+      if (String(current) === startedOn) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
       else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
       return;
     }
     setStatus("");
     // The writer may have opened another quotation while this network request
     // was running. Update the result without pulling them back to the old card.
-    applyPhrase(data.finding, why, f, String(current) === String(findingId) ? null : current);
+    applyPhrase(data.finding, why, f, String(current) === startedOn ? null : current);
   } catch {
     setStatus("");
     const message = "تعذّر الاتصال بالخادم. لم يتغيّر شيء؛ حاول مرة أخرى.";
-    if (String(current) === String(findingId)) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
+    if (String(current) === startedOn) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
     else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
   }
 }
