@@ -191,6 +191,15 @@ console.log("\n== late answers");
   check(gone.result && gone.text === "" && gone.panel && gone.results, "an audit answer that arrives after «مسح» is dropped: no results for text that is gone");
   check(!(await page.locator("#audit-btn").isDisabled()) || true, "(the button is usable again)");
   await page.unroute("**/api/audit");
+  // (c) a long article on a slow server: the waiting message says that the article is long, not only that the server may be waking
+  await page.click("#clear-btn");
+  await page.fill("#article", [frozen[0], frozen[2], frozen[3]].join("\n\n"));
+  await page.route("**/api/audit", async (route) => { await new Promise((r) => setTimeout(r, 8300)); try { await route.continue(); } catch { /* cancelled */ } });
+  await page.click("#audit-btn");
+  await page.waitForTimeout(7600);
+  check(/المقال طويل/.test(norm(await page.textContent("#status"))), `the waiting message for a long article names the length («${norm(await page.textContent("#status")).slice(0, 60)}»)`);
+  await page.waitForSelector("#panel:not([hidden]) #current article", { timeout: 30000 });
+  await page.unroute("**/api/audit");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
   await ctx.close();
 }

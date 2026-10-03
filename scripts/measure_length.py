@@ -97,26 +97,34 @@ def child(runs: int) -> None:
     print(json.dumps(res, ensure_ascii=False))
 
 
-def http(url: str, runs: int) -> dict:
+def http(url: str, runs: int, timeout: int = 240) -> dict:
     sys.path.insert(0, str(ROOT))
     from app.quran_source import source
 
     idx = source.get()
-    res = {"url": url, "rows": []}
+    res = {"url": url, "timeout_s": timeout, "rows": []}
     for label, n, art in workloads(idx):
-        times, last = [], None
+        times, last, raw, failed = [], None, b"", None
         for _ in range(runs):
             req = urllib.request.Request(url.rstrip("/") + "/api/audit", data=json.dumps({"article": art, "ai": False}, ensure_ascii=False).encode("utf-8"),
                                          headers={"Content-Type": "application/json"})
             t = time.perf_counter()
-            with urllib.request.urlopen(req, timeout=180) as r:
-                raw = r.read()
-            times.append(time.perf_counter() - t)
-            last = json.loads(raw)
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as r:
+                    raw = r.read()
+                times.append(time.perf_counter() - t)
+                last = json.loads(raw)
+            except Exception as exc:  # a timeout or an HTTP error is a RESULT, not a crash
+                failed = f"{type(exc).__name__}: {str(exc)[:80]} after {time.perf_counter() - t:.0f} s"
+                break
             time.sleep(7)   # stay under the server's audit allowance (10 per minute)
-        res["rows"].append({"workload": label, "chars": len(art), "median_s": round(statistics.median(times), 2), "max_s": round(max(times), 2),
-                            "findings": len(last["findings"]), "capped": last.get("candidates_capped", 0), "ai_outcome": last["ai"]["outcome"],
-                            "response_kb": round(len(raw) / 1024), "server_elapsed_ms": last.get("elapsed_ms")})
+        row = {"workload": label, "chars": len(art), "failed": failed}
+        if last is not None:
+            row.update({"median_s": round(statistics.median(times), 2), "max_s": round(max(times), 2), "findings": len(last["findings"]), "capped": last.get("candidates_capped", 0),
+                        "ai_outcome": last["ai"]["outcome"], "response_kb": round(len(raw) / 1024), "server_elapsed_ms": last.get("elapsed_ms"),
+                        "search_truncated": bool((last.get("phrases") or {}).get("truncated"))})
+        res["rows"].append(row)
+        print("ROW", json.dumps(row, ensure_ascii=False), flush=True)
     return res
 
 
@@ -139,6 +147,9 @@ def main() -> int:
             return 1
         out = json.loads(p.stdout.strip().splitlines()[-1])
     for r in out["rows"]:
+        if r.get("failed"):
+            print(f"{r['workload']:22s} {r['chars']:6d} chars  FAILED: {r['failed']}")
+            continue
         print(f"{r['workload']:22s} {r['chars']:6d} chars  {r['median_s']:7.3f} s (max {r['max_s']:.3f})  findings {r['findings']:3d}  capped {r['capped']}  response {r['response_kb']:5d} KB"
               + (f"  rss {r['rss_mb']} MB" if "rss_mb" in r else "") + ("  [search budget reached]" if r.get("search_truncated") else ""))
     if "peak_rss_mb" in out:

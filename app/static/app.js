@@ -437,7 +437,11 @@ async function runAudit() {
   updateCount();
   setStatus(recheck ? "جارٍ إعادة التدقيق على نصّك الحالي…" : "جارٍ التدقيق ومقارنة الاقتباسات بنص المصحف…", false, true);
   // The free host sleeps when idle and needs up to a minute to wake: say so instead of leaving a spinner.
-  const slow1 = setTimeout(() => setStatus("ما زال التدقيق جاريًا. الخادم المجاني يستيقظ بعد خمول وقد يستغرق نحو دقيقة؛ لا تغلق الصفحة، ومقالك محفوظ في المربع.", false, true), 7000);
+  // A long article also takes time on its own: about 16 s for 17,500 characters on the free host (measured), besides any waking up.
+  const longText = cpCount(sent) > 8000;
+  const slow1 = setTimeout(() => setStatus(longText
+    ? `المقال طويل (${toArabicDigits(cpCount(sent))} حرف)، فيستغرق تدقيقه على الخادم المجاني عشرات الثواني، وأكثر إن كان الخادم نائمًا. لا تغلق الصفحة، ومقالك محفوظ في المربع.`
+    : "ما زال التدقيق جاريًا. الخادم المجاني يستيقظ بعد خمول وقد يستغرق نحو دقيقة؛ لا تغلق الصفحة، ومقالك محفوظ في المربع.", false, true), 7000);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 100000);
   try {

@@ -569,3 +569,18 @@ Findings: time grows about linearly (about 60 µs per character); one source dow
 (fixed: a warning now says how many passages were left out and the line where the list stops). `MAX_SEED_STEPS` was doubled (80,000 → 160,000) for the 20,000-character limit; the test that real mushaf text of that length is searched in full still passes.
 **Not measured: Render.** Render Free has far less CPU than this laptop; the numbers are local. The limit is therefore stated as measured here and re-checked on Render after deployment (see TEST_LOG).
 The model is asked only about articles up to 6,000 characters (`AI_MAX_ARTICLE_CHARS`), because Groq's free tier refuses larger requests; a longer article is audited in full without it and the result says so.
+
+### Length on Render Free (3 Oct 2026, 17:42–17:53 +03, build `a844fc3`; `scripts/measure_length.py --url … --runs 1`, `"ai": false`, `eval/results/length-20261003-live.json`)
+
+| Input | Characters | Time to the answer (client side) | Server `elapsed_ms` |
+|---|---|---|---|
+| Real long articles (set above), 7 of 10 | 8,050–8,820 | 8.1–10.4 s | — |
+| Real long articles, the 3 longest | 14,190–14,700 | 14.4–15.2 s | — |
+| Dense (older eval articles joined) | 6,000 / 10,000 / 15,000 / 20,000 | 8.7 / 14.4 / 19.0 / **24.0 s** | 7.6 s at 6,000; 13.0 s at 10,000 |
+| 20,000 characters of running mushaf text | 20,000 | 25.4 s | — |
+| Pathological (most frequent words), stops at the search budget | 6,000–20,000 | 27.8–29.4 s | — |
+
+About **1 ms per character** on the free host, roughly 20 times slower than this laptop (0.06 ms): a realistic 8,000–15,000-character article is audited in 8–15 s, the 20,000-character limit in about 25 s, and the worst input I could build in under 30 s. No timeout in this run.
+**An earlier run of the same script timed out at 180 s on one request.** That run printed its table only at the end, so I do not know which input it was; the script now prints each row as it goes and records a failure as a result. The rerun completed all 22 inputs. I did not find the cause (a cold or restarting instance is possible); treat "no timeout" as one clean run, not a guarantee.
+Memory on Render was **not** measured (the host does not expose it); locally the process peaks at 87 MB. A live journey (`scripts/live_workspace.mjs`, desktop and 390 px, model off by the writer) audited a 17,532-character article in 16.0 s and 17.5 s; the page now says, after 7 s, that a long article takes tens of seconds on the free host.
+
