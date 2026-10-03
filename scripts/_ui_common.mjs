@@ -9,7 +9,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const require = createRequire(import.meta.url);
-export const { chromium } = require("playwright");
+const playwrightChromium = require("playwright").chromium;
+// CI uses Playwright's browser; a local browser can be supplied where that download is unavailable (for example, Edge on Windows).
+export const chromium = {
+  launch: (options = {}) => playwrightChromium.launch(process.env.PLAYWRIGHT_CHROME_PATH ? { ...options, executablePath: process.env.PLAYWRIGHT_CHROME_PATH } : options),
+};
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const argv = process.argv.slice(2);
 export const opt = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : null; };

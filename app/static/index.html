@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2324312d'/%3E%3Cpath d='M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17' stroke='%23fffefa' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111845'/%3E%3Cpath d='M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17' stroke='%235fe0bd' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
   <script src="/static/surahs.js" defer></script>
   <script src="/static/revision.js" defer></script>
   <script src="/static/workspace.js" defer></script>
@@ -22,7 +22,7 @@
     <div class="wrap header-inner">
       <a class="brand" href="/" aria-label="مدقق الاقتباسات القرآنية — الصفحة الرئيسية">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="6" fill="#24312d"/><path d="M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17" stroke="#fffefa" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 32 32" width="30" height="30"><rect x=".75" y=".75" width="30.5" height="30.5" rx="6" fill="none" stroke="#5fe0bd" stroke-opacity=".45" stroke-width="1.5"/><path d="M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17" stroke="#5fe0bd" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
         </span>
         <span class="brand-name">مدقق الاقتباسات القرآنية</span>
       </a>
@@ -37,7 +37,8 @@
   <main class="wrap" id="main">
     <section class="intro" id="intro" aria-labelledby="intro-title">
       <h1 id="intro-title">اكتب مقالك، وراجع كل آية فيه على المصحف</h1>
-      <p>ألصق مقالك أو اكتبه. بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> نقترح تكملة الآية من المصحف، وعند التدقيق يظهر ما يحتاج قرارك بجوار نصّك.</p>
+      <p class="intro-lead">ألصق مقالك أو اكتبه. أثناء الكتابة نقترح تكملة الآية من نص المصحف، وعند التدقيق تظهر بجوار نصّك الاقتباسات التي رصدناها ومصدرها وما يحتاج قرارك. لا يتغيّر حرف إلا بموافقتك.</p>
+      <p class="intro-source">نص المقارنة: مصحف حفص من قرآنبيديا، ولا يكتب نموذج لغوي أي آية. <a href="/sources">كيف نتحقق؟</a></p>
     </section>
 
     <div id="sr-live" class="sr-only" role="status" aria-live="polite"></div>
@@ -52,21 +53,11 @@
       <section id="article-col" class="article-col" aria-labelledby="article-title">
         <div class="col-head">
           <h2 id="article-title">مقالك</h2>
-          <div class="samples">
-            <label for="sample-select">أمثلة:</label>
-            <select id="sample-select">
-              <option value="">— اختر —</option>
-              <option value="sample-demo">المقال التجريبي: الصبر</option>
-              <option value="sample-1">مثال: العلم</option>
-              <option value="sample-2">مثال: الصبر (أخطاء شائعة)</option>
-              <option value="sample-3">مثال: مقال بلا أقواس</option>
-            </select>
-          </div>
         </div>
 
         <div id="demo-hero" class="demo-hero">
           <button id="demo-btn" type="button" class="btn primary demo-btn">جرّب المقال التجريبي</button>
-          <p class="demo-copy">شاهد كيف تُراجَع الآية وتُقرَّر قبل نسخ النص. أو ألصق مقالك في المربع.</p>
+          <p class="demo-copy">مقال قصير فيه خطآن مقصودان، في كلمة وفي إحالة، لتجرّب المراجعة حتى النسخ. أو ألصق مقالك في المربع.</p>
         </div>
 
         <div class="toolbar" role="group" aria-label="أدوات الكتابة والتدقيق">
@@ -97,7 +88,18 @@
           <span id="stale-note" class="stale-note" hidden></span>
           <button id="recheck-btn" type="button" class="btn small primary" hidden>أعد التدقيق</button>
         </div>
-        <p id="editor-hint" class="paste-note muted small">اكتب «قال تعالى» ثم أول كلمات الآية، أو افتح ﴿، وسنقترح التكملة؛ <span class="hint-kbd">اضغط Tab لإدراجها أو Esc لتجاهلها.</span><span class="hint-touch">المس «أدرج» لإدراجها أو أكمل الكتابة لتجاهلها.</span> مقالك لا يُحفظ على الخادم؛ <a href="/privacy">ما الذي يُرسَل بالضبط؟</a></p>
+        <p id="editor-hint" class="paste-note muted small">بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> نقترح تكملة الآية من المصحف؛ <span class="hint-kbd">Tab لإدراجها، وEsc لتجاهلها.</span><span class="hint-touch">المس «أدرج» لإدراجها، أو أكمل الكتابة لتجاهلها.</span> مقالك لا يُحفظ على الخادم؛ <a href="/privacy">ما الذي يُرسَل بالضبط؟</a></p>
+
+        <div class="samples">
+          <label for="sample-select">أمثلة أخرى</label>
+          <select id="sample-select">
+            <option value="">— اختر —</option>
+            <option value="sample-demo">المقال التجريبي: الصبر</option>
+            <option value="sample-1">مثال: العلم</option>
+            <option value="sample-2">مثال: الصبر (أخطاء شائعة)</option>
+            <option value="sample-3">مثال: مقال بلا أقواس</option>
+          </select>
+        </div>
 
         <details class="options" id="options">
           <summary>الخيارات والمسودة</summary>
@@ -133,6 +135,18 @@
         <p id="undo-line" class="undo-line" role="status" aria-live="polite" hidden></p>
         <div id="current"></div>
         <div id="queue" class="queue"></div>
+        <details class="legend" id="legend" hidden>
+          <summary>كيف نقرأ الحالات؟</summary>
+          <dl class="legend-grid">
+            <div><dt><span class="state done exact">مطابق للمصحف</span></dt><dd>ألفاظ الاقتباس هي ألفاظ نص المصحف في الموضع المذكور. هذا ما تحقّقت منه الأداة.</dd></div>
+            <div><dt><span class="state need possible">يحتاج تأكيدك</span></dt><dd>عبارة تشبه آية، ولا نعرف أهي اقتباس مقصود أو أيّ آية تقصد. لا نقترح نصًّا بديلًا حتى تختار.</dd></div>
+            <div><dt><span class="state need">غير محسوم</span></dt><dd>«تصحيح مقترح بانتظار قرارك»، أو «حدود الاقتباس غير محسومة»، أو «يحتاج مراجعتك»: الآية معروفة، والمسألة فيها تنتظر قرارك.</dd></div>
+            <div><dt><span class="state done own">أبقيتَه كما كتبتَ</span></dt><dd>قرارك أنت، لا مطابقة من الأداة. وكذلك «راجعتَه بنفسك».</dd></div>
+            <div><dt><span class="state stale">عُدّل بعد التدقيق</span></dt><dd>غيّرتَ النص في هذا الموضع أو بجواره؛ سقط قرارك السابق فيه ويحتاج إلى إعادة التدقيق.</dd></div>
+            <div><dt><span class="state off">استبعدتَه</span></dt><dd>قلتَ إنه ليس اقتباسًا قرآنيًا. يمكنك التراجع في أي وقت.</dd></div>
+            <div><dt>قبل ← بعد</dt><dd>الأحمر المشطوب هو ما كتبتَه، والأخضر هو ما في المصحف. لا يتغيّر شيء في مقالك إلا بموافقتك.</dd></div>
+          </dl>
+        </details>
       </section>
     </div>
 
@@ -174,16 +188,6 @@
       <button id="dock-next" type="button" class="btn primary">التالي</button>
     </div>
 
-    <details class="legend" id="legend" hidden>
-      <summary>كيف نقرأ الحالات؟</summary>
-      <dl class="legend-grid">
-        <div><dt><span class="state need">يحتاج قرارك</span></dt><dd>اقتباس لم تُحسم مسألة فيه: تصحيح مقترح، أو آية لم نتأكد منها، أو حدود غير واضحة.</dd></div>
-        <div><dt><span class="state done">تم</span></dt><dd>مطابق للمصحف، أو قرّرتَ فيه بنفسك (اعتمدتَ التصحيح أو أبقيتَ كلامك).</dd></div>
-        <div><dt><span class="state stale">عُدّل بعد التدقيق</span></dt><dd>غيّرتَ النص في هذا الموضع أو بجواره؛ سقط قرارك السابق فيه وتحتاج إلى إعادة التدقيق.</dd></div>
-        <div><dt><span class="state off">استبعدتَه</span></dt><dd>قلتَ إنه ليس اقتباسًا قرآنيًا. يمكنك التراجع في أي وقت.</dd></div>
-        <div><dt>قبل ← بعد</dt><dd>الأحمر المشطوب هو ما كتبتَه، والأخضر هو ما في المصحف. لا يتغيّر شيء في مقالك إلا بموافقتك.</dd></div>
-      </dl>
-    </details>
   </main>
 
   <footer class="site-footer">
@@ -195,6 +199,7 @@
         <a href="https://github.com/FHALFAIFI/quran-quote-auditor" target="_blank" rel="noopener">الشيفرة المصدرية</a>
       </nav>
       <p>نص التحقق: <a href="https://quranpedia.net" target="_blank" rel="noopener">قرآنبيديا</a> (مصحف حفص). الأداة فحص أولي لا يغني عن مراجعة بشرية.</p>
+      <p class="challenge-note">أُعدّ هذا المشروع للمشاركة في «تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي» ٢٠٢٦، المسار الرابع: أدوات المعرفة والتحقق. وهو عمل مستقل لا يمثّل الجهة المنظِّمة ولا يحمل اعتمادها.</p>
     </div>
   </footer>
 

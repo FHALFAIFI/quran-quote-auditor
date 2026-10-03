@@ -56,6 +56,8 @@ function el(tag, attrs, ...children) {
 const fill = (node, ...kids) => node.replaceChildren(...kids.flat(Infinity).filter((k) => k !== null && k !== undefined && k !== false));
 
 const toArabicDigits = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+// a character count with the Arabic thousands separator: «٢٠٬٠٠٠» (the Arabic zero is a dot, so «٢٠٠٠٠» reads as «٢····»)
+const arabicCount = (n) => toArabicDigits(String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "٬"));
 const fmtTime = (secs) => new Date(secs * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
 const motion = () => (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 // a short move may glide; a jump across a long article is instant (smooth scrolling over several screens takes seconds)
@@ -202,16 +204,17 @@ function pendingKind(f) {
 }
 const pendingList = () => activeFindings().filter((f) => pendingKind(f));
 const PENDING_TEXT = { verse: "يحتاج تأكيدك", bounds: "حدود الاقتباس غير محسومة", fix: "تصحيح مقترح بانتظار قرارك", review: "يحتاج مراجعتك", stale: "عُدّل بعد التدقيق" };
-// [text, class] — one plain state per quotation, never a stack of badges.
+// [text, class] — one plain state per quotation, never a stack of badges. The second class tells apart what the tool matched («exact»),
+// a passage that may not be a quotation or may be another verse («possible»), and what rests on the writer's own word («own»).
 function stateOf(f) {
   if (f.stale) return [PENDING_TEXT.stale, "stale"];
   if (dismissed[f.id]) return ["استبعدتَه: ليس اقتباسًا", "off"];
   const p = pendingKind(f);
-  if (p) return [PENDING_TEXT[p], "need"];
+  if (p) return [PENDING_TEXT[p], p === "verse" ? "need possible" : "need"];
   const req = requiredOf(f);
-  if (req.length) return req.some((c) => decisions[c.id] === "approved") ? ["اعتمدتَ التصحيح", "done"] : ["أبقيتَه كما كتبتَ", "done"];
-  if (f.needs_review) return ["راجعتَه بنفسك", "done"];
-  return ["مطابق للمصحف", "done"];
+  if (req.length) return req.some((c) => decisions[c.id] === "approved") ? ["اعتمدتَ التصحيح", "done"] : ["أبقيتَه كما كتبتَ", "done own"];
+  if (f.needs_review) return ["راجعتَه بنفسك", "done own"];
+  return ["مطابق للمصحف", "done exact"];
 }
 // «اقتباس واحد ينتظر قرارك»، «اقتباسان ينتظران قرارك»، «٣ اقتباسات تنتظر قرارك»، «١١ اقتباسًا ينتظر قرارك»
 function pendingText(n) {
@@ -252,7 +255,7 @@ async function loadHealth() {
     AI_MAX_CHARS = h.ai_max_chars || AI_MAX_CHARS;
     aiConfigured = !!h.ai_configured;
     $("opt-ai-row").hidden = !aiConfigured;
-    $("limit-note").textContent = toArabicDigits(MAX_CHARS);
+    $("limit-note").textContent = arabicCount(MAX_CHARS);
     updateCount();
     banner.hidden = false;
     banner.replaceChildren();
@@ -264,7 +267,7 @@ async function loadHealth() {
       if (last.outcome === "ok") banner.append("آخر استدعاء له على هذا الخادم نجح. ");
       else if (last.outcome === "failed") banner.append(el("b", { text: "آخر استدعاء له على هذا الخادم فشل" }), last.cooldown_seconds > 0 ? ` ويُتخطّى مؤقتًا (${toArabicDigits(last.cooldown_seconds)} ث). ` : ". ");
       else banner.append("لم يُستدعَ بعدُ على هذا الخادم. ");
-      banner.append(`نتيجة كل تدقيق تبيّن هل استجاب النموذج فعلًا. دوره اقتراح مواضع الاقتباس فقط، ويُتحقق من كل مقترح بنص المقال ثم بنص المصحف، ولا يُستعمل في مقال أطول من ${toArabicDigits(AI_MAX_CHARS)} حرف. اقتراحات الآيات أثناء الكتابة لا يشارك فيها النموذج أبدًا.`);
+      banner.append(`نتيجة كل تدقيق تبيّن هل استجاب النموذج فعلًا. دوره اقتراح مواضع الاقتباس فقط، ويُتحقق من كل مقترح بنص المقال ثم بنص المصحف، ولا يُستعمل في مقال أطول من ${arabicCount(AI_MAX_CHARS)} حرف. اقتراحات الآيات أثناء الكتابة لا يشارك فيها النموذج أبدًا.`);
     } else {
       banner.className = "banner reduced";
       banner.append(el("strong", { text: "الذكاء الاصطناعي غير مفعّل على هذا الخادم." }), " تُفحص الاقتباسات المعلَّمة والعبارات التي تطابق المصحف دون علامات؛ وقد تفوت بعض الاقتباسات القصيرة، ويمكنك تحديدها بنفسك. الكتابة والاقتراح والتدقيق تعمل كلها بدونه.");
@@ -286,7 +289,7 @@ function updateCount() {
   const value = editor().value;
   const n = cpCount(value);
   const c = $("char-count");
-  c.textContent = `${toArabicDigits(n)} / ${toArabicDigits(MAX_CHARS)} حرف`;
+  c.textContent = `${arabicCount(n)} / ${arabicCount(MAX_CHARS)} حرف`;
   c.classList.toggle("char-over", n > MAX_CHARS);
   const stale = staleList().length;
   const note = $("stale-note");
@@ -319,6 +322,7 @@ function clearAudit() {
   lastResult = null; decisions = {}; dismissed = {}; reviewed = {}; current = null; lastAction = null; cardError = null; pendingSel = null;
   auditedText = ""; baseText = ""; invalidated = []; carryNote = null; isDemo = false; auditedAt = null;
   $("results").hidden = true; $("legend").hidden = true; $("panel").hidden = true; $("final").hidden = true;
+  $("intro").classList.remove("audited");
   $("workbench").classList.add("no-panel");
   clearSession();
   updateSelectionBar();
@@ -427,7 +431,7 @@ function onEditorInput() {
 async function runAudit() {
   const sent = normalizeNl(editor().value);
   if (!sent.trim()) { setStatus("ألصق نص المقال أولًا.", true); return; }
-  if (cpCount(sent) > MAX_CHARS) { setStatus(`النص أطول من الحد المسموح (${toArabicDigits(MAX_CHARS)} حرف).`, true); return; }
+  if (cpCount(sent) > MAX_CHARS) { setStatus(`النص أطول من الحد المسموح (${arabicCount(MAX_CHARS)} حرف).`, true); return; }
   if (recheckBusy) return;
   const recheck = !!lastResult;
   const gen = docGen;
@@ -440,7 +444,7 @@ async function runAudit() {
   // A long article also takes time on its own: about 16 s for 17,500 characters on the free host (measured), besides any waking up.
   const longText = cpCount(sent) > 8000;
   const slow1 = setTimeout(() => setStatus(longText
-    ? `المقال طويل (${toArabicDigits(cpCount(sent))} حرف)، فيستغرق تدقيقه على الخادم المجاني عشرات الثواني، وأكثر إن كان الخادم نائمًا. لا تغلق الصفحة، ومقالك محفوظ في المربع.`
+    ? `المقال طويل (${arabicCount(cpCount(sent))} حرف)، فيستغرق تدقيقه على الخادم المجاني عشرات الثواني، وأكثر إن كان الخادم نائمًا. لا تغلق الصفحة، ومقالك محفوظ في المربع.`
     : "ما زال التدقيق جاريًا. الخادم المجاني يستيقظ بعد خمول وقد يستغرق نحو دقيقة؛ لا تغلق الصفحة، ومقالك محفوظ في المربع.", false, true), 7000);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 100000);
@@ -558,6 +562,7 @@ function auditMeta(data) {
 
 function render(scroll) {
   $("results").hidden = false;
+  $("intro").classList.add("audited");   // the introduction shrinks to its title once there is work to review
   $("legend").hidden = false;
   const data = lastResult;
   const notices = $("notices");
@@ -604,8 +609,12 @@ async function goToFirstReview() {
   void document.body.offsetHeight;
   try { await document.fonts.ready; } catch { /* no font loading API: measure now */ }
   syncEditorHeight();
-  // wide screens: the verdict, the article and the first decision share the screen; a phone: the decision itself comes first
-  scrollToNode(narrow() && !$("panel").hidden ? $("panel") : $("results"));
+  // wide screens: the verdict, the article and the first decision share the screen; a phone: the decision itself comes first.
+  // In a long article the first open quotation may be far below the verdict: then the text scrolls to it, and the card (sticky) stays beside it.
+  const m = narrow() ? null : document.querySelector(`#article-view mark[data-id="${CSS.escape(String(current))}"]`);
+  const below = m && m.getBoundingClientRect().bottom - $("results").getBoundingClientRect().top > innerHeight - 40;
+  if (below) { const top = Math.max(0, scrollY + m.getBoundingClientRect().top - innerHeight * 0.3); window.scrollTo({ top, behavior: motionFor(top - scrollY) }); }
+  else scrollToNode(narrow() && !$("panel").hidden ? $("panel") : $("results"));
   const card = $("current").firstElementChild;
   if (card) card.focus({ preventScroll: true });
 }
@@ -1525,7 +1534,7 @@ function buildRecord() {
       kv("حالة النص", edited()
         ? `عُدّل المقال بعد آخر تدقيق${staleList().length ? `؛ ${staleList().length} موضعًا من الاقتباسات المرصودة مسّه التعديل وسقطت قراراتها، ولم يُفحص ما كُتب بعد التدقيق` : "؛ لم يمسّ التعديل اقتباسًا مرصودًا، لكن لم يُفحص ما كُتب بعد التدقيق"}.`
         : "النص كما دُقِّق (لم يُعدَّل بعد آخر تدقيق)."),
-      kv("طول المقال", `${toArabicDigits(cpCount(lastArticle))} حرفًا الآن؛ وكان ${toArabicDigits(cpCount(baseText || lastArticle))} حرفًا عند أول تدقيق.`),
+      kv("طول المقال", `${arabicCount(cpCount(lastArticle))} حرفًا الآن؛ وكان ${arabicCount(cpCount(baseText || lastArticle))} حرفًا عند أول تدقيق.`),
       kv("مصدر النص القرآني", `${data.source.name} — ${data.source.url}`),
       kv("وقت جلب المصدر", data.source.fetched_at ? fmtTime(data.source.fetched_at) + (data.source.stale ? " (نسخة مخبأة)" : "") : "المصدر غير متاح — لم يُحكم على أي اقتباس"),
       kv("هل عمل الاستخراج بالذكاء الاصطناعي؟", aiRecordText(data)),
@@ -1573,7 +1582,7 @@ function writeDraft(auto) {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: Date.now(), text: lastArticle, auto: !!auto }));
     draftAuto = !!auto;
-    draftNote(`حُفظت المسودة (${toArabicDigits(cpCount(lastArticle))} حرفًا) في هذا المتصفح فقط. القرارات والنتائج لا تُحفظ؛ تحتاج بعد الاستعادة إلى إعادة التدقيق.`);
+    draftNote(`حُفظت المسودة (${arabicCount(cpCount(lastArticle))} حرفًا) في هذا المتصفح فقط. القرارات والنتائج لا تُحفظ؛ تحتاج بعد الاستعادة إلى إعادة التدقيق.`);
     $("draft-auto-row").hidden = false;
     return true;
   } catch {
@@ -1619,7 +1628,7 @@ function showDraftBanner() {
   const box = $("draft-banner");
   if (!d || editor().value.trim()) { box.hidden = true; return; }
   box.hidden = false;
-  box.replaceChildren(el("span", {}, `توجد مسودة محفوظة في هذا المتصفح (${toArabicDigits(cpCount(d.text))} حرفًا، ${fmtTime(d.savedAt / 1000)}). `),
+  box.replaceChildren(el("span", {}, `توجد مسودة محفوظة في هذا المتصفح (${arabicCount(cpCount(d.text))} حرفًا، ${fmtTime(d.savedAt / 1000)}). `),
     el("button", { type: "button", class: "btn small", onclick: () => { setEditorText(d.text); box.hidden = true; editor().focus(); setStatus("استُعيدت المسودة. أعد التدقيق لتظهر الاقتباسات."); }, text: "استعدها" }), " ",
     el("button", { type: "button", class: "btn small ghost", onclick: deleteDraft, text: "احذفها" }));
 }

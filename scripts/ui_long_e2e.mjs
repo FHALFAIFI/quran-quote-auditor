@@ -22,7 +22,8 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await page.fill("#article", cases.L1);
   check(Array.from(cases.L1).length > 5700 && Array.from(cases.L1).length <= 6000, `the article has ${Array.from(cases.L1).length} characters`);
   const ar = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
-  check(norm(await page.textContent("#char-count")) === `${ar(Array.from(cases.L1).length)} / ${ar(server.health.max_chars)} حرف` && !(await page.locator("#audit-btn").isDisabled()), "the counter shows the length against the limit and the audit is allowed");
+  const arN = (n) => ar(String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "٬"));   // a character count, with the Arabic thousands separator
+  check(norm(await page.textContent("#char-count")) === `${arN(Array.from(cases.L1).length)} / ${arN(server.health.max_chars)} حرف` && !(await page.locator("#audit-btn").isDisabled()), "the counter shows the length against the limit and the audit is allowed");
   await audit(cases.L1);
   await page.waitForTimeout(600);
   check((await overflowX()) <= 1, "results: no horizontal overflow");

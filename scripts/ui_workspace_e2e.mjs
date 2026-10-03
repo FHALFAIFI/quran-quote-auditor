@@ -11,6 +11,7 @@ import { chromium, check, norm, root, VIEWPORTS, testServer, openPage, finish } 
 const server = await testServer();
 const browser = await chromium.launch();
 const ar = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+const arN = (n) => ar(String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "٬"));   // a character count, with the Arabic thousands separator
 const frozen = JSON.parse(fs.readFileSync(path.join(root, "eval/articles_frozen.json"), "utf8")).cases.map((c) => c.article);
 
 const caretAt = (page, unit) => page.evaluate((u) => { const ta = document.getElementById("article"); ta.focus(); ta.setSelectionRange(u, u); }, unit);
@@ -81,7 +82,8 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await page.click("#copy-btn");
   await page.waitForTimeout(300);
   const copied = await page.evaluate(() => navigator.clipboard.readText());
-  check(copied === s2.revised && copied.includes("ز") && copied.startsWith(intro), "the copied text is the latest text with the approvals applied");
+  // Windows' clipboard turns LF into CRLF: compare the article's content, not the platform's line endings.
+  check(copied.replace(/\r\n?/g, "\n") === s2.revised.replace(/\r\n?/g, "\n") && copied.includes("ز") && copied.startsWith(intro), "the copied text is the latest text with the approvals applied");
 
   // 3. recheck: the decision on the untouched quotation survives, the edited one is read again as it is now
   await page.click("#recheck-btn");
@@ -240,7 +242,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   const long = [frozen[0], frozen[2], frozen[3], frozen[0], frozen[2], frozen[3]].join("\n\n").slice(0, 19000);
   const n = Array.from(long).length;
   await page.fill("#article", long);
-  check(norm(await page.textContent("#char-count")) === `${ar(n)} / ${ar(20000)} حرف` && !(await page.locator("#audit-btn").isDisabled()), `the counter shows ${n} of 20,000 and the audit is allowed`);
+  check(norm(await page.textContent("#char-count")) === `${arN(n)} / ${arN(20000)} حرف` && !(await page.locator("#audit-btn").isDisabled()), `the counter shows ${n} of 20,000 and the audit is allowed`);
   const t0 = Date.now();
   await page.click("#audit-btn");
   await page.waitForSelector("#panel:not([hidden]) #current article", { timeout: 90000 });

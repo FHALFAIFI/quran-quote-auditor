@@ -21,6 +21,7 @@ let failures = 0;
 const check = (ok, msg) => { console.log(`${ok ? "PASS" : "FAIL"}  ${msg}`); if (!ok) failures++; };
 const norm = (t) => (t || "").replace(/\s+/g, " ").trim();
 const ar = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+const arN = (n) => ar(String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "٬"));   // a character count, with the Arabic thousands separator
 const frozen = JSON.parse(fs.readFileSync(path.join(root, "eval/articles_frozen.json"), "utf8")).cases.map((c) => c.article);
 
 // wake the server without a model call (/api/health does not load the text; /api/phrase never calls a model)
@@ -54,7 +55,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   if (await page.locator("#opt-ai").isVisible()) await page.uncheck("#opt-ai");
   // refuse to go on if the model option is still on where a model is configured: nothing below may call it
   if (health.ai_configured && await page.locator("#opt-ai").isChecked()) { console.log("FAIL  the model option could not be switched off; stopping before any audit"); process.exit(1); }
-  check(norm(await page.textContent("#limit-note")) === ar(health.max_chars), `the page states the limit (${await page.textContent("#limit-note")})`);
+  check(norm(await page.textContent("#limit-note")) === arN(health.max_chars), `the page states the limit (${await page.textContent("#limit-note")})`);
   for (const [href, h1] of [["/sources", "المصادر وطريقة التحقق"], ["/privacy", "الخصوصية"], ["/limitations", "الحدود"]]) {
     check((await page.locator(`.site-footer a[href="${href}"]`).count()) === 1 && (await page.locator(`.site-nav a[href="${href}"]`).count()) === 1, `${href} is linked from the header and the footer`);
   }
