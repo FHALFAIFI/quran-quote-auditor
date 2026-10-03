@@ -636,19 +636,42 @@ async function goToFirstReview() {
 // ---------------------------------------------------------------- the editor: the writer's own text, with the quotations marked behind it
 // A highlight layer sits exactly behind the textarea (same font, padding and wrapping, transparent text), so the writer edits a plain
 // textarea with its native Arabic caret, selection and undo, and sees the marks without any contenteditable machinery.
+// An approved correction is not written into the box (the box keeps the writer's own text, which undo, edit tracking and the recheck rely on).
+// It is drawn the way a proofreader marks a page: the source's word, small, above the writer's word; the copied text carries the change.
+const FIX_MAX = 40;
+function fixLabel(c) {
+  const d = deltaParts(c);
+  const t = `${d.prefix}${d.after}`;
+  return Array.from(t).length > FIX_MAX ? Array.from(t).slice(0, FIX_MAX - 1).join("") + "…" : t;
+}
+const approvedFixes = () => approvedRows().map(({ c }) => c).filter((c) => !c.optional && c.end > c.start).sort((a, b) => a.start - b.start);
+// [a, b) of the article as text, with each approved correction that lies wholly inside it wrapped in a .fix span
+function withFixes(a, b, fixes) {
+  const out = [];
+  let p = a;
+  for (const c of fixes) {
+    if (c.start < p || c.end > b) continue;
+    if (c.start > p) out.push(cpSlice(p, c.start));
+    out.push(el("span", { class: "fix", "data-to": fixLabel(c) }, cpSlice(c.start, c.end)));
+    p = c.end;
+  }
+  if (p < b) out.push(cpSlice(p, b));
+  return out;
+}
 function renderBackdrop() {
   const view = $("article-view");
   if (!lastResult) { view.replaceChildren(); return; }
+  const fixes = approvedFixes();
   const kids = [];
   let pos = 0;
   for (const f of [...activeFindings()].sort((a, b) => a.start - b.start)) {
     if (f.start < pos || f.end > ART.length) continue;
-    if (f.start > pos) kids.push(cpSlice(pos, f.start));
+    if (f.start > pos) kids.push(...withFixes(pos, f.start, fixes));
     const [, cls] = stateOf(f);
-    kids.push(el("mark", { class: `m ${cls} ${String(f.id) === String(current) ? "current" : ""}`, "data-id": f.id }, cpSlice(f.start, f.end)));
+    kids.push(el("mark", { class: `m ${cls} ${String(f.id) === String(current) ? "current" : ""}`, "data-id": f.id }, withFixes(f.start, f.end, fixes)));
     pos = f.end;
   }
-  kids.push(cpSlice(pos, ART.length), "​");
+  kids.push(...withFixes(pos, ART.length, fixes), "​");
   view.replaceChildren(...kids.map((k) => (typeof k === "string" ? document.createTextNode(k) : k)));
 }
 
@@ -716,7 +739,8 @@ function onCaretMoved() {
   const id = f ? f.id : null;
   if (id !== caretId) {
     caretId = id; renderDock();
-    if (f) announce(`داخل الاقتباس ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}. القرار في اللوحة المجاورة.`);   // the marks are drawn behind the text and are not read by a screen reader
+    const fx = f ? requiredOf(f).filter((c) => decisions[c.id] === "approved").map((c) => `«${fixLabel(c)}»`) : [];
+    if (f) announce(`داخل الاقتباس ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}${fx.length ? `؛ يُكتب ${fx.join(" و")} في النسخة التي تنسخها، ونصّك هنا كما كتبتَه` : ""}. القرار في اللوحة المجاورة.`);   // the marks are drawn behind the text and are not read by a screen reader
   }
   if (f && String(f.id) !== String(current)) goTo(f.id, { scroll: null, focus: false, quiet: true });
 }
@@ -791,10 +815,11 @@ function setDecision(id, value) {
   const before = decisions[id];
   if (decisions[id] === value) delete decisions[id];
   else decisions[id] = value;
-  const undo = () => { if (before) decisions[id] = before; else delete decisions[id]; saveSession(); goTo(f.id, { scroll: "panel" }); };
+  // the text, the marks and the final review follow the decision back (goTo alone redraws only the panel)
+  const undo = () => { if (before) decisions[id] = before; else delete decisions[id]; saveSession(); renderAll(); goTo(f.id, { scroll: "panel" }); };
   if (c.optional) { saveSession(); renderAll(); return; }
   const d = deltaParts(c);
-  const msg = decisions[id] === "approved" ? `اعتمدتَ تغيير «${d.prefix}${d.before}» إلى «${d.prefix}${d.after}» (الاقتباس ${toArabicDigits(f.id)}).`
+  const msg = decisions[id] === "approved" ? `اعتمدتَ تغيير «${d.prefix}${d.before}» إلى «${d.prefix}${d.after}» (الاقتباس ${toArabicDigits(f.id)}). يظهر «${d.prefix}${d.after}» فوق ما كتبتَه في المربع، ويُكتب مكانه في النسخة التي تنسخها.`
     : decisions[id] === "rejected" ? `أبقيتَ «${d.prefix}${d.before}» كما كتبتَه (الاقتباس ${toArabicDigits(f.id)}).`
     : `ألغيتَ قرارك في الاقتباس ${toArabicDigits(f.id)}.`;
   afterDecision(f, msg, undo);
@@ -972,6 +997,7 @@ function decisionBlock(c, f, secondary) {
   const d = deltaParts(c);
   const quoteLevel = c.kind !== "reference" && c.kind !== "reference_add";
   const short = Array.from(d.before + d.after + d.prefix).length <= 34;
+  const firstFix = !decisions[c.id] && !approvedFixes().length;
   const [yes, no] = short ? [`غيّر إلى «${d.prefix}${d.after}»`, `أبقِ «${d.prefix}${d.before}»`] : ["اعتمد هذا التغيير", "أبقِ ما كتبتُه"];
   // One concise warning stays beside the decision. The complete list remains
   // in the expanded evidence section below the card.
@@ -988,8 +1014,10 @@ function decisionBlock(c, f, secondary) {
     ...lead.filter(Boolean).map((x) => el("p", { class: "ch-lead", text: x })),
     c.kind === "diacritics" ? el("p", { class: "muted small", text: "تختلف طبعات المصاحف في بعض علامات الضبط (كشدّة الإدغام)؛ تأكد قبل الاعتماد." }) : null,
     el("div", { class: "actions-row" },
-      el("button", { type: "button", class: "btn approve", "data-act": "approved", "aria-pressed": String(decisions[c.id] === "approved"), onclick: () => setDecision(c.id, "approved"), text: yes }),
+      el("button", { type: "button", class: "btn approve", "data-act": "approved", "aria-pressed": String(decisions[c.id] === "approved"), "aria-describedby": firstFix ? `fx-${c.id}` : null, onclick: () => setDecision(c.id, "approved"), text: yes }),
       el("button", { type: "button", class: "btn reject", "data-act": "rejected", "aria-pressed": String(decisions[c.id] === "rejected"), onclick: () => setDecision(c.id, "rejected"), text: no })),
+    // until the writer has approved one correction, say where it goes: the box keeps their text
+    firstFix ? el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يظهر ", el("b", { text: `«${d.prefix}${d.after}»` }), " فوق ما كتبتَه في المربع، ويُكتب مكانه في النسخة التي تنسخها.") : null,
     quoteLevel && (c.quote_before || c.quote_after) ? el("details", { class: "ch-more" }, el("summary", { text: "الاقتباس كاملًا قبل التصحيح وبعده" }),
       el("div", { class: "ch-diff" },
         el("div", {}, el("span", { class: "row-label", text: "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: c.quote_before })),
