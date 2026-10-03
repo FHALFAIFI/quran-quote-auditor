@@ -1,6 +1,6 @@
 # Sources, licences and attribution record
 
-Last reviewed: 2026-10-03 (pre-challenge work; result-file notices corrected on 3 Oct; earlier review 2026-10-02, Groq provider live on Render; licence and secret review before the repository was made public; §1b written on 2026-10-02 from Tanzil's own files).
+Last reviewed: 2026-10-03 (pre-challenge work; the writing workspace of 3 Oct added a suggestion endpoint, three trust pages and three evaluation files, with no new text source — see the end of §1; result-file notices corrected on 3 Oct; earlier review 2026-10-02, Groq provider live on Render; licence and secret review before the repository was made public; §1b written on 2026-10-02 from Tanzil's own files).
 
 ## 1. Quran text — Quranpedia (authoritative source)
 
@@ -14,6 +14,12 @@ Last reviewed: 2026-10-03 (pre-challenge work; result-file notices corrected on 
 | Challenge alignment | The organizer's reference pack lists the King Fahd Complex edition *or the text on quranpedia.net* as the approved Quran text. |
 | Test fixture (a committed, frozen partial copy) | `tests/fixtures/hafs_subset.json` holds **36 verses, 552 words (0.67% of the 82,375 words of the text), from 17 surahs** (1, 2, 3, 5, 8, 10, 17, 20, 27, 35, 39, 49, 55, 58, 94, 96, 112), copied from mushaf 1 on 2026-09-28 and committed; it is also in the tag `pre-challenge-baseline` and in the public repository since 2026-09-28. It is a frozen copy: on 2026-10-02 I compared its 36 verses with the live endpoint and they were identical (leading BOM characters and whitespace aside), but it will not follow Quranpedia's weekly corrections. The file says it is a test excerpt and carries the credit «Quranpedia.net (https://quranpedia.net)»; it is used only by the offline unit tests and never by the running app. Quranpedia's policy asks for attribution when data is published «in part» as a dataset and ends «don't freeze a copy of a text that is still being corrected». It is aimed at mirrors and bulk dumps and does not mention test fixtures; I have not asked Quranpedia whether a small credited fixture is acceptable, so this is an open question, not a permission. The same question applies to the three Quranpedia-mushaf-2 cases of `eval/uthmani_dev.json` (§1b) and to the quotation and `correct_text` fields of the evaluation sets in `eval/` (short passages written against, and checked with the validation scripts against, the live text; not counted here). Earlier statements in this repository that the text is «never committed» were about the whole text and the running app, and were imprecise about this fixture. |
 | Metadata | `app/surahs.py` holds surah names and verse counts derived from the same endpoint (no verse text), plus common alternative surah names written by hand. |
+
+**Added 3 Oct 2026 (writing workspace; no new text source).** `POST /api/suggest` looks words up in the same in-memory Quranpedia index; it makes no request to Quranpedia or to any model and stores nothing.
+Every suggested word is a word of the proposed verse in that index (`tests/test_suggest_full.py` checks this property). The three evaluation files added that day contain, as test inputs, short excerpts cut from the Quranpedia text by
+coordinates (no bulk corpus file): `eval/suggest_cases_20261003.json`, `eval/suggest_cases_b_20261003.json`, `eval/articles_long_20261003.json` (+ builders under `eval/`). Their provenance and the fact that no specialist has reviewed their labels are in
+`docs/EVALUATION.md`. Whether those excerpts in a public repository sit comfortably with Quranpedia's "do not mirror" policy is the same **open question** as for the 36-verse fixture and the older sets; I have not asked Quranpedia and do not claim it is settled.
+The pages `/sources`, `/privacy`, `/limitations` (verified against the code on 3 Oct 2026) state what is fetched, sent and stored; the privacy page also says the fonts come from Google, whose terms apply to that request.
 
 ## 1b. Uthmani-script texts (used only to build and check the Uthmani matching rules; not read by the running app)
 

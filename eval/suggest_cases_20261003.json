@@ -1,0 +1,7472 @@
+{
+ "_about": "Frozen evaluation set for POST /api/suggest (verse suggestions computed ONLY from the Quranpedia Hafs text, no AI), v1, written 3 October 2026, by an unknown author (found uncommitted in the working tree on 3 Oct 2026 at 15:16; its file modification time is LATER than that of app/suggest.py, so the claim made when it was written, that it was blind to the implementation, could NOT be verified and is NOT relied on): treat this as a DEVELOPMENT set, not as untouched held-out data. AUTHOR-WRITTEN BY AN AI-ASSISTED WORKFLOW (the same assistant wrote the contract examples, the prose and the labels): NOT an independent sample; the labels await review by a human Arabic / Quran specialist. The SHA-256 of this file is in eval/suggest_cases_20261003.sha256. Only COORDINATES are stored for gold (gold_places = [surah, ayah_start, ayah_end]; gold_words = [surah, ayah, word_from, word_to) over the Quranpedia word list of that ayah); no Quran corpus is stored. The `before` strings necessarily contain the Quran words the writer is supposed to have typed (cut from the Quranpedia text by eval/build_suggest_cases.py by coordinates, as eval/articles_frozen.json does); wrong / missing / partial-word variants are explicit edits (typed_specs[].edit) applied to those words. Arabic prose around the cues is hand-written. Labels are cross-checked by eval/validate_suggest_cases.py, which does not use the app's matching code. Contract encoded: after an explicit Quran lead-in or an opening mark, >= 2 distinctive words -> the next words are an EXACT continuation (kind continue; complete_word when the caret is inside the last word); a distinctive prefix followed by a wrong word (then a space) -> PROBABLE replace, or PROBABLE insert when the typed word is the verse word after one or two skipped words; ambiguous openings -> several choices from different places (ambiguous=true) or nothing, never one confident exact choice; hadith / du'a / proverb cues, everyday formulas, text after a closed quotation or sentence, text with no cue/opener (distinct=false), complete verses and a single word -> none (a hint is also accepted only for the explicit one-word cases). Cases with none_acceptable=true (ambiguous, repeated) may also legitimately return none. expect fields: outcome (suggest|none); kind = acceptable kinds of the best choice; certainty = expected certainty of the best choice; gold_places = places that must be among the choices; gold_words = the Quran words that the proposed text (to_text, else insert_text) must start with (for complete_word: the whole word, or its missing suffix); wrong_word/correct_word for replace; skipped_words for insert; ok_status = response statuses that are not a false suggestion. Metrics are defined in eval/run_suggest_eval.py. No threshold or rule may be tuned against this file.",
+ "version": 1,
+ "written": "2026-10-03",
+ "categories": {
+  "cue_continue": 22,
+  "opener_continue": 12,
+  "partial_word": 8,
+  "wrong_word_replace": 14,
+  "missing_word_insert": 8,
+  "ambiguous_opening": 10,
+  "repeated_verses": 4,
+  "complete_verse": 4,
+  "cue_non_quran_hadith_dua_proverb": 8,
+  "everyday_no_cue": 16,
+  "distinct_long_prefix": 6,
+  "no_distinct_same_prefix": 3,
+  "after_closed_quotation": 5,
+  "explicit_short_prefix": 6,
+  "explicit_one_word": 3
+ },
+ "cases": [
+  {
+   "id": "SG-001",
+   "category": "cue_continue",
+   "before": "ومما يعين المسلم على تقلب الأحوال وطول الطريق أن يعود إلى كتاب ربه، قال تعالى: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 153,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      2,
+      153,
+      153
+     ]
+    ],
+    "gold_words": [
+     2,
+     153,
+     7,
+     9
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation (diacritized typing, 7 words)"
+   }
+  },
+  {
+   "id": "SG-002",
+   "category": "cue_continue",
+   "before": "وفي بيان طريق الثبات أمام الصعاب يحسن بنا أن نتأمل قوله تعالى: يا أيها الذين آمنوا اصبروا وصابروا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 3,
+     "ayah": 200,
+     "word_from": 0,
+     "word_to": 6,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      3,
+      200,
+      200
+     ]
+    ],
+    "gold_words": [
+     3,
+     200,
+     6,
+     8
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation (undiacritized typing)"
+   }
+  },
+  {
+   "id": "SG-003",
+   "category": "cue_continue",
+   "before": "ولا يستقيم أمر مجتمع من غير ميزان للحقوق والواجبات، يقول الله تعالى: إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ ",
+   "after": "\n",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 16,
+     "ayah": 90,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      16,
+      90,
+      90
+     ]
+    ],
+    "gold_words": [
+     16,
+     90,
+     4,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation; a newline follows the caret"
+   }
+  },
+  {
+   "id": "SG-004",
+   "category": "cue_continue",
+   "before": "ومن الآيات التي أطال العلماء في تأمل تشبيهاتها وأسرارها، قال الله عز وجل: ﴿الله نور السماوات ",
+   "after": "﴾",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله عز وجل",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 24,
+     "ayah": 35,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      24,
+      35,
+      35
+     ]
+    ],
+    "gold_words": [
+     24,
+     35,
+     3,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation; the editor has already closed the bracket after the caret"
+   }
+  },
+  {
+   "id": "SG-005",
+   "category": "cue_continue",
+   "before": "وقد ورد الأمر ببر الوالدين مقرونًا بالتوحيد في القرآن الكريم: وَقَضَىٰ رَبُّكَ أَلَّا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 17,
+     "ayah": 23,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      17,
+      23,
+      23
+     ]
+    ],
+    "gold_words": [
+     17,
+     23,
+     3,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation (3 words, diacritized)"
+   }
+  },
+  {
+   "id": "SG-006",
+   "category": "cue_continue",
+   "before": "وما أوسع رحمة الله بعباده المذنبين إذا أقبلوا عليه نادمين، قال سبحانه: ﴿قل يا عبادي الذين أسرفوا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال سبحانه",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 39,
+     "ayah": 53,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      39,
+      53,
+      53
+     ]
+    ],
+    "gold_words": [
+     39,
+     53,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation"
+   }
+  },
+  {
+   "id": "SG-007",
+   "category": "cue_continue",
+   "before": "وإذا ضاق الصدر بهموم الأيام فليتذكر صاحبه قوله تعالى: الَّذِينَ آمَنُوا وَتَطْمَئِنُّ قُلُوبُهُمْ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 13,
+     "ayah": 28,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      13,
+      28,
+      28
+     ]
+    ],
+    "gold_words": [
+     13,
+     28,
+     4,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation"
+   }
+  },
+  {
+   "id": "SG-008",
+   "category": "cue_continue",
+   "before": "وكم من طالب علم يردد قبل دخول قاعة الاختبار قوله تعالى على لسان موسى عليه السلام: ﴿قَالَ رَبِّ اشْرَحْ لِي ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى على لسان موسى عليه السلام",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 20,
+     "ayah": 25,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      20,
+      25,
+      25
+     ]
+    ],
+    "gold_words": [
+     20,
+     25,
+     4,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation; only the last word of the verse remains (a one-word continuation)"
+   }
+  },
+  {
+   "id": "SG-009",
+   "category": "cue_continue",
+   "before": "وتختتم سورة الحشر بجملة من أسماء الله الحسنى، قال الله تعالى: هو الله الذي لا إله إلا هو عالم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 59,
+     "ayah": 22,
+     "word_from": 0,
+     "word_to": 8,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      59,
+      22,
+      22
+     ]
+    ],
+    "gold_words": [
+     59,
+     22,
+     8,
+     10
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation; the verse opening is shared with another verse for its first 7 words, so only the 8-word prefix is distinctive"
+   }
+  },
+  {
+   "id": "SG-010",
+   "category": "cue_continue",
+   "before": "ولا فضل لأحد على أحد بنسب أو لون أو جنس، كما في قوله تعالى: ﴿يَا أَيُّهَا النَّاسُ إِنَّا خَلَقْنَاكُمْ مِنْ ذَكَرٍ وَأُنْثَىٰ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "كما في قوله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 49,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 8,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      49,
+      13,
+      13
+     ]
+    ],
+    "gold_words": [
+     49,
+     13,
+     8,
+     10
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation"
+   }
+  },
+  {
+   "id": "SG-011",
+   "category": "cue_continue",
+   "before": "وسورة الملك تذكّر بحكمة الابتلاء والعمل، قال تعالى، الذي خلق الموت والحياة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": "، ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 67,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      67,
+      2,
+      2
+     ]
+    ],
+    "gold_words": [
+     67,
+     2,
+     4,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation; cue followed by a comma"
+   }
+  },
+  {
+   "id": "SG-012",
+   "category": "cue_continue",
+   "before": "وسورة الإخلاص خلاصة التوحيد في أربع كلمات، قال تعالى: ﴿قُلْ هُوَ اللَّهُ ",
+   "after": "﴾",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 112,
+     "ayah": 1,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      112,
+      1,
+      1
+     ]
+    ],
+    "gold_words": [
+     112,
+     1,
+     3,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation (short surah, one word left)"
+   }
+  },
+  {
+   "id": "SG-013",
+   "category": "cue_continue",
+   "before": "وفي السورة التي نزلت تسليةً للنبي ﷺ بعد فتور الوحي قال تعالى: ما ودعك ربك ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 93,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      93,
+      3,
+      3
+     ]
+    ],
+    "gold_words": [
+     93,
+     3,
+     3,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation"
+   }
+  },
+  {
+   "id": "SG-014",
+   "category": "cue_continue",
+   "before": "وتأمل زوال الدنيا وفناء كل ما فيها حين يقول الله تعالى: كُلُّ مَنْ عَلَيْهَا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 55,
+     "ayah": 26,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      55,
+      26,
+      26
+     ]
+    ],
+    "gold_words": [
+     55,
+     26,
+     3,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation (short verse, one word left)"
+   }
+  },
+  {
+   "id": "SG-015",
+   "category": "cue_continue",
+   "before": "ومن دروس قصة أهل الكهف اللجوء إلى الله عند اشتداد الفتنة، في القرآن الكريم: ﴿إذ أوى الفتية إلى الكهف ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 18,
+     "ayah": 10,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      18,
+      10,
+      10
+     ]
+    ],
+    "gold_words": [
+     18,
+     10,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation"
+   }
+  },
+  {
+   "id": "SG-016",
+   "category": "cue_continue",
+   "before": "ومن بشارات الصبر على المشقة قال تعالى: فَإِنَّ مَعَ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 94,
+     "ayah": 5,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      94,
+      5,
+      5
+     ]
+    ],
+    "gold_words": [
+     94,
+     5,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation; only two words typed, but already unique in the whole text"
+   }
+  },
+  {
+   "id": "SG-017",
+   "category": "cue_continue",
+   "before": "وقصة يونس عليه السلام من أعظم قصص التوبة والإنابة، قال الله تعالى: وذا النون إذ ذهب مغاضبا فظن ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 21,
+     "ayah": 87,
+     "word_from": 0,
+     "word_to": 6,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      21,
+      87,
+      87
+     ]
+    ],
+    "gold_words": [
+     21,
+     87,
+     6,
+     8
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation"
+   }
+  },
+  {
+   "id": "SG-018",
+   "category": "cue_continue",
+   "before": "وتبدأ سورة يوسف بالرؤيا العجيبة، قوله تعالى: ﴿إِذْ قَالَ يُوسُفُ لِأَبِيهِ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 12,
+     "ayah": 4,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      12,
+      4,
+      4
+     ]
+    ],
+    "gold_words": [
+     12,
+     4,
+     4,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "after an explicit Quran lead-in the typed words are an exact prefix of a single verse; the next words are offered as an exact continuation"
+   }
+  },
+  {
+   "id": "SG-019",
+   "category": "cue_continue",
+   "before": "ومن صفات المتقين في أول سورة البقرة قال تعالى: ﴿ٱلَّذِينَ يُؤْمِنُونَ بِٱلْغَيْبِ وَيُقِيمُونَ ٱلصَّلَوٰةَ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "uth",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      2,
+      3,
+      3
+     ]
+    ],
+    "gold_words": [
+     2,
+     3,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "typed in Uthmani script as copied from a Quran app (alef-wasla, waw + dagger alef, tatweel); same exact continuation expected (ٱلصَّلَوٰةَ)"
+   }
+  },
+  {
+   "id": "SG-020",
+   "category": "cue_continue",
+   "before": "وفي بيان حقيقة الدنيا وزخرفها الزائل قوله تعالى: ٱعْلَمُوا أَنَّمَا ٱلْحَيَوٰةُ ٱلدُّنْيَا لَعِبٌ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 57,
+     "ayah": 20,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "uth",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      57,
+      20,
+      20
+     ]
+    ],
+    "gold_words": [
+     57,
+     20,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "typed in Uthmani script as copied from a Quran app (alef-wasla, waw + dagger alef, tatweel); same exact continuation expected (ٱلْحَيَوٰةُ)"
+   }
+  },
+  {
+   "id": "SG-021",
+   "category": "cue_continue",
+   "before": "وقد بيّن القرآن جوهر دعوة الأنبياء جميعًا، يقول الله تعالى: ﴿وَمَا أُمِرُوا إِلَّا لِيَعْبُدُوا ٱللَّهَ مُخْلِصِينَ لَهُ ٱلدِّينَ حُنَفَاءَ وَيُقِيمُوا ٱلصَّلَوٰةَ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 98,
+     "ayah": 5,
+     "word_from": 0,
+     "word_to": 11,
+     "style": "uth",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      98,
+      5,
+      5
+     ]
+    ],
+    "gold_words": [
+     98,
+     5,
+     11,
+     13
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "typed in Uthmani script as copied from a Quran app (alef-wasla, waw + dagger alef, tatweel); same exact continuation expected (ٱلصَّلَوٰةَ)"
+   }
+  },
+  {
+   "id": "SG-022",
+   "category": "cue_continue",
+   "before": "وهذه صفة رجال المساجد الذين شغلهم الله بطاعته، قال تعالى: رِجَالٌ لَا تُلْهِيهِمْ تِجَارَةٌ وَلَا بَيْعٌ عَنْ ذِكْرِ ٱللَّهِ وَإِقَامِ ٱلصَّلَوٰةِ وَإِيتَاءِ ٱلزَّكَوٰةِ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 24,
+     "ayah": 37,
+     "word_from": 0,
+     "word_to": 13,
+     "style": "uth",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      24,
+      37,
+      37
+     ]
+    ],
+    "gold_words": [
+     24,
+     37,
+     13,
+     15
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "typed in Uthmani script as copied from a Quran app (alef-wasla, waw + dagger alef, tatweel); same exact continuation expected (ٱلصَّلَوٰةِ، ٱلزَّكَوٰةِ)"
+   }
+  },
+  {
+   "id": "SG-023",
+   "category": "opener_continue",
+   "before": "وحسبك في التحذير من الانشغال عن الله آية واحدة: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا لَا تُلْهِكُمْ أَمْوَالُكُمْ وَلَا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "﴿",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 63,
+     "ayah": 9,
+     "word_from": 0,
+     "word_to": 8,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      63,
+      9,
+      9
+     ]
+    ],
+    "gold_words": [
+     63,
+     9,
+     8,
+     10
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (﴿)"
+   }
+  },
+  {
+   "id": "SG-024",
+   "category": "opener_continue",
+   "before": "كتب لي صديق في أزمته المالية فأجبته بهذه الآية: ﴿ويرزقه من حيث لا يحتسب ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "﴿",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 65,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      65,
+      3,
+      3
+     ]
+    ],
+    "gold_words": [
+     65,
+     3,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (﴿, undiacritized)"
+   }
+  },
+  {
+   "id": "SG-025",
+   "category": "opener_continue",
+   "before": "وللصلاة على النبي ﷺ مكانة خاصة في الدين: ﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا ",
+   "after": "﴾",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "﴿",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 33,
+     "ayah": 56,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      33,
+      56,
+      56
+     ]
+    ],
+    "gold_words": [
+     33,
+     56,
+     7,
+     9
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (﴿, closing bracket already after the caret)"
+   }
+  },
+  {
+   "id": "SG-026",
+   "category": "opener_continue",
+   "before": "وانظر إلى وصف القرآن لأهل الاتزان والوقار: ﴿وَعِبَادُ الرَّحْمَٰنِ الَّذِينَ يَمْشُونَ عَلَى الْأَرْضِ هَوْنًا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "﴿",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 25,
+     "ayah": 63,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      25,
+      63,
+      63
+     ]
+    ],
+    "gold_words": [
+     25,
+     63,
+     7,
+     9
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (﴿)"
+   }
+  },
+  {
+   "id": "SG-027",
+   "category": "opener_continue",
+   "before": "وقاعدة الشكر في الرزق واضحة لا لبس فيها: ﴿وإذ تأذن ربكم لئن شكرتم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "﴿",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 14,
+     "ayah": 7,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      14,
+      7,
+      7
+     ]
+    ],
+    "gold_words": [
+     14,
+     7,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (﴿)"
+   }
+  },
+  {
+   "id": "SG-028",
+   "category": "opener_continue",
+   "before": "وأقصر ما يوصي به المصلحون بين المتخاصمين: ﴿إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "﴿",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 49,
+     "ayah": 10,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      49,
+      10,
+      10
+     ]
+    ],
+    "gold_words": [
+     49,
+     10,
+     3,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (﴿, 3 words)"
+   }
+  },
+  {
+   "id": "SG-029",
+   "category": "opener_continue",
+   "before": "وهذا ميزان الإنصاف حين نختلف ونتخاصم، وهو «وَجَزَاءُ سَيِّئَةٍ سَيِّئَةٌ مِثْلُهَا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "«",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 42,
+     "ayah": 40,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      42,
+      40,
+      40
+     ]
+    ],
+    "gold_words": [
+     42,
+     40,
+     4,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse («)"
+   }
+  },
+  {
+   "id": "SG-030",
+   "category": "opener_continue",
+   "before": "ومن أيسر التكاليف أنها على قدر الوسع: «فاتقوا الله ما استطعتم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "«",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 64,
+     "ayah": 16,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      64,
+      16,
+      16
+     ]
+    ],
+    "gold_words": [
+     64,
+     16,
+     4,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse («)"
+   }
+  },
+  {
+   "id": "SG-031",
+   "category": "opener_continue",
+   "before": "وتعلّمنا الآية أن الطاعة تمحو الزلل، «وَأَقِمِ الصَّلَاةَ طَرَفَيِ النَّهَارِ وَزُلَفًا ",
+   "after": "»",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "«",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 11,
+     "ayah": 114,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      11,
+      114,
+      114
+     ]
+    ],
+    "gold_words": [
+     11,
+     114,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse («, closing guillemet already after the caret)"
+   }
+  },
+  {
+   "id": "SG-032",
+   "category": "opener_continue",
+   "before": "وللإيمان علامات في القلب والجوارح، وأولها \"إِنَّمَا الْمُؤْمِنُونَ الَّذِينَ إِذَا ذُكِرَ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "\"",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 8,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      8,
+      2,
+      2
+     ]
+    ],
+    "gold_words": [
+     8,
+     2,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (straight double quote \")"
+   }
+  },
+  {
+   "id": "SG-033",
+   "category": "opener_continue",
+   "before": "ومن وصف قيام الليل ما جاء في سورة السجدة: “تتجافى جنوبهم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "“",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 32,
+     "ayah": 16,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      32,
+      16,
+      16
+     ]
+    ],
+    "gold_words": [
+     32,
+     16,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (curly double quote; only 2 words but unique)"
+   }
+  },
+  {
+   "id": "SG-034",
+   "category": "opener_continue",
+   "before": "وأما النصر فسبيله معروف، وقد كتب أحدهم في مقدمة كتابه \"يا أيها الذين آمنوا إن تنصروا الله ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "\"",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 47,
+     "ayah": 7,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      47,
+      7,
+      7
+     ]
+    ],
+    "gold_words": [
+     47,
+     7,
+     7,
+     9
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no lead-in words, but the typed words follow an opening quotation mark and are an exact prefix of a single verse (straight double quote \")"
+   }
+  },
+  {
+   "id": "SG-035",
+   "category": "partial_word",
+   "before": "وللصبر ثلاث مراتب وردت في آية واحدة، قال تعالى: ﴿يا أيها الذين آمنوا اصبروا وصاب",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 3,
+     "ayah": 200,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": {
+      "type": "partial",
+      "word_index": 5,
+      "letters": 4
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      3,
+      200,
+      200
+     ]
+    ],
+    "gold_words": [
+     3,
+     200,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word)"
+   }
+  },
+  {
+   "id": "SG-036",
+   "category": "partial_word",
+   "before": "وهو أعظم ما قيل في جماع الأخلاق، يقول الله تعالى: إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ والإح",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 16,
+     "ayah": 90,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": {
+      "type": "partial",
+      "word_index": 4,
+      "letters": 5
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      16,
+      90,
+      90
+     ]
+    ],
+    "gold_words": [
+     16,
+     90,
+     4,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word)"
+   }
+  },
+  {
+   "id": "SG-037",
+   "category": "partial_word",
+   "before": "ومما يقرب بين الناس على اختلاف ألوانهم في القرآن الكريم: ﴿يا أيها الناس إنا خلقناكم من ذكر وأن",
+   "after": "﴾",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 49,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "plain",
+     "edit": {
+      "type": "partial",
+      "word_index": 7,
+      "letters": 3
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      49,
+      13,
+      13
+     ]
+    ],
+    "gold_words": [
+     49,
+     13,
+     7,
+     8
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word); closing bracket after the caret"
+   }
+  },
+  {
+   "id": "SG-038",
+   "category": "partial_word",
+   "before": "وهذه وصية الأب الحكيم لابنه، قال تعالى: وَإِذْ قَالَ لُقْمَانُ لِابْنِهِ وَهُوَ يعظ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 31,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "dia",
+     "edit": {
+      "type": "partial",
+      "word_index": 5,
+      "letters": 3
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      31,
+      13,
+      13
+     ]
+    ],
+    "gold_words": [
+     31,
+     13,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word)"
+   }
+  },
+  {
+   "id": "SG-039",
+   "category": "partial_word",
+   "before": "وغاية الخلق وحكمتها قوله تعالى: ﴿وما خلقت الجن والإنس إلا ليعب",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 51,
+     "ayah": 56,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": {
+      "type": "partial",
+      "word_index": 5,
+      "letters": 4
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      51,
+      56,
+      56
+     ]
+    ],
+    "gold_words": [
+     51,
+     56,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word)"
+   }
+  },
+  {
+   "id": "SG-040",
+   "category": "partial_word",
+   "before": "وهكذا ينبغي أن ينظر المرء إلى المصائب والنعم، قال سبحانه: الَّذِي خَلَقَ الْمَوْتَ والح",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال سبحانه",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 67,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": {
+      "type": "partial",
+      "word_index": 3,
+      "letters": 4
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      67,
+      2,
+      2
+     ]
+    ],
+    "gold_words": [
+     67,
+     2,
+     3,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word)"
+   }
+  },
+  {
+   "id": "SG-041",
+   "category": "partial_word",
+   "before": "وأولى الناس بخشية الله أعرفهم به، ﴿ومن الناس والدواب والأنعام مختلف ألوانه كذلك إنما يخشى الله من عباده العلم",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "﴿",
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 35,
+     "ayah": 28,
+     "word_from": 0,
+     "word_to": 12,
+     "style": "plain",
+     "edit": {
+      "type": "partial",
+      "word_index": 12,
+      "letters": 5
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      35,
+      28,
+      28
+     ]
+    ],
+    "gold_words": [
+     35,
+     28,
+     12,
+     13
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word); opening bracket instead of a lead-in"
+   }
+  },
+  {
+   "id": "SG-042",
+   "category": "partial_word",
+   "before": "وانظر كيف صوّر القرآن حال الصحابة الكرام، في القرآن الكريم: ﴿مُحَمَّدٌ رَسُولُ اللَّهِ وَالَّذِينَ مَعَهُ أَشِدَّاءُ عَلَى الْكُفَّارِ رُحَمَاءُ بين",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 48,
+     "ayah": 29,
+     "word_from": 0,
+     "word_to": 9,
+     "style": "dia",
+     "edit": {
+      "type": "partial",
+      "word_index": 9,
+      "letters": 3
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "complete_word"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      48,
+      29,
+      29
+     ]
+    ],
+    "gold_words": [
+     48,
+     29,
+     9,
+     10
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "the caret is inside the last typed word, which is a prefix of the verse word; the word is to be completed (kind complete_word)"
+   }
+  },
+  {
+   "id": "SG-043",
+   "category": "wrong_word_replace",
+   "before": "ومما يشجع على السؤال والدعاء أن ربنا أمر به وضمن الإجابة، قال تعالى: ﴿وقال ربكم ادعوني أستجب لكم إن الذين يستكبرون عن لعبادتي ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 40,
+     "ayah": 60,
+     "word_from": 0,
+     "word_to": 9,
+     "style": "plain",
+     "edit": {
+      "type": "replace",
+      "word_index": 9,
+      "wrong": "لعبادتي"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      40,
+      60,
+      60
+     ]
+    ],
+    "gold_words": [
+     40,
+     60,
+     9,
+     10
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (singular noun with a wrongly attached lam)",
+    "wrong_word": "لعبادتي",
+    "correct_word": "عبادتي"
+   }
+  },
+  {
+   "id": "SG-044",
+   "category": "wrong_word_replace",
+   "before": "وهذه خاتمة السورة وفيها جماع الوصايا، قال تعالى: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اصْبِرُوا وَصَابِرُوا وَرَابِطُوا وَاتَّقُوا اللَّهَ لَعَلَّكُمْ ترحمون ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 3,
+     "ayah": 200,
+     "word_from": 0,
+     "word_to": 10,
+     "style": "dia",
+     "edit": {
+      "type": "replace",
+      "word_index": 10,
+      "wrong": "ترحمون"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      3,
+      200,
+      200
+     ]
+    ],
+    "gold_words": [
+     3,
+     200,
+     10,
+     11
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a different closing word)",
+    "wrong_word": "ترحمون",
+    "correct_word": "تفلحون"
+   }
+  },
+  {
+   "id": "SG-045",
+   "category": "wrong_word_replace",
+   "before": "ولا غنى لأي مجتمع عن هذا الميزان الجامع، يقول الله تعالى: إن الله يأمر بالعدل والإحسان وإيتاء ذي القربة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 16,
+     "ayah": 90,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "plain",
+     "edit": {
+      "type": "replace",
+      "word_index": 7,
+      "wrong": "القربة"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      16,
+      90,
+      90
+     ]
+    ],
+    "gold_words": [
+     16,
+     90,
+     7,
+     8
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a letter changed)",
+    "wrong_word": "القربة",
+    "correct_word": "القربى"
+   }
+  },
+  {
+   "id": "SG-046",
+   "category": "wrong_word_replace",
+   "before": "وهو أمر موجّه للمؤمنين جميعًا، قوله تعالى: ﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى الرسول ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 33,
+     "ayah": 56,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "dia",
+     "edit": {
+      "type": "replace",
+      "word_index": 5,
+      "wrong": "الرسول"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      33,
+      56,
+      56
+     ]
+    ],
+    "gold_words": [
+     33,
+     56,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a synonym of the verse word)",
+    "wrong_word": "الرسول",
+    "correct_word": "النبي"
+   }
+  },
+  {
+   "id": "SG-047",
+   "category": "wrong_word_replace",
+   "before": "وهذا هو الدواء الذي يصفه القرآن لقلق النفوس، قال الله تعالى: الذين آمنوا وتطمئن قلوبهم بذكر ربهم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 13,
+     "ayah": 28,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": {
+      "type": "replace",
+      "word_index": 5,
+      "wrong": "ربهم"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      13,
+      28,
+      28
+     ]
+    ],
+    "gold_words": [
+     13,
+     28,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a plausible slip)",
+    "wrong_word": "ربهم",
+    "correct_word": "الله"
+   }
+  },
+  {
+   "id": "SG-048",
+   "category": "wrong_word_replace",
+   "before": "ومن بشارات المجاهدين في سبيل الله، قال تعالى: ﴿وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سبيلنا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 29,
+     "ayah": 69,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": {
+      "type": "replace",
+      "word_index": 4,
+      "wrong": "سبيلنا"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      29,
+      69,
+      69
+     ]
+    ],
+    "gold_words": [
+     29,
+     69,
+     4,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (singular for plural)",
+    "wrong_word": "سبيلنا",
+    "correct_word": "سبلنا"
+   }
+  },
+  {
+   "id": "SG-049",
+   "category": "wrong_word_replace",
+   "before": "وهذه الغاية التي من أجلها خلق الله الخلق، في القرآن الكريم: وما خلقت الجن والإنس إلا ليعبدوا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 51,
+     "ayah": 56,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": {
+      "type": "replace",
+      "word_index": 5,
+      "wrong": "ليعبدوا"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      51,
+      56,
+      56
+     ]
+    ],
+    "gold_words": [
+     51,
+     56,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a different verb ending)",
+    "wrong_word": "ليعبدوا",
+    "correct_word": "ليعبدون"
+   }
+  },
+  {
+   "id": "SG-050",
+   "category": "wrong_word_replace",
+   "before": "وقد نزلت السورة في تثبيت قلب النبي ﷺ، قال تعالى: ﴿مَا وَدَّعَكَ رَبُّكَ ولا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 93,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": {
+      "type": "replace",
+      "word_index": 3,
+      "wrong": "ولا"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      93,
+      3,
+      3
+     ]
+    ],
+    "gold_words": [
+     93,
+     3,
+     3,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (one conjunction for another)",
+    "wrong_word": "ولا",
+    "correct_word": "وما"
+   }
+  },
+  {
+   "id": "SG-051",
+   "category": "wrong_word_replace",
+   "before": "وحق الوالدين لا يسبقه إلا حق الله، قوله تعالى: وقضى ربك ألا تعبدوا إلا إياه وبالوالدين برا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 17,
+     "ayah": 23,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "plain",
+     "edit": {
+      "type": "replace",
+      "word_index": 7,
+      "wrong": "برا"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      17,
+      23,
+      23
+     ]
+    ],
+    "gold_words": [
+     17,
+     23,
+     7,
+     8
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a shorter synonym)",
+    "wrong_word": "برا",
+    "correct_word": "إحسانا"
+   }
+  },
+  {
+   "id": "SG-052",
+   "category": "wrong_word_replace",
+   "before": "ومن أجمل أمثلة القرآن للنور والهداية قال الله عز وجل: ﴿اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ مَثَلُ ضوئه ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله عز وجل",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 24,
+     "ayah": 35,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "dia",
+     "edit": {
+      "type": "replace",
+      "word_index": 5,
+      "wrong": "ضوئه"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      24,
+      35,
+      35
+     ]
+    ],
+    "gold_words": [
+     24,
+     35,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a synonym)",
+    "wrong_word": "ضوئه",
+    "correct_word": "نوره"
+   }
+  },
+  {
+   "id": "SG-053",
+   "category": "wrong_word_replace",
+   "before": "وهو ما ينبغي أن يُقال لكل متخاصمين، قال سبحانه: إنما المؤمنون إخوة فسالموا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال سبحانه",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 49,
+     "ayah": 10,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": {
+      "type": "replace",
+      "word_index": 3,
+      "wrong": "فسالموا"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      49,
+      10,
+      10
+     ]
+    ],
+    "gold_words": [
+     49,
+     10,
+     3,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a different verb)",
+    "wrong_word": "فسالموا",
+    "correct_word": "فأصلحوا"
+   }
+  },
+  {
+   "id": "SG-054",
+   "category": "wrong_word_replace",
+   "before": "ومن ثناء الله على أهل التواضع يقول الله تعالى: ﴿وَعِبَادُ الرَّحْمَٰنِ الَّذِينَ يَمْشُونَ عَلَى الْأَرْضِ لينا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 25,
+     "ayah": 63,
+     "word_from": 0,
+     "word_to": 6,
+     "style": "dia",
+     "edit": {
+      "type": "replace",
+      "word_index": 6,
+      "wrong": "لينا"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      25,
+      63,
+      63
+     ]
+    ],
+    "gold_words": [
+     25,
+     63,
+     6,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a near-synonym)",
+    "wrong_word": "لينا",
+    "correct_word": "هونا"
+   }
+  },
+  {
+   "id": "SG-055",
+   "category": "wrong_word_replace",
+   "before": "والابتلاء ميزان العمل لا ميزان الكثرة، قال تعالى: الذي خلق الموت والحياة ليبلوكم أيكم أفضل ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 67,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 6,
+     "style": "plain",
+     "edit": {
+      "type": "replace",
+      "word_index": 6,
+      "wrong": "أفضل"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      67,
+      2,
+      2
+     ]
+    ],
+    "gold_words": [
+     67,
+     2,
+     6,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a synonym)",
+    "wrong_word": "أفضل",
+    "correct_word": "أحسن"
+   }
+  },
+  {
+   "id": "SG-056",
+   "category": "wrong_word_replace",
+   "before": "فما أحوج المذنبين إلى هذا النداء الرحيم، قال تعالى: ﴿قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنْفُسِهِمْ لَا تيأسوا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 39,
+     "ayah": 53,
+     "word_from": 0,
+     "word_to": 8,
+     "style": "dia",
+     "edit": {
+      "type": "replace",
+      "word_index": 8,
+      "wrong": "تيأسوا"
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "replace"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      39,
+      53,
+      53
+     ]
+    ],
+    "gold_words": [
+     39,
+     53,
+     8,
+     9
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then a wrong word followed by a space: a PROBABLE correction (kind replace) of the wrong word to the verse word (a synonym)",
+    "wrong_word": "تيأسوا",
+    "correct_word": "تقنطوا"
+   }
+  },
+  {
+   "id": "SG-057",
+   "category": "missing_word_insert",
+   "before": "ومن أعظم ما يقوّي القلب في الشدائد قال تعالى: ﴿يا أيها الذين آمنوا استعينوا والصلاة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 153,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": {
+      "type": "skip",
+      "word_index": 5,
+      "count": 1
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      2,
+      153,
+      153
+     ]
+    ],
+    "gold_words": [
+     2,
+     153,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (one word omitted)",
+    "skipped_words": [
+     "بالصبر"
+    ]
+   }
+  },
+  {
+   "id": "SG-058",
+   "category": "missing_word_insert",
+   "before": "وهي الآية التي تُقرأ في ختام الخطب، يقول الله تعالى: إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ وَإِيتَاءِ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 16,
+     "ayah": 90,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": {
+      "type": "skip",
+      "word_index": 4,
+      "count": 1
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      16,
+      90,
+      90
+     ]
+    ],
+    "gold_words": [
+     16,
+     90,
+     4,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (one word omitted)",
+    "skipped_words": [
+     "والإحسان"
+    ]
+   }
+  },
+  {
+   "id": "SG-059",
+   "category": "missing_word_insert",
+   "before": "وفي باب الأمانة والعدل أصل عظيم قوله تعالى: إن الله يأمركم أن تؤدوا إلى ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 4,
+     "ayah": 58,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": {
+      "type": "skip",
+      "word_index": 5,
+      "count": 1
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      4,
+      58,
+      58
+     ]
+    ],
+    "gold_words": [
+     4,
+     58,
+     5,
+     6
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (one word omitted)",
+    "skipped_words": [
+     "الأمانات"
+    ]
+   }
+  },
+  {
+   "id": "SG-060",
+   "category": "missing_word_insert",
+   "before": "وقد بدأ بأعظم الحقوق قبل ذكر الوالدين، قال الله تعالى: ﴿وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوا إِيَّاهُ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 17,
+     "ayah": 23,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": {
+      "type": "skip",
+      "word_index": 4,
+      "count": 1
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      17,
+      23,
+      23
+     ]
+    ],
+    "gold_words": [
+     17,
+     23,
+     4,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (one word omitted)",
+    "skipped_words": [
+     "إلا"
+    ]
+   }
+  },
+  {
+   "id": "SG-061",
+   "category": "missing_word_insert",
+   "before": "وهذه أولى وصايا لقمان لابنه، في القرآن الكريم: وإذ قال لقمان لابنه وهو يعظه بني ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 31,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 6,
+     "style": "plain",
+     "edit": {
+      "type": "skip",
+      "word_index": 6,
+      "count": 1
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      31,
+      13,
+      13
+     ]
+    ],
+    "gold_words": [
+     31,
+     13,
+     6,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (one word omitted)",
+    "skipped_words": [
+     "يا"
+    ]
+   }
+  },
+  {
+   "id": "SG-062",
+   "category": "missing_word_insert",
+   "before": "وهو نداء لعموم البشر لا للمسلمين وحدهم، قال تعالى: ﴿يَا أَيُّهَا النَّاسُ إِنَّا خَلَقْنَاكُمْ وَأُنْثَىٰ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 49,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "dia",
+     "edit": {
+      "type": "skip",
+      "word_index": 5,
+      "count": 2
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      49,
+      13,
+      13
+     ]
+    ],
+    "gold_words": [
+     49,
+     13,
+     5,
+     7
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (two words omitted)",
+    "skipped_words": [
+     "من",
+     "ذكر"
+    ]
+   }
+  },
+  {
+   "id": "SG-063",
+   "category": "missing_word_insert",
+   "before": "والموت والحياة كلاهما ميدان للاختبار، يقول الله: الذي خلق الموت ليبلوكم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 67,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": {
+      "type": "skip",
+      "word_index": 3,
+      "count": 1
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      67,
+      2,
+      2
+     ]
+    ],
+    "gold_words": [
+     67,
+     2,
+     3,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (one word omitted)",
+    "skipped_words": [
+     "والحياة"
+    ]
+   }
+  },
+  {
+   "id": "SG-064",
+   "category": "missing_word_insert",
+   "before": "ويصف القرآن عباد الله الصالحين وصفًا بديعًا، قال تعالى: ﴿وَعِبَادُ الرَّحْمَٰنِ الَّذِينَ الْأَرْضِ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 25,
+     "ayah": 63,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": {
+      "type": "skip",
+      "word_index": 3,
+      "count": 2
+     },
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "insert"
+    ],
+    "certainty": "probable",
+    "gold_places": [
+     [
+      25,
+      63,
+      63
+     ]
+    ],
+    "gold_words": [
+     25,
+     63,
+     3,
+     5
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": true,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "a distinctive exact prefix, then the verse word that follows one or two omitted words (and a space): a PROBABLE insertion (kind insert) of the omitted words (two words omitted)",
+    "skipped_words": [
+     "يمشون",
+     "على"
+    ]
+   }
+  },
+  {
+   "id": "SG-065",
+   "category": "ambiguous_opening",
+   "before": "وقد وعد الله بحفظ كتابه إذ قال تعالى: ﴿إِنَّا نَحْنُ نَزَّلْنَا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 15,
+     "ayah": 9,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      15,
+      9,
+      9
+     ],
+     [
+      76,
+      23,
+      23
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (2 places)",
+    "gold_words_by_place": {
+     "15:9": [
+      15,
+      9,
+      3,
+      5
+     ],
+     "76:23": [
+      76,
+      23,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-066",
+   "category": "ambiguous_opening",
+   "before": "ومن دلائل القدرة ما يراه الناس في السماء من برق ورعد، قوله تعالى: هو الذي يريكم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 13,
+     "ayah": 12,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      13,
+      12,
+      12
+     ],
+     [
+      40,
+      13,
+      13
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (2 places)",
+    "gold_words_by_place": {
+     "13:12": [
+      13,
+      12,
+      3,
+      5
+     ],
+     "40:13": [
+      40,
+      13,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-067",
+   "category": "ambiguous_opening",
+   "before": "وهذا حال الظالمين حين يفاجئهم الحق، يقول الله تعالى: قَالُوا يَا وَيْلَنَا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 21,
+     "ayah": 14,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      21,
+      14,
+      14
+     ],
+     [
+      36,
+      52,
+      52
+     ],
+     [
+      68,
+      31,
+      31
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (3 places)",
+    "gold_words_by_place": {
+     "21:14": [
+      21,
+      14,
+      3,
+      5
+     ],
+     "36:52": [
+      36,
+      52,
+      3,
+      5
+     ],
+     "68:31": [
+      68,
+      31,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-068",
+   "category": "ambiguous_opening",
+   "before": "وكثيرًا ما يذكّرنا القرآن بأبي الأنبياء، قال تعالى: ﴿وإذ قال إبراهيم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 126,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      2,
+      126,
+      126
+     ],
+     [
+      2,
+      260,
+      260
+     ],
+     [
+      6,
+      74,
+      74
+     ],
+     [
+      14,
+      35,
+      35
+     ],
+     [
+      43,
+      26,
+      26
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (5 places)",
+    "gold_words_by_place": {
+     "2:126": [
+      2,
+      126,
+      3,
+      5
+     ],
+     "2:260": [
+      2,
+      260,
+      3,
+      5
+     ],
+     "6:74": [
+      6,
+      74,
+      3,
+      5
+     ],
+     "14:35": [
+      14,
+      35,
+      3,
+      5
+     ],
+     "43:26": [
+      43,
+      26,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-069",
+   "category": "ambiguous_opening",
+   "before": "ومن سنن الله في خلقه أنه يختبر الناس ويكشفهم، في القرآن الكريم: أَمْ حَسِبَ الَّذِينَ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 29,
+     "ayah": 4,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      29,
+      4,
+      4
+     ],
+     [
+      45,
+      21,
+      21
+     ],
+     [
+      47,
+      29,
+      29
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (3 places)",
+    "gold_words_by_place": {
+     "29:4": [
+      29,
+      4,
+      3,
+      5
+     ],
+     "45:21": [
+      45,
+      21,
+      3,
+      5
+     ],
+     "47:29": [
+      47,
+      29,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-070",
+   "category": "ambiguous_opening",
+   "before": "وفي قصص الأمم السابقة عبرة لمن اعتبر، قال الله تعالى: ﴿كذبت قوم لوط ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 26,
+     "ayah": 160,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      26,
+      160,
+      160
+     ],
+     [
+      54,
+      33,
+      33
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (2 places)",
+    "gold_words_by_place": {
+     "26:160": [
+      26,
+      160,
+      3,
+      4
+     ],
+     "54:33": [
+      54,
+      33,
+      3,
+      4
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-071",
+   "category": "ambiguous_opening",
+   "before": "وللمهاجرين في سبيل الله وعد كريم، قوله تعالى: وَالَّذِينَ هَاجَرُوا فِي ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 16,
+     "ayah": 41,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      16,
+      41,
+      41
+     ],
+     [
+      22,
+      58,
+      58
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (2 places)",
+    "gold_words_by_place": {
+     "16:41": [
+      16,
+      41,
+      3,
+      5
+     ],
+     "22:58": [
+      22,
+      58,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-072",
+   "category": "ambiguous_opening",
+   "before": "وهي أحكام ملزمة لكل من يقول إنه مؤمن، قال سبحانه: ﴿وما كان لمؤمن ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال سبحانه",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 4,
+     "ayah": 92,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      4,
+      92,
+      92
+     ],
+     [
+      33,
+      36,
+      36
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (2 places)",
+    "gold_words_by_place": {
+     "4:92": [
+      4,
+      92,
+      3,
+      5
+     ],
+     "33:36": [
+      33,
+      36,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-073",
+   "category": "ambiguous_opening",
+   "before": "وفي تعظيم الشرك بالله وصف شديد، يقول الله تعالى: تَكَادُ السَّمَاوَاتُ يَتَفَطَّرْنَ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 19,
+     "ayah": 90,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      19,
+      90,
+      90
+     ],
+     [
+      42,
+      5,
+      5
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (2 places)",
+    "gold_words_by_place": {
+     "19:90": [
+      19,
+      90,
+      3,
+      5
+     ],
+     "42:5": [
+      42,
+      5,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-074",
+   "category": "ambiguous_opening",
+   "before": "وعاقبة المكذبين مذكورة في أكثر من سورة، قال تعالى: وأمطرنا عليهم مطرا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 7,
+     "ayah": 84,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      7,
+      84,
+      84
+     ],
+     [
+      26,
+      173,
+      173
+     ],
+     [
+      27,
+      58,
+      58
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the typed words begin several different verses; the answer must offer choices from different places or nothing — never one confident exact choice that picks a place arbitrarily (3 places)",
+    "gold_words_by_place": {
+     "7:84": [
+      7,
+      84,
+      3,
+      5
+     ],
+     "26:173": [
+      26,
+      173,
+      3,
+      5
+     ],
+     "27:58": [
+      27,
+      58,
+      3,
+      5
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-075",
+   "category": "repeated_verses",
+   "before": "وسورة الرحمن تكرر سؤالًا واحدًا لا تملك النفس إلا أن تجيب عنه، قال تعالى: ﴿فَبِأَيِّ آلَاءِ رَبِّكُمَا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 55,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      55,
+      13,
+      13
+     ],
+     [
+      55,
+      16,
+      16
+     ],
+     [
+      55,
+      18,
+      18
+     ],
+     [
+      55,
+      21,
+      21
+     ],
+     [
+      55,
+      23,
+      23
+     ],
+     [
+      55,
+      25,
+      25
+     ],
+     [
+      55,
+      28,
+      28
+     ],
+     [
+      55,
+      30,
+      30
+     ],
+     [
+      55,
+      32,
+      32
+     ],
+     [
+      55,
+      34,
+      34
+     ],
+     [
+      55,
+      36,
+      36
+     ],
+     [
+      55,
+      38,
+      38
+     ],
+     [
+      55,
+      40,
+      40
+     ],
+     [
+      55,
+      42,
+      42
+     ],
+     [
+      55,
+      45,
+      45
+     ],
+     [
+      55,
+      47,
+      47
+     ],
+     [
+      55,
+      49,
+      49
+     ],
+     [
+      55,
+      51,
+      51
+     ],
+     [
+      55,
+      53,
+      53
+     ],
+     [
+      55,
+      55,
+      55
+     ],
+     [
+      55,
+      57,
+      57
+     ],
+     [
+      55,
+      59,
+      59
+     ],
+     [
+      55,
+      61,
+      61
+     ],
+     [
+      55,
+      63,
+      63
+     ],
+     [
+      55,
+      65,
+      65
+     ],
+     [
+      55,
+      67,
+      67
+     ],
+     [
+      55,
+      69,
+      69
+     ],
+     [
+      55,
+      71,
+      71
+     ],
+     [
+      55,
+      73,
+      73
+     ],
+     [
+      55,
+      75,
+      75
+     ],
+     [
+      55,
+      77,
+      77
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": true,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the same words occur at many places: the 31-fold refrain of surah 55; the continuation is identical at every place but the verse is not determined",
+    "gold_words_by_place": {
+     "55:13": [
+      55,
+      13,
+      3,
+      4
+     ],
+     "55:16": [
+      55,
+      16,
+      3,
+      4
+     ],
+     "55:18": [
+      55,
+      18,
+      3,
+      4
+     ],
+     "55:21": [
+      55,
+      21,
+      3,
+      4
+     ],
+     "55:23": [
+      55,
+      23,
+      3,
+      4
+     ],
+     "55:25": [
+      55,
+      25,
+      3,
+      4
+     ],
+     "55:28": [
+      55,
+      28,
+      3,
+      4
+     ],
+     "55:30": [
+      55,
+      30,
+      3,
+      4
+     ],
+     "55:32": [
+      55,
+      32,
+      3,
+      4
+     ],
+     "55:34": [
+      55,
+      34,
+      3,
+      4
+     ],
+     "55:36": [
+      55,
+      36,
+      3,
+      4
+     ],
+     "55:38": [
+      55,
+      38,
+      3,
+      4
+     ],
+     "55:40": [
+      55,
+      40,
+      3,
+      4
+     ],
+     "55:42": [
+      55,
+      42,
+      3,
+      4
+     ],
+     "55:45": [
+      55,
+      45,
+      3,
+      4
+     ],
+     "55:47": [
+      55,
+      47,
+      3,
+      4
+     ],
+     "55:49": [
+      55,
+      49,
+      3,
+      4
+     ],
+     "55:51": [
+      55,
+      51,
+      3,
+      4
+     ],
+     "55:53": [
+      55,
+      53,
+      3,
+      4
+     ],
+     "55:55": [
+      55,
+      55,
+      3,
+      4
+     ],
+     "55:57": [
+      55,
+      57,
+      3,
+      4
+     ],
+     "55:59": [
+      55,
+      59,
+      3,
+      4
+     ],
+     "55:61": [
+      55,
+      61,
+      3,
+      4
+     ],
+     "55:63": [
+      55,
+      63,
+      3,
+      4
+     ],
+     "55:65": [
+      55,
+      65,
+      3,
+      4
+     ],
+     "55:67": [
+      55,
+      67,
+      3,
+      4
+     ],
+     "55:69": [
+      55,
+      69,
+      3,
+      4
+     ],
+     "55:71": [
+      55,
+      71,
+      3,
+      4
+     ],
+     "55:73": [
+      55,
+      73,
+      3,
+      4
+     ],
+     "55:75": [
+      55,
+      75,
+      3,
+      4
+     ],
+     "55:77": [
+      55,
+      77,
+      3,
+      4
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-076",
+   "category": "repeated_verses",
+   "before": "وفي سورة المرسلات يتكرر الوعيد مرة بعد مرة، قال الله تعالى: ويل يومئذ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال الله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 77,
+     "ayah": 15,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      77,
+      15,
+      15
+     ],
+     [
+      77,
+      19,
+      19
+     ],
+     [
+      77,
+      24,
+      24
+     ],
+     [
+      77,
+      28,
+      28
+     ],
+     [
+      77,
+      34,
+      34
+     ],
+     [
+      77,
+      37,
+      37
+     ],
+     [
+      77,
+      40,
+      40
+     ],
+     [
+      77,
+      45,
+      45
+     ],
+     [
+      77,
+      47,
+      47
+     ],
+     [
+      77,
+      49,
+      49
+     ],
+     [
+      83,
+      10,
+      10
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": true,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the same words occur at many places: the refrain of surah 77 (10 times) and one verse of surah 83; the continuation is identical everywhere",
+    "gold_words_by_place": {
+     "77:15": [
+      77,
+      15,
+      2,
+      3
+     ],
+     "77:19": [
+      77,
+      19,
+      2,
+      3
+     ],
+     "77:24": [
+      77,
+      24,
+      2,
+      3
+     ],
+     "77:28": [
+      77,
+      28,
+      2,
+      3
+     ],
+     "77:34": [
+      77,
+      34,
+      2,
+      3
+     ],
+     "77:37": [
+      77,
+      37,
+      2,
+      3
+     ],
+     "77:40": [
+      77,
+      40,
+      2,
+      3
+     ],
+     "77:45": [
+      77,
+      45,
+      2,
+      3
+     ],
+     "77:47": [
+      77,
+      47,
+      2,
+      3
+     ],
+     "77:49": [
+      77,
+      49,
+      2,
+      3
+     ],
+     "83:10": [
+      83,
+      10,
+      2,
+      3
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-077",
+   "category": "repeated_verses",
+   "before": "وفي قصار السور أسلوب تعظيم يتكرر، في القرآن الكريم: وَمَا أَدْرَاكَ مَا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 69,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      69,
+      3,
+      3
+     ],
+     [
+      74,
+      27,
+      27
+     ],
+     [
+      77,
+      14,
+      14
+     ],
+     [
+      82,
+      17,
+      17
+     ],
+     [
+      83,
+      8,
+      8
+     ],
+     [
+      83,
+      19,
+      19
+     ],
+     [
+      86,
+      2,
+      2
+     ],
+     [
+      90,
+      12,
+      12
+     ],
+     [
+      97,
+      2,
+      2
+     ],
+     [
+      101,
+      3,
+      3
+     ],
+     [
+      101,
+      10,
+      10
+     ],
+     [
+      104,
+      5,
+      5
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the same words occur at many places: the question formula of 12 verses; the continuation differs from place to place (near-repeat)",
+    "gold_words_by_place": {
+     "69:3": [
+      69,
+      3,
+      3,
+      4
+     ],
+     "74:27": [
+      74,
+      27,
+      3,
+      4
+     ],
+     "77:14": [
+      77,
+      14,
+      3,
+      5
+     ],
+     "82:17": [
+      82,
+      17,
+      3,
+      5
+     ],
+     "83:8": [
+      83,
+      8,
+      3,
+      4
+     ],
+     "83:19": [
+      83,
+      19,
+      3,
+      4
+     ],
+     "86:2": [
+      86,
+      2,
+      3,
+      4
+     ],
+     "90:12": [
+      90,
+      12,
+      3,
+      4
+     ],
+     "97:2": [
+      97,
+      2,
+      3,
+      5
+     ],
+     "101:3": [
+      101,
+      3,
+      3,
+      4
+     ],
+     "101:10": [
+      101,
+      10,
+      3,
+      4
+     ],
+     "104:5": [
+      104,
+      5,
+      3,
+      4
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-078",
+   "category": "repeated_verses",
+   "before": "وتختم كثير من الآيات الكونية بنهاية متقاربة، قوله تعالى: إن في ذلك لآيات لقوم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 10,
+     "ayah": 67,
+     "word_from": 9,
+     "word_to": 14,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      10,
+      67,
+      67
+     ],
+     [
+      13,
+      3,
+      3
+     ],
+     [
+      13,
+      4,
+      4
+     ],
+     [
+      16,
+      12,
+      12
+     ],
+     [
+      16,
+      79,
+      79
+     ],
+     [
+      27,
+      86,
+      86
+     ],
+     [
+      29,
+      24,
+      24
+     ],
+     [
+      30,
+      21,
+      21
+     ],
+     [
+      30,
+      23,
+      23
+     ],
+     [
+      30,
+      24,
+      24
+     ],
+     [
+      30,
+      37,
+      37
+     ],
+     [
+      39,
+      42,
+      42
+     ],
+     [
+      39,
+      52,
+      52
+     ],
+     [
+      45,
+      13,
+      13
+     ]
+    ],
+    "gold_words": null,
+    "must_be_ambiguous": true,
+    "must_not_be_exact": false,
+    "none_acceptable": true,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest",
+     "none"
+    ],
+    "note": "the same words occur at many places: the clause that closes many signs-of-creation verses (14 places, four different endings)",
+    "gold_words_by_place": {
+     "10:67": [
+      10,
+      67,
+      14,
+      15
+     ],
+     "13:3": [
+      13,
+      3,
+      23,
+      24
+     ],
+     "13:4": [
+      13,
+      4,
+      26,
+      27
+     ],
+     "16:12": [
+      16,
+      12,
+      14,
+      15
+     ],
+     "16:79": [
+      16,
+      79,
+      17,
+      18
+     ],
+     "27:86": [
+      27,
+      86,
+      14,
+      15
+     ],
+     "29:24": [
+      29,
+      24,
+      19,
+      20
+     ],
+     "30:21": [
+      30,
+      21,
+      19,
+      20
+     ],
+     "30:23": [
+      30,
+      23,
+      13,
+      14
+     ],
+     "30:24": [
+      30,
+      24,
+      20,
+      21
+     ],
+     "30:37": [
+      30,
+      37,
+      14,
+      15
+     ],
+     "39:42": [
+      39,
+      42,
+      25,
+      26
+     ],
+     "39:52": [
+      39,
+      52,
+      14,
+      15
+     ],
+     "45:13": [
+      45,
+      13,
+      15,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "id": "SG-079",
+   "category": "complete_verse",
+   "before": "وأقصر سور القرآن عبارةً عن آية واحدة هي قوله تعالى: ﴿إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ",
+   "after": "﴾",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 108,
+     "ayah": 1,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the whole verse is already written; nothing is left to add"
+   }
+  },
+  {
+   "id": "SG-080",
+   "category": "complete_verse",
+   "before": "وفي سورة العصر خلاصة الرسالة، قال تعالى: إن الإنسان لفي خسر ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 103,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the whole verse is already written; nothing is left to add (a trailing space after the last word)"
+   }
+  },
+  {
+   "id": "SG-081",
+   "category": "complete_verse",
+   "before": "وهو ثناء من الله على خلق نبيه ﷺ، يقول الله تعالى: «وَإِنَّكَ لَعَلَىٰ خُلُقٍ عَظِيمٍ",
+   "after": "»",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "يقول الله تعالى",
+    "cue_kind": "quran",
+    "opener": "«",
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 68,
+     "ayah": 4,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the whole verse is already written; nothing is left to add"
+   }
+  },
+  {
+   "id": "SG-082",
+   "category": "complete_verse",
+   "before": "وهي تحية أهل الجنة، في القرآن الكريم: سلام قولا من رب رحيم",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "في القرآن الكريم",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 36,
+     "ayah": 58,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the whole verse is already written; nothing is left to add"
+   }
+  },
+  {
+   "id": "SG-083",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "وفي حجة الوداع وقف في الناس خطيبًا، ثم قال رسول الله ﷺ: يا أيها الناس إنا خلقناكم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال رسول الله ﷺ",
+    "cue_kind": "hadith",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 49,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (hadith cue)"
+   }
+  },
+  {
+   "id": "SG-084",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "روى الإمام أحمد في مسنده عن أبي هريرة رضي الله عنه، قال رسول الله ﷺ لأصحابه: إن الله وملائكته يصلون ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال رسول الله ﷺ",
+    "cue_kind": "hadith",
+    "opener": null,
+    "separator": " لأصحابه: ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 33,
+     "ayah": 56,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (hadith cue)"
+   }
+  },
+  {
+   "id": "SG-085",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "ويؤكد هذا المعنى ما جاء في السنة، وفي الحديث الشريف: يَا أَيُّهَا الَّذِينَ آمَنُوا اصْبِرُوا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "وفي الحديث الشريف",
+    "cue_kind": "hadith",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 3,
+     "ayah": 200,
+     "word_from": 0,
+     "word_to": 5,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (hadith cue)"
+   }
+  },
+  {
+   "id": "SG-086",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "ومن أدعية الصباح التي يرددها كثير من الناس اللهم ربنا لا تزغ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "اللهم",
+    "cue_kind": "dua",
+    "opener": null,
+    "separator": " ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 3,
+     "ayah": 8,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (du'a cue «اللهم»)"
+   }
+  },
+  {
+   "id": "SG-087",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "وكان يختم دعاءه بالطلب نفسه، ومن الدعاء: رب اشرح لي ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "ومن الدعاء",
+    "cue_kind": "dua",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 20,
+     "ayah": 25,
+     "word_from": 1,
+     "word_to": 4,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (du'a cue «دعاء»)"
+   }
+  },
+  {
+   "id": "SG-088",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "ويحفظ كثير من العامة هذه الجملة في دعائهم، اللهم رَبَّنَا ظَلَمْنَا أَنْفُسَنَا وَإِنْ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "اللهم",
+    "cue_kind": "dua",
+    "opener": null,
+    "separator": " ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 7,
+     "ayah": 23,
+     "word_from": 1,
+     "word_to": 5,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (du'a cue «اللهم»)"
+   }
+  },
+  {
+   "id": "SG-089",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "وقد صارت عبارة مأثورة على ألسنة الناس، كما يقول المثل: وجزاء سيئة سيئة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "كما يقول المثل",
+    "cue_kind": "proverb",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 42,
+     "ayah": 40,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (proverb cue)"
+   }
+  },
+  {
+   "id": "SG-090",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "before": "ويختصر الناس هذا المعنى في عبارة سائرة، وكما في الحكمة السائرة: هَلْ جَزَاءُ الْإِحْسَانِ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "وكما في الحكمة السائرة",
+    "cue_kind": "proverb",
+    "opener": null,
+    "separator": ": ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 55,
+     "ayah": 60,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the cue is a hadith / du'a / proverb cue, not a Quran lead-in: Quran-looking words after it must not be completed (proverb cue)"
+   }
+  },
+  {
+   "id": "SG-091",
+   "category": "everyday_no_cue",
+   "before": "تلقيت صباح اليوم رسالة من الإدارة بقبول طلبي ونقلي إلى الفرع الجديد، والحمد لله رب ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: the text ends inside the opening formula «الحمد لله رب العالمين», with no lead-in"
+   }
+  },
+  {
+   "id": "SG-092",
+   "category": "everyday_no_cue",
+   "before": "سنلتقي غدًا بعد صلاة الفجر إن شاء الله ونكمل الحديث في موضوع الميزانية والتكاليف",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: everyday formula «إن شاء الله» inside prose"
+   }
+  },
+  {
+   "id": "SG-093",
+   "category": "everyday_no_cue",
+   "before": "شكرًا لك على الملف الذي أرسلته قبل الظهر، وجزاك الله خيرًا على هذا الجهد الكبير",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: everyday formula «جزاك الله خيرًا» inside prose"
+   }
+  },
+  {
+   "id": "SG-094",
+   "category": "everyday_no_cue",
+   "before": "حاولت إصلاح الجهاز مرتين دون فائدة، ولا حول ولا قوة إلا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: the text ends inside «لا حول ولا قوة إلا بالله» typed as an everyday formula"
+   }
+  },
+  {
+   "id": "SG-095",
+   "category": "everyday_no_cue",
+   "before": "بسم الله الرحمن ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: the basmala typed at the very start, with no lead-in"
+   }
+  },
+  {
+   "id": "SG-096",
+   "category": "everyday_no_cue",
+   "before": "الذين يعملون في المصنع قدّموا طلبًا لزيادة الأجور وتحسين ساعات الدوام، وقد وعدتهم الإدارة بدراسة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: ordinary prose that begins a clause with «الذين» (a very common Quran word)"
+   }
+  },
+  {
+   "id": "SG-097",
+   "category": "everyday_no_cue",
+   "before": "لا أشك في أن الله غفور رحيم بعباده، لكننا نحتاج مع ذلك إلى مراجعة أنفسنا بين الحين والآخر وإلى ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: ordinary prose that contains «الله غفور رحيم» as a plain sentence, with no lead-in"
+   }
+  },
+  {
+   "id": "SG-098",
+   "category": "everyday_no_cue",
+   "before": "يا أيها الناس انتبهوا من فضلكم، فالمطعم سيغلق أبوابه مبكرًا هذا المساء بسبب أعمال الصيانة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: ordinary prose beginning «يا أيها الناس», a common vocative"
+   }
+  },
+  {
+   "id": "SG-099",
+   "category": "everyday_no_cue",
+   "before": "نسأل الله العلي القدير أن يتقبل منا ومنكم صالح الأعمال وأن يجمعنا على الخير في ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: ordinary Islamic prayer wishes in prose"
+   }
+  },
+  {
+   "id": "SG-100",
+   "category": "everyday_no_cue",
+   "before": "وبعد التخرج سافر إلى الرياض وعمل في شركة كبيرة، ثم عاد إلى بلدته وافتتح مكتبًا للمحاسبة، وهو يدير اليوم ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: plain biographical prose"
+   }
+  },
+  {
+   "id": "SG-101",
+   "category": "everyday_no_cue",
+   "before": "يحرص طلاب المدرسة على أداء الصلاة في وقتها ثم يذهبون إلى فصولهم في هدوء وانتظام، وفي ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: ordinary school prose mentioning prayer"
+   }
+  },
+  {
+   "id": "SG-102",
+   "category": "everyday_no_cue",
+   "before": "رأيت الحديقة بعد المطر فقلت لصاحبي: ما شاء الله لا قوة إلا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: everyday expression «ما شاء الله» followed by the start of «لا قوة إلا بالله»"
+   }
+  },
+  {
+   "id": "SG-103",
+   "category": "everyday_no_cue",
+   "before": "وصلنا خبر وفاة والدكم، عظّم الله أجركم وأحسن عزاءكم، وإنا لله وإنا إليه ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: condolence formula «إنا لله وإنا إليه راجعون» typed with no lead-in"
+   }
+  },
+  {
+   "id": "SG-104",
+   "category": "everyday_no_cue",
+   "before": "بعد كل صلاة أردد التسبيحات المعروفة: سبحان الله وبحمده سبحان الله ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: tasbih words typed in everyday worship talk"
+   }
+  },
+  {
+   "id": "SG-105",
+   "category": "everyday_no_cue",
+   "before": "وأخيرًا أختم رسالتي بالتحية المعتادة: السلام عليكم ورحمة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: greeting formula «السلام عليكم ورحمة الله وبركاته»"
+   }
+  },
+  {
+   "id": "SG-106",
+   "category": "everyday_no_cue",
+   "before": "وإذا انتهينا من مراجعة العقد والملاحق فسنطلب حضور اجتماع قصير يوم الأحد، ثم نعرض الأمر على الذين ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "ordinary prose or an everyday formula with common Quran words, no Quran lead-in or opening mark, distinct=false: no suggestion: ordinary office prose that ends with the very common word «الذين»"
+   }
+  },
+  {
+   "id": "SG-107",
+   "category": "distinct_long_prefix",
+   "before": "جلست أرتب أوراقي فوجدت في دفتر قديم هذه الكلمات: الله نور السماوات والأرض مثل نوره كمشكاة فيها ",
+   "after": "",
+   "explicit": false,
+   "distinct": true,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 24,
+     "ayah": 35,
+     "word_from": 0,
+     "word_to": 8,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      24,
+      35,
+      35
+     ]
+    ],
+    "gold_words": [
+     24,
+     35,
+     8,
+     10
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no cue and no opening mark, but distinct=true and the typed words are a long exact prefix of one verse: a continuation is expected"
+   }
+  },
+  {
+   "id": "SG-108",
+   "category": "distinct_long_prefix",
+   "before": "وكتبت في آخر الصفحة، قبل أن أنام، هذه الكلمات الطويلة: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ ",
+   "after": "",
+   "explicit": false,
+   "distinct": true,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 255,
+     "word_from": 0,
+     "word_to": 10,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      2,
+      255,
+      255
+     ]
+    ],
+    "gold_words": [
+     2,
+     255,
+     10,
+     12
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no cue and no opening mark, but distinct=true and the typed words are a long exact prefix of one verse: a continuation is expected"
+   }
+  },
+  {
+   "id": "SG-109",
+   "category": "distinct_long_prefix",
+   "before": "ثم وجدت ورقة صغيرة مطوية كتب عليها بخط جميل: محمد رسول الله والذين معه أشداء على الكفار رحماء ",
+   "after": "\n",
+   "explicit": false,
+   "distinct": true,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 48,
+     "ayah": 29,
+     "word_from": 0,
+     "word_to": 9,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      48,
+      29,
+      29
+     ]
+    ],
+    "gold_words": [
+     48,
+     29,
+     9,
+     11
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no cue and no opening mark, but distinct=true and the typed words are a long exact prefix of one verse: a continuation is expected"
+   }
+  },
+  {
+   "id": "SG-110",
+   "category": "distinct_long_prefix",
+   "before": "وفي حاشية الكتاب كتب أحدهم بخط صغير: وَوَصَّيْنَا الْإِنْسَانَ بِوَالِدَيْهِ إِحْسَانًا حَمَلَتْهُ أُمُّهُ كُرْهًا وَوَضَعَتْهُ كُرْهًا ",
+   "after": "",
+   "explicit": false,
+   "distinct": true,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 46,
+     "ayah": 15,
+     "word_from": 0,
+     "word_to": 9,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      46,
+      15,
+      15
+     ]
+    ],
+    "gold_words": [
+     46,
+     15,
+     9,
+     11
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no cue and no opening mark, but distinct=true and the typed words are a long exact prefix of one verse: a continuation is expected"
+   }
+  },
+  {
+   "id": "SG-111",
+   "category": "distinct_long_prefix",
+   "before": "وأرسل لي أخي رسالة قصيرة نصها: وإذ قال لقمان لابنه وهو يعظه يا ",
+   "after": "",
+   "explicit": false,
+   "distinct": true,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 31,
+     "ayah": 13,
+     "word_from": 0,
+     "word_to": 7,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      31,
+      13,
+      13
+     ]
+    ],
+    "gold_words": [
+     31,
+     13,
+     7,
+     9
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no cue and no opening mark, but distinct=true and the typed words are a long exact prefix of one verse: a continuation is expected"
+   }
+  },
+  {
+   "id": "SG-112",
+   "category": "distinct_long_prefix",
+   "before": "وعلى باب المكتبة علّقوا لوحة مكتوبًا فيها: اعْلَمُوا أَنَّمَا الْحَيَاةُ الدُّنْيَا لَعِبٌ وَلَهْوٌ وَزِينَةٌ وَتَفَاخُرٌ ",
+   "after": "",
+   "explicit": false,
+   "distinct": true,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 57,
+     "ayah": 20,
+     "word_from": 0,
+     "word_to": 8,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      57,
+      20,
+      20
+     ]
+    ],
+    "gold_words": [
+     57,
+     20,
+     8,
+     10
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "no cue and no opening mark, but distinct=true and the typed words are a long exact prefix of one verse: a continuation is expected"
+   }
+  },
+  {
+   "id": "SG-113",
+   "category": "no_distinct_same_prefix",
+   "before": "جلست أرتب أوراقي فوجدت في دفتر قديم هذه الكلمات: الله نور السماوات والأرض مثل نوره كمشكاة فيها ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 24,
+     "ayah": 35,
+     "word_from": 0,
+     "word_to": 8,
+     "style": "plain",
+     "edit": null,
+     "role": "quoted_or_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "identical text to the matching distinct=true case, but without distinct and without any cue or opening mark: no suggestion"
+   }
+  },
+  {
+   "id": "SG-114",
+   "category": "no_distinct_same_prefix",
+   "before": "وكتبت في آخر الصفحة، قبل أن أنام، هذه الكلمات الطويلة: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 255,
+     "word_from": 0,
+     "word_to": 10,
+     "style": "dia",
+     "edit": null,
+     "role": "quoted_or_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "identical text to the matching distinct=true case, but without distinct and without any cue or opening mark: no suggestion"
+   }
+  },
+  {
+   "id": "SG-115",
+   "category": "no_distinct_same_prefix",
+   "before": "ثم وجدت ورقة صغيرة مطوية كتب عليها بخط جميل: محمد رسول الله والذين معه أشداء على الكفار رحماء ",
+   "after": "\n",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 48,
+     "ayah": 29,
+     "word_from": 0,
+     "word_to": 9,
+     "style": "plain",
+     "edit": null,
+     "role": "quoted_or_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "identical text to the matching distinct=true case, but without distinct and without any cue or opening mark: no suggestion"
+   }
+  },
+  {
+   "id": "SG-116",
+   "category": "after_closed_quotation",
+   "before": "وهذه بشارة عظيمة لأهل الصبر، قال تعالى: ﴿فَإِنَّ مَعَ الْعُسْرِ يُسْرًا﴾. ومن ذلك أن تكون صادقًا مع نفسك، إن الله يأمر ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": "﴾"
+   },
+   "typed_specs": [
+    {
+     "surah": 94,
+     "ayah": 5,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "quoted_or_looking"
+    },
+    {
+     "surah": 16,
+     "ayah": 90,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "tail_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the quotation or sentence is closed; the words typed afterwards are ordinary writing even though they look like the start of a verse (bracket closed, then a new sentence)"
+   }
+  },
+  {
+   "id": "SG-117",
+   "category": "after_closed_quotation",
+   "before": "ولخّص الإسلام العقيدة في أربع كلمات: «قُلْ هُوَ اللَّهُ أَحَدٌ»، وهي كافية لمن تأمل، ولكل أمر ميزان: إنما المؤمنون إخوة ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "«",
+    "separator": null,
+    "close": "»"
+   },
+   "typed_specs": [
+    {
+     "surah": 112,
+     "ayah": 1,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "quoted_or_looking"
+    },
+    {
+     "surah": 49,
+     "ayah": 10,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "tail_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the quotation or sentence is closed; the words typed afterwards are ordinary writing even though they look like the start of a verse (guillemet closed)"
+   }
+  },
+  {
+   "id": "SG-118",
+   "category": "after_closed_quotation",
+   "before": "أكتب في هذا الأسبوع عن الموت والحياة. قال تعالى. الذي خلق الموت ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قال تعالى",
+    "cue_kind": "quran",
+    "opener": null,
+    "separator": ". ",
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 67,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "quoted_or_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the quotation or sentence is closed; the words typed afterwards are ordinary writing even though they look like the start of a verse (the lead-in sentence is ended by a full stop before the Quran-looking words)"
+   }
+  },
+  {
+   "id": "SG-119",
+   "category": "after_closed_quotation",
+   "before": "وقال تعالى مبيّنًا خسران الإنسان: \"إِنَّ الْإِنْسَانَ لَفِي خُسْرٍ\" هذه هي القاعدة، ثم نصل إلى الخلاصة وهي أن إلا الذين آمنوا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": "\"",
+    "separator": null,
+    "close": "\""
+   },
+   "typed_specs": [
+    {
+     "surah": 103,
+     "ayah": 2,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "quoted_or_looking"
+    },
+    {
+     "surah": 103,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 3,
+     "style": "plain",
+     "edit": null,
+     "role": "tail_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the quotation or sentence is closed; the words typed afterwards are ordinary writing even though they look like the start of a verse (straight quotes closed)"
+   }
+  },
+  {
+   "id": "SG-120",
+   "category": "after_closed_quotation",
+   "before": "وللنبي موسى دعاء قديم نردده، قوله تعالى: ﴿قَالَ رَبِّ اشْرَحْ لِي﴾. وبعد ذلك انتقل المحاضر إلى المحور الثاني، ويرزقه من حيث لا ",
+   "after": "",
+   "explicit": false,
+   "distinct": false,
+   "context": {
+    "cue": "قوله تعالى",
+    "cue_kind": "quran",
+    "opener": "﴿",
+    "separator": ": ",
+    "close": "﴾."
+   },
+   "typed_specs": [
+    {
+     "surah": 20,
+     "ayah": 25,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "dia",
+     "edit": null,
+     "role": "quoted_or_looking"
+    },
+    {
+     "surah": 65,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 4,
+     "style": "plain",
+     "edit": null,
+     "role": "tail_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none"
+    ],
+    "note": "the quotation or sentence is closed; the words typed afterwards are ordinary writing even though they look like the start of a verse (bracket and full stop)"
+   }
+  },
+  {
+   "id": "SG-121",
+   "category": "explicit_short_prefix",
+   "before": "كنت أريد أن أتذكر بقية الآية: لقد جاءكم ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 9,
+     "ayah": 128,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      9,
+      128,
+      128
+     ]
+    ],
+    "gold_words": [
+     9,
+     128,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "explicit=true (the writer asked for a suggestion), no cue; two or three words that already single out one verse"
+   }
+  },
+  {
+   "id": "SG-122",
+   "category": "explicit_short_prefix",
+   "before": "لا أذكر تمام العبارة، سلام قولا ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 36,
+     "ayah": 58,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      36,
+      58,
+      58
+     ]
+    ],
+    "gold_words": [
+     36,
+     58,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "explicit=true (the writer asked for a suggestion), no cue; two or three words that already single out one verse"
+   }
+  },
+  {
+   "id": "SG-123",
+   "category": "explicit_short_prefix",
+   "before": "ساعدني في إكمال هذا الموضع: وَمَا خَلَقْتُ ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 51,
+     "ayah": 56,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      51,
+      56,
+      56
+     ]
+    ],
+    "gold_words": [
+     51,
+     56,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "explicit=true (the writer asked for a suggestion), no cue; two or three words that already single out one verse"
+   }
+  },
+  {
+   "id": "SG-124",
+   "category": "explicit_short_prefix",
+   "before": "وردت هذه القاعدة في الممتحنة وأريد تمامها: لا ينهاكم ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 60,
+     "ayah": 8,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      60,
+      8,
+      8
+     ]
+    ],
+    "gold_words": [
+     60,
+     8,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "explicit=true (the writer asked for a suggestion), no cue; two or three words that already single out one verse"
+   }
+  },
+  {
+   "id": "SG-125",
+   "category": "explicit_short_prefix",
+   "before": "أحفظ بداية الآية فقط: لَنْ تَنَالُوا ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 3,
+     "ayah": 92,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "dia",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      3,
+      92,
+      92
+     ]
+    ],
+    "gold_words": [
+     3,
+     92,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "explicit=true (the writer asked for a suggestion), no cue; two or three words that already single out one verse"
+   }
+  },
+  {
+   "id": "SG-126",
+   "category": "explicit_short_prefix",
+   "before": "والذين جاهدوا ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 29,
+     "ayah": 69,
+     "word_from": 0,
+     "word_to": 2,
+     "style": "plain",
+     "edit": null,
+     "role": "typed"
+    }
+   ],
+   "expect": {
+    "outcome": "suggest",
+    "kind": [
+     "continue"
+    ],
+    "certainty": "exact",
+    "gold_places": [
+     [
+      29,
+      69,
+      69
+     ]
+    ],
+    "gold_words": [
+     29,
+     69,
+     2,
+     4
+    ],
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "suggest"
+    ],
+    "note": "explicit=true (the writer asked for a suggestion), no cue; two or three words that already single out one verse (nothing but the typed words)"
+   }
+  },
+  {
+   "id": "SG-127",
+   "category": "explicit_one_word",
+   "before": "اكتب لي إكمالًا لهذه العبارة: الذين ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 3,
+     "word_from": 0,
+     "word_to": 1,
+     "style": "plain",
+     "edit": null,
+     "role": "tail_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none",
+     "hint"
+    ],
+    "note": "explicit=true but a single word: far too ambiguous to propose anything (none, or at most a hint asking for more words)"
+   }
+  },
+  {
+   "id": "SG-128",
+   "category": "explicit_one_word",
+   "before": "وردت في المصحف كلمة تبدأ بها آيات كثيرة: وقالوا ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 2,
+     "ayah": 80,
+     "word_from": 0,
+     "word_to": 1,
+     "style": "plain",
+     "edit": null,
+     "role": "tail_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none",
+     "hint"
+    ],
+    "note": "explicit=true but a single word: far too ambiguous to propose anything (none, or at most a hint asking for more words)"
+   }
+  },
+  {
+   "id": "SG-129",
+   "category": "explicit_one_word",
+   "before": "إن ",
+   "after": "",
+   "explicit": true,
+   "distinct": false,
+   "context": {
+    "cue": null,
+    "cue_kind": null,
+    "opener": null,
+    "separator": null,
+    "close": null
+   },
+   "typed_specs": [
+    {
+     "surah": 3,
+     "ayah": 19,
+     "word_from": 0,
+     "word_to": 1,
+     "style": "plain",
+     "edit": null,
+     "role": "tail_looking"
+    }
+   ],
+   "expect": {
+    "outcome": "none",
+    "kind": [],
+    "certainty": null,
+    "gold_places": [],
+    "gold_words": null,
+    "must_be_ambiguous": false,
+    "must_not_be_exact": false,
+    "none_acceptable": false,
+    "identical_continuation": false,
+    "ok_status": [
+     "none",
+     "hint"
+    ],
+    "note": "explicit=true but a single word: far too ambiguous to propose anything (none, or at most a hint asking for more words)"
+   }
+  }
+ ]
+}

@@ -50,6 +50,8 @@ The commits are listed in `CHANGELOG.md` under "Pre-challenge work".
   the AI comparison is separate (`docs/EVALUATION.md`). Still not done before the challenge: AI extraction on the live site; no successful Gemini call.
 - 1–2 Oct: end- and start-of-quotation boundary rules, the Render service (live URL https://quran-quote-auditor.onrender.com), AI provenance rules (a model's proposal is not evidence of a quotation; a model's span never replaces a deterministic finding), live checks with real Groq calls, usability fixes found in the final review, README, presentation and video drafts, public repository. All pre-challenge; see `CHANGELOG.md` and `docs/TEST_LOG.md`.
 
+- 3 Oct (afternoon): the writing workspace — the article stays editable during review, verse suggestion while typing from the Quranpedia text (no model), stale-decision handling and recheck, the 20,000-character limit, three trust pages, two new evaluation sets and a long-article set, length measurements. Committed on 3 Oct 2026 before 09:00 on 4 Oct: **pre-challenge** (see `CHANGELOG.md`).
+
 ## How to see challenge-period changes
 
 ```bash

@@ -1,0 +1,250 @@
+{
+ "python": "3.14.7",
+ "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+ "rss_after_index_mb": 75.4,
+ "rows": [
+  {
+   "workload": "eval-concat",
+   "chars": 6000,
+   "median_s": 0.389,
+   "max_s": 0.398,
+   "findings": 64,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 251,
+   "rss_mb": 83.1
+  },
+  {
+   "workload": "eval-concat",
+   "chars": 10000,
+   "median_s": 0.619,
+   "max_s": 0.628,
+   "findings": 107,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 414,
+   "rss_mb": 83.8
+  },
+  {
+   "workload": "eval-concat",
+   "chars": 15000,
+   "median_s": 0.95,
+   "max_s": 0.952,
+   "findings": 150,
+   "capped": 5,
+   "search_truncated": false,
+   "response_kb": 581,
+   "rss_mb": 85.6
+  },
+  {
+   "workload": "eval-concat",
+   "chars": 20000,
+   "median_s": 1.211,
+   "max_s": 1.214,
+   "findings": 150,
+   "capped": 47,
+   "search_truncated": false,
+   "response_kb": 581,
+   "rss_mb": 86.1
+  },
+  {
+   "workload": "mushaf-run",
+   "chars": 6000,
+   "median_s": 0.39,
+   "max_s": 0.398,
+   "findings": 2,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 35,
+   "rss_mb": 86.7
+  },
+  {
+   "workload": "mushaf-run",
+   "chars": 10000,
+   "median_s": 0.589,
+   "max_s": 0.597,
+   "findings": 1,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 30,
+   "rss_mb": 86.7
+  },
+  {
+   "workload": "mushaf-run",
+   "chars": 15000,
+   "median_s": 0.864,
+   "max_s": 0.866,
+   "findings": 2,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 34,
+   "rss_mb": 86.7
+  },
+  {
+   "workload": "mushaf-run",
+   "chars": 20000,
+   "median_s": 1.184,
+   "max_s": 1.185,
+   "findings": 2,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 59,
+   "rss_mb": 86.7
+  },
+  {
+   "workload": "freq-soup",
+   "chars": 6000,
+   "median_s": 1.374,
+   "max_s": 1.386,
+   "findings": 0,
+   "capped": 0,
+   "search_truncated": true,
+   "response_kb": 1,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "freq-soup",
+   "chars": 10000,
+   "median_s": 1.396,
+   "max_s": 1.399,
+   "findings": 0,
+   "capped": 0,
+   "search_truncated": true,
+   "response_kb": 1,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "freq-soup",
+   "chars": 15000,
+   "median_s": 1.442,
+   "max_s": 1.446,
+   "findings": 0,
+   "capped": 0,
+   "search_truncated": true,
+   "response_kb": 1,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "freq-soup",
+   "chars": 20000,
+   "median_s": 1.47,
+   "max_s": 1.471,
+   "findings": 0,
+   "capped": 0,
+   "search_truncated": true,
+   "response_kb": 1,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA01-knowledge-essay",
+   "chars": 14654,
+   "median_s": 0.764,
+   "max_s": 0.768,
+   "findings": 27,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 97,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA02-trade-ethics-column",
+   "chars": 14188,
+   "median_s": 0.753,
+   "max_s": 0.765,
+   "findings": 26,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 102,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA03-technology-and-the-heart",
+   "chars": 14700,
+   "median_s": 0.757,
+   "max_s": 0.757,
+   "findings": 21,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 76,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA04-patience-column",
+   "chars": 8382,
+   "median_s": 0.445,
+   "max_s": 0.447,
+   "findings": 17,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 59,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA05-family-essay",
+   "chars": 8818,
+   "median_s": 0.427,
+   "max_s": 0.435,
+   "findings": 16,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 60,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA06-environment-feature",
+   "chars": 8791,
+   "median_s": 0.488,
+   "max_s": 0.499,
+   "findings": 20,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 71,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA07-time-sermon",
+   "chars": 8149,
+   "median_s": 0.454,
+   "max_s": 0.454,
+   "findings": 18,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 67,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA08-charity-footnotes",
+   "chars": 8178,
+   "median_s": 0.409,
+   "max_s": 0.418,
+   "findings": 21,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 74,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA09-neighbours-letters",
+   "chars": 8060,
+   "median_s": 0.4,
+   "max_s": 0.4,
+   "findings": 20,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 79,
+   "rss_mb": 86.8
+  },
+  {
+   "workload": "long-set:LA10-youth-graduation-speech",
+   "chars": 8436,
+   "median_s": 0.443,
+   "max_s": 0.452,
+   "findings": 20,
+   "capped": 0,
+   "search_truncated": false,
+   "response_kb": 78,
+   "rss_mb": 86.8
+  }
+ ],
+ "peak_rss_mb": 86.8
+}

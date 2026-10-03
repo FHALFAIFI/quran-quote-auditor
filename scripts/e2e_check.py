@@ -75,10 +75,11 @@ def main(base: str) -> int:
                     print(f"      no automatic fix: {f['correction']['reason']}")
             print(f"  stats={data['stats']}")
 
+        limit = c.get(f"{base}/api/health").json()["max_chars"]
         print("\n=== error handling")
         cases = [
             ("empty article", {"article": "  "}, 400),
-            ("too long", {"article": "ا" * 7000}, 400),
+            ("too long (limit + 1)", {"article": "ا" * (limit + 1), "ai": False}, 400),
             ("wrong field", {"text": "x"}, 422),
         ]
         for name, body, want in cases:
@@ -91,6 +92,25 @@ def main(base: str) -> int:
         failures += r.status_code != 422
         r = c.post(f"{base}/api/audit", json={"article": "<img src=x onerror=alert(1)> ﴿اقرأ باسم ربك الذي خلق﴾"})
         print(f"  markup in article: HTTP {r.status_code}; echoed article field: {'article' in r.json()}")
+        # at the limit exactly: accepted (the model is never asked: "ai": false)
+        r = c.post(f"{base}/api/audit", json={"article": ("قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 6]. " * 400)[:limit], "ai": False}, timeout=120)
+        ok = r.status_code == 200 and r.json()["ai"]["outcome"] in ("skipped_writer", "not_configured")
+        failures += not ok
+        print(f"  article of exactly {limit} characters, model off: HTTP {r.status_code} {'OK' if ok else 'FAIL'}")
+        print("\n=== verse suggestion and trust pages")
+        r = c.post(f"{base}/api/suggest", json={"before": "قال تعالى: وما خلقت الجن والإنس إلا", "request_id": 5})
+        j = r.json()
+        ok = r.status_code == 200 and j["request_id"] == 5 and j["status"] == "suggest" and j["choices"][0]["to_text"] == "ليعبدون"
+        failures += not ok
+        print(f"  /api/suggest: HTTP {r.status_code} status={j.get('status')} first={j.get('choices', [{}])[0].get('to_text')} {'OK' if ok else 'FAIL'}")
+        r = c.post(f"{base}/api/suggest", json={"before": "ا" * 5000})
+        failures += r.status_code != 422
+        print(f"  /api/suggest with 5000 characters: HTTP {r.status_code} (expected 422)")
+        for path in ["/sources", "/privacy", "/limitations"]:
+            r = c.get(base + path)
+            ok = r.status_code == 200 and "<h1>" in r.text and "قيد الإعداد" not in r.text
+            failures += not ok
+            print(f"  {path}: HTTP {r.status_code} {'OK' if ok else 'FAIL'}")
         print("\n=== files that must NOT be served")
         for path in ["/.env", "/.env.local", "/.env.example", "/app/config.py", "/requirements.txt", "/eval/cases.json",
                      "/tests/fixtures/hafs_subset.json", "/static/../app/config.py", "/static/%2e%2e/app/config.py", "/.git/config", "/.vercel/project.json"]:

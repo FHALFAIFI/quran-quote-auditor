@@ -482,3 +482,90 @@ The rules were checked against whole Uthmani texts, with the held-out verses exc
 
 **How far this can be trusted.** The fix was written after seeing this case in this set, so the 3 / 6 is **not** an independent measurement: it shows that one concrete defect is gone and that nothing else moved on the 121 labelled quotations of the five other sets; it says nothing about how often real three-word misquotations occur. The sets are small, author-written (same workflow as the app) and still await a human reviewer.
 
+
+## Verse suggestion while writing (3 Oct 2026, no AI, no network but the cached Quranpedia text) — pre-challenge
+
+`POST /api/suggest` (`app/suggest.py`) looks the words before the caret up in the loaded Quranpedia text and proposes the next words of a verse
+(*continue*), the end of a word being typed (*complete_word*), a probable correction of the last word (*replace*) or words left out (*insert*). It never
+calls a model. Two frozen sets of 129 cases each (76 expect a suggestion, 14 are ambiguous or repeated openings, 39 expect silence), scored by
+`eval/run_suggest_eval.py` (judging rules in its docstring; label validity by `eval/validate_suggest_cases.py`, independent of the app's matching code).
+
+**Neither set is independent evidence.** Both were written by AI-assisted workflows and **no human Arabic or Quran specialist has reviewed the labels**.
+
+| Set | File (SHA-256 sidecar) | Provenance | Status |
+|---|---|---|---|
+| A | `eval/suggest_cases_20261003.json` | Found uncommitted in the working tree at 15:16 on 3 Oct, author not established. It claimed to be "blind to the implementation", but its file time is later than `app/suggest.py`'s, so that claim is **unverified and not relied on**. The claim was replaced by this statement in its `_about` before freezing. | **Development set.** Rules were changed after run 1 (below). |
+| B | `eval/suggest_cases_b_20261003.json` | Written by a separate AI subagent in a fresh context, instructed not to read `app/suggest.py`, `suggest-ui.js`, `app.js`, the suggestion tests or call the endpoint; gold ayahs disjoint from A's. The agent reported it opened none of them; I cannot prove it. Frozen (checksum) before it was run. | **Run once**, on the final rules, after which no rule was touched. |
+
+### Set A, four runs (a development set: the changes between runs are listed, so the later numbers are not held-out)
+
+| Run | Code | Hits (of 76) | False suggestions on the 39 silence cases | Ambiguous/repeated (14): safe | Corrections right (of 22) |
+|---|---|---|---|---|---|
+| 1 | the code as found | 71 (1 *wrong verse*, 4 missed) | 0 | 14 (0 confident single choice) | 20; **1 was an exact continuation from the wrong verse** (SG-046) |
+| 2 | + a long exact beginning beats a short match of the whole run elsewhere; a wrong last word is a probable correction also while it is still being typed (the brief's «لعبادتي ← ليعبدون» had returned nothing) | 73 | 0 | 14 | 22 |
+| 3 | + an explicit request gets the lowest word bar (it had been held to the 3-word bar of "a Quran cue earlier in the sentence") | 74 | 0 | 14 | 22 |
+| 4 | final, nothing changed since 3 | 74 | 0 | 14 | 22 (0 shown as exact) |
+
+Changes 2 and 3 were made because of defects found while exercising the feature (the brief's own example, SG-044/046, then a UI test of the explicit action),
+not by lowering a threshold. Result files: `eval/results/suggest-20261003-*-suggest_cases_20261003-*.json`.
+The two remaining misses (SG-012, SG-109) are conservative silences («قل هو الله» is common; a phrase containing the formula «محمد رسول الله» is held back).
+
+### Set B, one run on the final rules
+
+| Measure | Result |
+|---|---|
+| Detection: expected suggestion given, right verse, right words, right kind | **71 of 76 (93.4%)**; 0 wrong words, 0 wrong verse |
+| False suggestions where silence was expected (hadith/du'a/proverb cues, everyday formulas, text after a closed quotation, no cue, complete verses, one word) | **0 of 39** (32 of the 39 end in a Quran-looking sequence) |
+| Ambiguous and repeated openings | **14 of 14 safe**: 11 offered several verses and flagged them, 3 stayed silent; 0 answered with one confident choice |
+| Correction quality (wrong word, left-out word) | **19 of 22 (86.4%)**; all 19 shown as *probable*; none as exact; 3 missed |
+| Lookup time (in-process, this laptop) | median 1.4 ms, p95 2.7 ms, max 14 ms |
+
+The five misses are all silences, never a wrong suggestion. SG-009 and SG-055: the cue vocabulary does not know «في التنزيل العزيز» or «في كتاب الله»; SG-010: «وقوله تعالى حكايةً عن يعقوب:»
+is not read as a lead-in when extra words come before the colon; SG-047 and SG-061: a three-word anchor made of common words falls under the rarity bar for a correction (SG-061 is checked only as far as
+`best_anchor` = 3 words; I did not trace the mass value). **Not fixed, deliberately**, so that B stays untouched; they are the first item of the roadmap (fresh set C needed to measure any change).
+
+### What these numbers do not show
+
+Whether a writer accepts, ignores or is annoyed by a suggestion (no user study); behaviour on text outside these sets; the effect of a writer's own spelling habits beyond the cases written; any gain in speed.
+The browser behaviour (acceptance only by Tab/click/tap, dismissal, stale answers cancelled, no request during ordinary prose) is covered by `scripts/ui_suggest_e2e.mjs`, not by these sets.
+
+## Long articles, second set (3 Oct 2026, fallback only, no Groq) — pre-challenge
+
+`eval/articles_long_20261003.json` (SHA-256 in the `.sha256` sidecar; validator `eval/validate_articles_long_20261003.py`, independent of the app's matching code, prints `labels OK`):
+10 articles of 8,060–14,700 characters (102,356 in all), 191 gold quotations from 65 surahs (96 marked, 95 unmarked; 123 worded correctly, 68 with an error; 8 in Uthmani script), 45 negatives, 33 formulas.
+Written by a separate AI subagent in a fresh context under the same "do not read the detector" rules as suggestion set B (it reports it did not open `app/audit.py`, `phrases.py`, `verifier.py`, `suggest.py`), **disjoint from the gold ayahs of `articles_frozen.json`**.
+Its `_about` discloses that a few prose passages were reworded after the validator listed Quran-like runs in them. AI-written, **not human-reviewed**; run once, nothing tuned afterwards.
+It is the first set with articles longer than 6,000 characters; the longest is 14,700, so **nothing between 14,700 and 20,000 characters was evaluated for accuracy** (that range was only measured for time and memory, below).
+
+Run: `python eval/run_eval.py --mode fallback --cases eval/articles_long_20261003.json --tag long-20261003-first-run` → `eval/results/fallback-20261003-164630-long-20261003-first-run.json`.
+
+| Measure | Result |
+|---|---|
+| Detection (a finding at the right place) | **186 of 191 (97.4%)**; marked 96/96; unmarked **90/95**; short quotations 20/24; Uthmani 8/8 |
+| Wording: a misquotation reported "matched" | **0** |
+| Wording graded right / abstained («غير مؤكد») / wrong | 169 / 17 / 0 of the 186 detected |
+| Corrections offered | wording: 29 right, **0 wrong**, 38 review-only; reference: 12 right, **0 wrong**; 0 corrections proposed to a correct quotation or reference |
+| Confirmed verdicts on negatives or formulas | **0** (2 negatives and 3 formula fragments were shown as «possible», never as confirmed) |
+| Other Quran-like phrases shown as «possible» that are ordinary prose | 15 in 102,356 characters (about one per 6,800 characters), none confirmed |
+| Reference "matched" where the label says "missing" | **4 by the runner's count** (see below) |
+| Time per article (in-process, this laptop) | mean 0.58 s, max 1.18 s |
+
+**The four references.** In each (`LA01` «ولا تقف ما ليس لك به علم», `LA06` «وأنزلنا من السماء ماء طهورا», `LA07` «وَجَعَلْنَا اللَّيْلَ وَالنَّهَارَ آيَتَيْنِ» and «أَوَلَمْ نُعَمِّرْكُمْ…») the prose names the **correct surah** just before the quotation
+(«في سورة الإسراء: …»). The author labelled the reference "missing" while the program, under the policy of the older sets (`eval/run_eval.py`: a surah named without an ayah confirms an unambiguous quotation), reports "matched".
+They are a disagreement between a label and a documented policy, not a wrong ayah; I did not change the frozen labels, and a reviewer may reasonably prefer "uncertain" for a surah-only mention (roadmap).
+**Five missed quotations** (e.g. «فَاسْتَبِقُوا الْخَيْرَاتِ», two words, repeated in the Quran, footnote reference) are short or repeated phrases without markers; they are the known limit of the unmarked search.
+Reference abstentions (50) are mostly «difference» quotations: the reference stays «غير محسومة» until the wording is settled, by design.
+
+### Length: measured, not assumed (`scripts/measure_length.py`, `eval/results/length-20261003-local.json`; macOS arm64, Python 3.14, AI off, median of 3, fresh process)
+
+| Input | Characters | Audit time | Findings | Response | Process memory |
+|---|---|---|---|---|---|
+| Real long articles (set above) | 8,060–14,700 | 0.40–0.76 s | 16–27 | 59–102 KB | 86.8 MB at the end of all runs |
+| Dense (the older eval articles joined: 64 quotations per 6,000 characters) | 6,000 / 10,000 / 15,000 / 20,000 | 0.39 / 0.62 / 0.95 / 1.21 s | 64 / 107 / 150 / 150 | up to 581 KB | 83–86 MB |
+| 20,000 characters of running mushaf text, no markers | 20,000 | 1.18 s | 2 | 59 KB | 86.7 MB |
+| Pathological: the 60 most frequent Quran words in a row | 6,000–20,000 | 1.37–1.47 s | 0 | 1 KB | 86.8 MB; **stops at the search's work budget and says so** |
+
+Findings: time grows about linearly (about 60 µs per character); one source download per server start whatever the length (no per-quotation network call); the dense input reached the 150-passage cap, which previously dropped the rest **silently**
+(fixed: a warning now says how many passages were left out and the line where the list stops). `MAX_SEED_STEPS` was doubled (80,000 → 160,000) for the 20,000-character limit; the test that real mushaf text of that length is searched in full still passes.
+**Not measured: Render.** Render Free has far less CPU than this laptop; the numbers are local. The limit is therefore stated as measured here and re-checked on Render after deployment (see TEST_LOG).
+The model is asked only about articles up to 6,000 characters (`AI_MAX_ARTICLE_CHARS`), because Groq's free tier refuses larger requests; a longer article is audited in full without it and the result says so.

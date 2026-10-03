@@ -1,8 +1,9 @@
 # مدقق الاقتباسات القرآنية — Quran Quotation Auditor
 
-An Arabic, right-to-left web tool that checks the **wording** and the **reference** of Quran quotations in a short
-Arabic article or social post against the Hafs text served by [Quranpedia](https://quranpedia.net), proposes corrections
-taken only from that text, and lets an editor approve them one by one.
+An Arabic, right-to-left **writing workspace** for people who quote the Quran. You write or paste an article (up to 20,000 characters);
+when you start a verse after «قال تعالى» or inside ﴿ ﴾ it can suggest the next words **from the Hafs text served by [Quranpedia](https://quranpedia.net)**,
+and when you ask for a check it compares the **wording** and the **reference** of every quotation with that text, proposes corrections taken only from it,
+and lets you approve them one by one while the article stays on the page and editable. A language model is optional and never a source of Quran text.
 
 **AI Challenge Serving Islamic Content 2026 — Track 4: knowledge and verification tools.**
 
@@ -16,6 +17,7 @@ taken only from that text, and lets an editor approve them one by one.
 > `pre-challenge-baseline` marks the first baseline commit, and every later commit dated before 4 October (the Groq
 > provider, the editor workflow, the unmarked-phrase search, the boundary rules, the AI-provenance rules, the Uthmani-script matching and the interface revision of 2 October) is also
 > pre-challenge work. Only work committed during 4–6 October 2026 counts as challenge work.
+> The **writing workspace** (verse suggestion while typing, editing and rechecking after an audit, the 20,000-character limit, the three trust pages) was built on **3 October 2026** and is also pre-challenge if committed before 4 October 09:00 Riyadh: the commit dates in `git log` and the CHANGELOG decide, not this sentence.
 > See [BASELINE.md](BASELINE.md) and [CHANGELOG.md](CHANGELOG.md).
 > Built by one participant with Claude Code as a coding assistant; Claude is not used at runtime.
 
@@ -32,6 +34,18 @@ taken only from that text, and lets an editor approve them one by one.
 | **Resources to continue** | [docs/PILOT.md](docs/PILOT.md): a proposed pilot with one content team, what would be measured, what it costs to host and call the model, and what is still unknown. No partner, user, funding or organisation exists today. |
 
 Value innovation, kept to four moves: **remove** unapproved automatic changes; **reduce** repeated manual checking (not measured, so no time-saving figure is claimed); **raise** source visibility and honesty about uncertainty (each verse links to Quranpedia; «غير محسوم» and «يحتاج مراجعة» are first-class states); **create** an approval-based path from the original text to a revised text and a review record.
+
+## Writing workspace (3 Oct 2026)
+
+| Before (build `fe7ef19`) | Now |
+|---|---|
+| The article was pasted, audited, then folded away; a second look meant re-pasting. 6,000 characters. | The article stays on the page, editable, with the quotations marked behind the words; click or move the caret into a mark and its decision opens beside it. Up to **20,000 characters** (about 3,000 words; measured below). |
+| Nothing helped while writing. | After «قال تعالى» or ﴿ and the first words of a verse, a box under the caret offers the next words **from the Quranpedia text** with the surah and ayah. **Tab**, a click or a tap inserts; typing on, moving the caret or Esc dismisses. «لعبادتي» after «إلا» is shown as a *possible* correction «لعبادتي ← ليعبدون», never applied by itself; ambiguous openings list several verses and preselect none; a short excerpt is offered, the rest of the verse only on request. «أكمل من المصحف» (or Alt+Q) asks on demand. |
+| A fresh audit reset every decision. | **Recheck** keeps a decision only for a quotation whose words, place and neighbourhood did not change; a quotation you edited is marked stale, loses its decision and says so. The copied text and the printable record always describe the latest text. |
+| Drafts lived in the tab. | Saving a draft in the browser is an explicit button (plus delete and export); nothing is stored on the server. |
+| No privacy or limits page. | Separate pages: [المصادر](app/static/sources.html), [الخصوصية](app/static/privacy.html), [الحدود](app/static/limitations.html) (served at `/sources`, `/privacy`, `/limitations`), linked from the header, the footer and the paste box. |
+
+The model (Groq) is optional per audit («استخدام الذكاء الاصطناعي» in the options), is not used for an article over 6,000 characters, and **is never involved in suggestions**.
 
 ## What it does
 
@@ -82,6 +96,8 @@ Rerun on 2 October 2026 with `eval/run_eval.py --mode fallback`; labels unchange
 | Held-out, 4 articles (development data) | 6 | 6 | 3 of 6 read "uncertain" (boundary not settled) |
 | Frozen, 49 articles (written and checksummed before the search was built) | 32 unmarked | 30 | 2 missed; 12 of the 30 found read "uncertain"; 2 of 28 non-Quran texts shown as «possible», none shown as confirmed; 0 misquotations reported "matched" |
 | **Uthmani, 50 articles** (excerpts of the Tanzil Uthmani text, SOURCES.md §1b; written and checksummed before any Uthmani code; **no longer untouched after its first run; the labels were not edited after the freeze and 4 of them disagree with the program: `u32`, `u09`, `u10`, `u19`, see docs/UTHMANI.md**) | 49 (41 correct, 8 wrong) | 48 | correct: 37 «matched», 2 «uncertain» (boundary rule), 1 «difference» (label error: the quote omits a word), 1 not found (formula); wrong-labelled: 8 «difference», **0 «matched»**; wrong references flagged 4/4; automatic corrections given to correct quotations **30 → 1** (that one is the label error). Before the change: 1 «matched», 30 corrections |
+| **Long articles, 10 (8,060–14,700 characters; AI-written, unreviewed; run once, no AI)** (`eval/articles_long_20261003.json`) | 191 (95 unmarked) | 186 (90 of the 95 unmarked) | 0 misquotations reported "matched"; 0 wrong corrections; 15 extra «possible» items in 102,356 characters; 4 references "matched" where the label says "missing" (the prose names the right surah: label vs documented policy, docs/EVALUATION.md) |
+| **Verse suggestion, set B (blind-authored by a subagent, run once, no AI)** (`eval/suggest_cases_b_20261003.json`) | 76 expected suggestions, 39 expected silences, 14 ambiguous | 71 suggestions right | 0 of 39 false suggestions; 0 confident single choice on 14 ambiguous; corrections 19 of 22, all shown as «possible», none as exact. Development set A: 74/76, 0/39, 22/22 (rules were changed after its first run; docs/EVALUATION.md) |
 
 Costs of the cautious rules: many correct unmarked quotations after prose read "uncertain" and need one click to confirm.
 Ordinary Islamic-topic prose produces about 2–3 «possible» items per 1,000 words (Arabic Wikipedia sample, local only). Details, runs that did not count, and limits: [docs/EVALUATION.md](docs/EVALUATION.md). Dated end-to-end logs, including the live Render checks: [docs/TEST_LOG.md](docs/TEST_LOG.md).
@@ -242,7 +258,8 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 | `GROQ_REASONING_EFFORT` | advanced Groq tuning; leave unset | unset |
 | `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS` | optional alternative provider; never succeeded in our tests (503/429) | unset |
 | `AI_TIMEOUT_SECONDS`, `AI_ATTEMPT_TIMEOUT_SECONDS`, `AI_COOLDOWN_SECONDS` | AI time budget and pause after a failure | 12, 8, 60 |
-| `MAX_ARTICLE_CHARS`, `MAX_CANDIDATES`, `RATE_LIMIT_PER_MINUTE` | input limit, candidate cap, per-IP rate limit (per instance) | 6000, 40, 10 |
+| `MAX_ARTICLE_CHARS`, `AI_MAX_ARTICLE_CHARS`, `MAX_CANDIDATES` | audit input limit; the longest article the model is asked about (Groq's free tier refuses larger requests; longer articles are audited without it); passages listed (more are reported, not dropped silently) | 20000, 6000, 150 |
+| `RATE_LIMIT_PER_MINUTE`, `SUGGEST_RATE_LIMIT_PER_MINUTE` | per-IP allowance (per instance) for audits / phrase checks and for verse-suggestion lookups | 10, 240 |
 | `SOURCE_TIMEOUT_SECONDS`, `QURAN_CACHE_DIR`, `QURANPEDIA_CONTACT` | Quranpedia timeout, cache directory, optional contact e-mail added to the User-Agent as Quranpedia's policy requests | 20, temp dir, unset |
 
 > **Note on the Groq output-token limit (3 Oct 2026).** Groq answered HTTP 429 («Request too large … output tokens per minute (OTPM): Limit 1000, Requested 1100–1994») to audits of the live service on 30 Sep–3 Oct 2026 while the app reserved the default 4096 output tokens per request; Groq's own «Requested» figure was never 4096 and its estimate is not documented, so the cause is observed, not proven. On 3 Oct 2026 `GROQ_MAX_COMPLETION_TOKENS=800` was set on Render and two live audits of the demonstration article (one audit, one video take) both answered HTTP 200 (`ai.outcome` ok, 4 proposed, 4 located, 0 added by the model). That is two calls, not a controlled test. The demonstration article needs about 75–90 output tokens, but an answer longer than the cap is cut off and the whole AI result is dropped (the deterministic result stands, AI is skipped for the cooldown), so an article with many quotations may need a higher value. Without a model the app still works and the audit is deterministic. See `docs/TEST_LOG.md` (3 Oct 2026 note) for the record.
@@ -250,7 +267,7 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 ### Tests
 
 ```bash
-python -m pytest -q                      # 351 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
+python -m pytest -q                      # 392 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
                                          # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
 node --test tests/revision.test.mjs      # the revision engine alone
 
@@ -258,7 +275,11 @@ node --test tests/revision.test.mjs      # the revision engine alone
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_journey_e2e.mjs --shots ./shots   # the judge's first journey at 1366, 390 and 320 px: starts its own server with AI off
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs --shots ./shots   # editor workflow, record, XSS, reload (own AI-off server; --server URL for yours)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_long_e2e.mjs --shots ./shots   # 5,809-character article, review sequence, keyboard focus vs the bottom bar, 320 px, URLs in Arabic text, slow/failed server, no findings, model failed
-NODE_PATH=/path/to/scratch/node_modules node scripts/ui_a11y_check.mjs   # axe-core (WCAG 2.2 AA + best practice) over eight states at 320/390/1366 px (needs axe-core installed beside playwright)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_suggest_e2e.mjs --shots ./shots   # verse suggestion while typing: when it speaks, Tab/click/tap, Esc, correction, several verses, stale answers, RTL insertion, IME, 390/320 px
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_workspace_e2e.mjs --shots ./shots   # edit after an audit, stale decisions, recheck, copy/record of the latest text, drafts, a 17,500-character article (typing latency, navigation)
+python scripts/measure_length.py [--url https://host]   # audit time, memory and response size at 6,000-20,000 characters (--url never calls a model)
+python eval/run_suggest_eval.py eval/suggest_cases_b_20261003.json --tag mine   # score the verse-suggestion sets (no AI)
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_a11y_check.mjs   # axe-core (WCAG 2.2 AA + best practice) over 14 states (incl. the suggestion box, the stale state and the three trust pages) at 320/390/1366 px (needs axe-core installed beside playwright)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --shots ./shots   # unmarked-phrase workflow: starts its own server with AI off (no Groq call possible)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --live-ai https://<service> # opt-in: ONE audit = one Groq call; exit 2 = model did not answer
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_boundary_e2e.mjs --shots ./shots   # uncertain-boundary question: confirm, take the word in, choose the words, undo
@@ -312,7 +333,7 @@ A first Vercel deployment (pre-challenge baseline) was blocked from deploying ne
 
 ## Security, privacy and hosting limits
 
-- Input is capped at 6,000 characters (the body size is checked too), with a per-IP rate limit of 10 requests/minute per instance (best effort).
+- Input is capped at 20,000 characters (the body size is checked too), with a per-IP rate limit of 10 audits/phrase checks and 240 suggestion lookups per minute per instance (best effort). Suggestions send only the words around the caret (700 before, 100 after) and only on a Quran cue, an open quotation mark, an explicit request or the writer's own opt-in. What goes where is on the [privacy page](app/static/privacy.html).
 - **Privacy.** Articles are processed in memory and never written to disk or logged by the app; error handlers log only the exception type and the response does not echo the article. Decisions on corrections stay in the browser tab (memory + `sessionStorage`). **When AI is on, the article text is sent to Groq** (US servers) to propose quotation locations; Groq states that it does not retain inference data by default, except up to 30 days for reliability and abuse monitoring (https://console.groq.com/docs/your-data, read 30 Sep 2026), and Zero Data Retention is an organisation setting. Do not paste non-public or sensitive text into the live demo. Quranpedia receives no article text, only one download of the mushaf. Visitors' browsers load fonts from Google Fonts. The host (Render) sees ordinary web-request metadata. The page footer states the main points in Arabic.
 - The frontend inserts all text with `textContent` (never `innerHTML`), and a strict CSP blocks inline scripts. Secrets come only from environment variables; `.env` is git-ignored.
 - **Hosting limits.** Render Free sleeps after about 15 minutes idle (first request up to about a minute, plus one Quran download), has no persistent disk, and shares CPU; Groq's free tier answers 429 when audits come in quick succession (about 2 minutes apart is safe). A production deployment would need a paid host, a paid Groq tier (or Zero Data Retention) and a shared cache. Memory and timing numbers in `docs/EVALUATION.md` were measured locally, not on Render.
@@ -339,7 +360,10 @@ The tool is an aid to an editor, not a substitute for one. A person still has to
 - **A short unmarked misquotation** (e.g. «إن الله مع الصابرون» with no reference and no «قال تعالى») is indistinguishable from prose by evidence: it is listed only as «possible» with its closest verse and a one-click confirm, or missed.
 - **Boundaries.** The tool cannot know where an unmarked quotation starts or ends, so the editor may need to confirm («نعم، هذا هو الاقتباس كاملًا»), take the neighbouring word into the quotation, or choose the words by hand. This makes many correct quotations read "uncertain".
 - **AI may fall back.** On Groq's free tier a 429 can happen; the notice says so and the result is the deterministic one. A model can also propose prose or nothing.
-- **Speed.** A full-size article (about 1,000 words) took about 0.1–0.4 s locally with the phrase search; Render's CPU will be slower (not measured). Memory: a real `uvicorn` process peaked at 94.1 MB locally.
+- **Length.** Limit 20,000 characters. Measured locally (macOS, Python 3.14, AI off): 8,000–14,700 characters of realistic articles 0.4–0.8 s; 20,000 characters 1.2 s; process memory 87 MB; the response of a dense article up to 0.6 MB (`docs/EVALUATION.md`). Accuracy was evaluated only up to 14,700 characters. Render's CPU is slower and was measured separately (`docs/TEST_LOG.md`). An article with more than 150 candidate passages lists the first 150 and says how many were left out.
+- **Verse suggestion.** It speaks only after a Quran cue, an open quotation mark, an explicit request or the writer's opt-in, and needs two distinctive words. Its cue vocabulary is incomplete: on the blind set B it stayed silent for «في التنزيل العزيز» and «في كتاب الله» (71 of 76 suggestions given, 0 of 39 false, 19 of 22 corrections; `docs/EVALUATION.md`). Both sets are AI-written and unreviewed by a specialist.
+- **Editing after an audit.** An edit that touches a quotation, its reference or the neighbouring word makes it stale and drops its decision, also if you undo the edit; the decision is not restored. Pasting over the whole article stales everything. The quotation is read again on «أعد التدقيق».
+- **Browsers.** Tested in Chromium (desktop, 390 and 320 px) with Playwright and axe, and by keyboard; not in Safari or Firefox, not with a real screen reader.
 - Automatic corrections are deliberately conservative: a short fuzzy quote, or a phrase found in several verses, gets review information but no replacement.
 - The source is Quranpedia's Hafs text in standard (imla'i) spelling with full diacritics. Uthmani spellings (e.g. «الصلوة») are matched through documented rules; about 50 rare spellings are not covered, and a few words the imla'i text joins or splits differently (`بَعْدَ مَا` / `بعدما`) are not either: such a quotation reads «uncertain» without a replacement. The Uthmani rasm writes some different imla'i words identically (a plural verb and a singular verb ending in waw), so that confusion cannot be detected in Uthmani text. Only Hafs is supported. Diacritic conventions vary between printed mushafs, so a diacritics difference is a prompt to check, not proof of error.
 - Quotations with omissions («…») are compared as one span, so they show missing words and need review. Quotations under 3 words are never confirmed without a reference and are not searched for automatically (select them by hand). Reference parsing covers common Arabic forms, not every style.
@@ -359,7 +383,8 @@ app/
   surahs.py          surah names, aliases, verse counts (metadata only)
   corrections.py     proposed changes with exact offsets (source words only)
   extraction/        provider interface, Groq + Gemini providers, call tracker, marked-quote extractor
-  static/            index.html, styles.css, app.js, revision.js (browser revision engine), surahs.js (surah names for the «آية أخرى» form), samples/*.txt
+  suggest.py         verse suggestions from the loaded Quranpedia text (no model): triggers, ranking, ambiguity
+  static/            index.html, styles.css, app.js, revision.js (decisions engine), workspace.js (edit tracking, stale handling, decision carry-over), suggest-ui.js (the box under the caret), sources.html / privacy.html / limitations.html, surahs.js, samples/*.txt
 tests/               verifier, references, normalization, pipeline, source, Gemini, Groq, corrections,
                      revision-engine (Node) tests
 scripts/live_smoke.mjs one focused journey of the demonstration article on a running instance (one audit; one Groq call if a model is configured; `--phone` for 390 px)
@@ -374,6 +399,8 @@ scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirm
 scripts/ui_boundary_e2e.mjs Playwright check of the "uncertain boundary" workflow
 scripts/ui_async_navigation_e2e.mjs Playwright check: a late phrase result must not pull the writer back to an earlier quotation
 scripts/measure_resources.py startup time and peak memory (in-process and real uvicorn server)
+scripts/measure_length.py audit time / memory / response size at 6,000-20,000 characters
+scripts/ui_suggest_e2e.mjs, scripts/ui_workspace_e2e.mjs Playwright checks of suggestion while typing, and of editing, stale decisions, recheck, drafts and a long article
 docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
 docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)
 docs/PILOT.md       proposed pilot, operating costs, unknowns (nothing of it has happened)
@@ -382,7 +409,7 @@ docs/TEST_LOG.md     dated end-to-end observations (local + live)
 docs/RENDER_DEPLOY.md Render settings, deploy steps and checks (the live demo's host)
 render.yaml          optional Render Blueprint with the same settings (no secret values)
 vercel.json, .vercelignore  only for the earlier Vercel baseline deployment
-eval/                labelled cases, frozen phrase set and frozen long-article set (+ SHA-256), label validators, scorer, raw results
+eval/                labelled cases, frozen phrase set and frozen long-article sets (+ SHA-256), two verse-suggestion sets (A development, B blind), label validators, scorers (`run_eval.py`, `run_suggest_eval.py`), raw results
 SOURCES.md           sources, licences and attribution record
 BASELINE.md          pre-challenge baseline declaration
 ```
@@ -394,5 +421,5 @@ Each contains some deliberately wrong quotations or references so every status c
 
 Code: MIT (see [LICENSE](LICENSE)). The Quran text is **not** included in this repository; it is fetched from Quranpedia under its usage policy (free, no authentication, one documented request per instance, attribution in the page footer).
 Runtime dependencies are pinned in `requirements.txt` (FastAPI, Starlette, Pydantic, httpx, uvicorn and their dependencies: MIT or BSD-3-Clause; `certifi` is MPL-2.0; `typing_extensions` is PSF-2.0); test dependencies in `requirements-dev.txt` (pytest and plugins: MIT, BSD-2-Clause, Apache-2.0/BSD-2-Clause).
-Fonts (Readex Pro, Amiri Quran) are SIL Open Font License 1.1, loaded from Google Fonts. The organizer's PDFs and PowerPoint template are not included. Groq and Quranpedia are third-party services governed by their own terms.
+Fonts (Readex Pro, Amiri Quran, Noto Naskh Arabic) are SIL Open Font License 1.1, loaded from Google Fonts (which sees the visitor's IP address; stated on the privacy page). The organizer's PDFs and PowerPoint template are not included. Groq and Quranpedia are third-party services governed by their own terms.
 Every source, licence and attribution is listed in [SOURCES.md](SOURCES.md).

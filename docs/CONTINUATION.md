@@ -56,7 +56,7 @@ Staged plan:
 
 ## D. Future direction (idea only — not built, not started, not tested): sharing a post from an iPhone
 
-> **This is not a feature and nothing here works today.** The app takes **pasted text only** (up to 6000 characters) in the browser. It does **not** import a URL or fetch a post, it has no share-sheet or Shortcuts integration, and there is **no iPhone app**. The live demo and the video show none of this.
+> **This is not a feature and nothing here works today.** The app takes **pasted text only** (up to 20,000 characters since 3 Oct 2026; 6,000 before) in the browser. It does **not** import a URL or fetch a post, it has no share-sheet or Shortcuts integration, and there is **no iPhone app**. The live demo and the video show none of this.
 
 The idea: an editor who reads a draft or a post on an iPhone could send it to the checker without copying it by hand, and get the same review list back.
 
@@ -68,4 +68,17 @@ Routes that could be examined, in order of how little they need (feasibility on 
 4. **A native iOS share extension / app.** Needs an Apple developer account, App Review, and a maintained second code base; justified only if a pilot shows steady phone use.
 
 Before any of these: always-on hosting, a model setting that does not retain content (see [PILOT.md](PILOT.md)), and evidence from the pilot that editors want it. The plan promises no date and no deliverable.
+
+## E. Roadmap after the writing workspace (written 3 Oct 2026; priority order, none of it done)
+
+1. **A specialist reads the labels.** All evaluation sets, including the two verse-suggestion sets and the long-article set, are AI-written and unreviewed (`docs/LABEL_REVIEW.md`). Until then no accuracy claim beyond "observed on these sets".
+2. **Teach the cue vocabulary, and measure it on a fresh set C.** Set B showed silence for «في التنزيل العزيز», «في كتاب الله» and a lead-in followed by extra words before the colon. Any change must be measured on a new frozen set, not on A or B.
+3. **Decide the surah-only policy with an editor.** A surah named in the prose («في سورة الإسراء: …») currently confirms an unambiguous quotation's reference ("matched"); the long-set labeller expected "missing". Four references in the long set fall on this.
+4. **A pilot with real editors** (permission first): do they accept suggestions, how many «possible» items per article annoy them, how long a review takes. No time saving is claimed today.
+5. **Self-host the three fonts** (SIL OFL) so a visit sends nothing to Google, then tighten the CSP; the privacy page currently states the Google Fonts request.
+6. **Accuracy between 14,700 and 20,000 characters, and Render under load.** Time and memory were measured to 20,000 characters, accuracy only to 14,700; the host is the free tier.
+7. **Real devices and assistive technology:** Safari, Firefox, a phone keyboard, VoiceOver/TalkBack. Only Chromium, axe and keyboard were tested.
+8. **Smarter stale handling:** restore a decision if an edit is undone, invalidate only the changed boundary word, an outline of paragraphs with open items for very long articles.
+9. **Before real unpublished content:** a model account with zero data retention (or no model), a cross-instance Quran cache, and a paid host.
+10. **Measure the model before claiming anything about it.** In every audit so far it proposed nothing the deterministic path did not already find; keep it optional.
 
