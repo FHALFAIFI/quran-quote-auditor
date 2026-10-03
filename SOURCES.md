@@ -61,7 +61,7 @@ Last reviewed: 2026-10-03 (pre-challenge work; result-file notices corrected on 
 |---|---|---|
 | Readex Pro (Google Fonts) | SIL Open Font License 1.1 | UI text; also the font of the organizer's template |
 | Amiri Quran (Google Fonts) | SIL Open Font License 1.1 | Displaying source verses |
-| Colours: navy `#12183F`, violet `#6150EA`, blue `#3F6FE6`, turquoise `#2EF2C2` and tints | Taken from the challenge template's palette | Challenge branding |
+| Colours: navy `#12183F`, violet `#6150EA`, blue `#3F6FE6`, turquoise `#2EF2C2` and tints | Taken from the challenge template's palette | Challenge branding. The web interface used them until the editorial revision of 3 Oct 2026 and no longer does (it now uses its own paper/ink/green palette); they remain only in the submission slides |
 
 Fonts are loaded from `fonts.googleapis.com`/`fonts.gstatic.com`, so visitors' browsers
 contact Google Fonts. The organizer's PDFs and PPTX are **not** included in this repository (they are git-ignored).

@@ -262,6 +262,7 @@ NODE_PATH=/path/to/scratch/node_modules node scripts/ui_a11y_check.mjs   # axe-c
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --shots ./shots   # unmarked-phrase workflow: starts its own server with AI off (no Groq call possible)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_phrase_e2e.mjs --live-ai https://<service> # opt-in: ONE audit = one Groq call; exit 2 = model did not answer
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_boundary_e2e.mjs --shots ./shots   # uncertain-boundary question: confirm, take the word in, choose the words, undo
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_async_navigation_e2e.mjs   # a slow phrase check finishing after the writer opened another quotation (own AI-off server)
 python scripts/measure_resources.py [--server]       # startup time and peak memory in fresh processes (needs a cached Quran text)
 python eval/validate_phrases.py                       # the frozen phrase set against the Hafs text
 python eval/run_eval.py --mode fallback               # labelled evaluation without any AI (--cases eval/heldout.json | eval/phrases_frozen.json)
@@ -371,6 +372,7 @@ scripts/ui_e2e.mjs   Playwright browser check of the editor workflow, desktop + 
 scripts/ui_phrase_e2e.mjs Playwright check of candidate / "maybe" cards, confirming a verse, manual selection (own AI-off server);
                      `--live-ai URL`: model-on assertions that do not assume a finding count
 scripts/ui_boundary_e2e.mjs Playwright check of the "uncertain boundary" workflow
+scripts/ui_async_navigation_e2e.mjs Playwright check: a late phrase result must not pull the writer back to an earlier quotation
 scripts/measure_resources.py startup time and peak memory (in-process and real uvicorn server)
 docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
 docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)
