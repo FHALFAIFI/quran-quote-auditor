@@ -28,6 +28,8 @@ const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+let auditData = null;
+page.on("response", async (r) => { if (r.url().endsWith("/api/audit") && r.request().method() === "POST") auditData = await r.json().catch(() => null); });
 const shot = async (n) => { if (shots) await page.screenshot({ path: path.join(shots, `${phone ? "phone" : "desktop"}-${n}.png`) }); };
 const inView = (sel) => page.evaluate((s) => { const r = document.querySelector(s)?.getBoundingClientRect(); return !!r && r.top >= 0 && r.bottom <= innerHeight + 1 && r.width > 0; }, sel);
 const t0 = Date.now();
@@ -60,7 +62,22 @@ check((await page.locator("#queue .row.need").count()) === 2, "3 (wrong word) an
 const n = await page.evaluate(() => { const e = document.getElementById("notices"); return { open: [...e.querySelectorAll("details")].filter((d) => d.open).length, text: e.innerText.replace(/\s+/g, " ").trim(), h: Math.round(e.getBoundingClientRect().height) }; });
 console.log(`INFO  notices region: ${n.h}px high, visible text: «${n.text}»`);
 check(n.open === 0, "the audit-method notice is folded");
-check(health.mode === "ai" ? n.text.length <= 70 : n.text.length <= 140, "what is visible of it is one short line");
+// What is visible depends on what THIS audit did (the server's own `mode`), not on what /api/health says is configured:
+//   ai          the model answered: one quiet folded line («كيف جرى هذا التدقيق؟…»)          <= 70 characters
+//   reduced     no model configured: the one-line caveat stays in view                       <= 140
+//   ai_failed   a model is configured but did not answer (e.g. Groq 429): the visible model-failure warning, which must say so
+//               plainly and say what was still done; it is longer by design, so its length is bounded (<= 200), not waived.
+const mode = auditData?.mode;
+console.log(`INFO  audit mode: ${mode}${mode === "ai_failed" ? ` (ai.http_status ${auditData.ai?.http_status}, outcome ${auditData.ai?.outcome})` : ""}`);
+check(["ai", "reduced", "ai_failed"].includes(mode), `the audit response reported a known mode («${mode}»)`);
+if (mode === "ai_failed") {
+  const warn = norm(await page.textContent("#notices .audit-meta.limited .am-line").catch(() => ""));
+  check(warn.startsWith("تعذّر اقتراح الذكاء الاصطناعي هذه المرة") && warn.includes("فُحص المقال بالعلامات وبالبحث في المصحف"), "the model-failure warning is visible and says the model gave no proposals and the audit used the markers and the Quran search");
+  check(n.text.length <= 200, `the model-failure notice stays bounded (${n.text.length} characters)`);
+  check(auditData.ai?.responded === false && auditData.ai?.proposed === 0 && auditData.ai?.added_only === 0, "the response agrees: model did not respond, no proposal, none added");
+} else {
+  check(mode === "ai" ? n.text.length <= 70 : n.text.length <= 140, "what is visible of it is one short line");
+}
 await page.locator("#notices details > summary").click().catch(() => {});
 console.log(`INFO  opened: ${norm(await page.textContent("#notices"))}`);
 await shot("2-notice-open");

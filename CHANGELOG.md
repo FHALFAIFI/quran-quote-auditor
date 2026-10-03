@@ -8,6 +8,7 @@ _Record every change made during the challenge here, with its date. Nothing yet.
 
 | Date | Commit(s) | Change |
 |---|---|---|
+| 2026-10-03 | (this commit) | Docs and test only: `scripts/live_smoke.mjs` takes its notice expectation from the audit's own `mode` (it accepts the visible model-failure warning, still checks everything else); `docs/TEST_LOG.md` records the live journey on build `503ec13` and the three Groq HTTP 429s of 3 Oct. No app code changed. |
 | 2026-10-03 | `6b57015` (written 03:56 on a separate machine, integrated 05:46), `6c8c5cb` (integration fix) | Editorial interface revision: a quieter Arabic writing desk, stronger article/decision hierarchy, fewer competing cards and visible warnings, compact source attribution. A delayed phrase result now preserves the quotation the writer moved to. Windows browser checks normalise clipboard line endings. No detection rules, verse text or AI claims changed. The integration fix (`6c8c5cb`) restores the display of a result for a fresh selection, which the patch had suppressed. |
 | 2026-09-28 | `e864a02` | Shorter AI failure wait: 12 s budget, 8 s per attempt, cooldown |
 | 2026-09-28 | `c2cf42b` | Labelled evaluation set, fallback results, clearer AI status banner |
