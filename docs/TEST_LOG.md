@@ -818,7 +818,7 @@ Every server below had `AI_PROVIDER=none` and no key: **no Groq call and no Rend
 - One flaky failure seen today and explained: a 317 ms frame gap in `ui_workspace_e2e`'s typing check while another browser script ran at the same time; alone it passed (worst gap under 250 ms).
 - **Not tested:** real phones, Safari on iOS, VoiceOver/TalkBack, a live model call, the deployed service with this code, and any session with a real writer.
 
-### Independent diff review and its fixes (4 Oct, about 01:55–02:30)
+### Independent diff review and its fixes (4 Oct, about 01:50–02:27)
 
 A separate reviewer agent (no context from this work) read `git diff 47f224e..HEAD` against the product rules. **High: none** (it checked that `_chunk_bounds` only slices `a.words`, the chain never inserts, the textarea is never rewritten, no wording claims a model answer, and no detection threshold changed; it re-ran `test_suggest_chunks.py` + `test_suggest_full.py`, 58 passed). Medium and low findings, all fixed except where stated:
 
@@ -834,4 +834,4 @@ A separate reviewer agent (no context from this work) read `git diff 47f224e..HE
 10. **The over-limit notice was repeated in the details as «٦٠٠٠»** (no separator, reads as a zero run). It is no longer repeated, and server notices group four-digit numbers («٦٬٠٠٠»); `ui_model_notices_e2e` now includes the server's own notice (simulated).
 11. **The bar's on-screen flag could go stale after a redraw without a scroll** (plausible). `render` and `renderAll` now re-measure it.
 12. **Overlapping approved changes**: the box sorted them by start only, the copy by start and end (plausible edge case). Same order now.
-- **Gates after these fixes (about 02:30–03:10 +03, same setup, no model or Render call):** `pytest` 415 passed (one new test); `node --test` 24; browser suites 0 failures, 0 skipped — `ui_journey_e2e` 167, `ui_e2e` 27, `ui_phrase_e2e` 38, `ui_boundary_e2e` 46, `ui_uthmani_e2e` 32, `ui_long_e2e` 91, `ui_async_navigation_e2e` 5, `ui_suggest_e2e` 200, `ui_workspace_e2e` 137, `ui_final_qa` 141, `ui_counts_e2e` 17, `ui_dock_e2e` 34, `ui_approved_e2e` 78, `ui_possible_order_e2e` 45, `ui_model_notices_e2e` 52, `ui_a11y_check` 54 (axe 0 violations), `ui_crossbrowser` 87 — 1,251 checks. `git diff --check` clean.
+- **Gates after these fixes (about 02:10–02:27 +03, same setup, no model or Render call):** `pytest` 415 passed (one new test); `node --test` 24; browser suites 0 failures, 0 skipped — `ui_journey_e2e` 167, `ui_e2e` 27, `ui_phrase_e2e` 38, `ui_boundary_e2e` 46, `ui_uthmani_e2e` 32, `ui_long_e2e` 91, `ui_async_navigation_e2e` 5, `ui_suggest_e2e` 200, `ui_workspace_e2e` 137, `ui_final_qa` 141, `ui_counts_e2e` 17, `ui_dock_e2e` 34, `ui_approved_e2e` 78, `ui_possible_order_e2e` 45, `ui_model_notices_e2e` 52, `ui_a11y_check` 54 (axe 0 violations), `ui_crossbrowser` 87 — 1,251 checks. `git diff --check` clean.
