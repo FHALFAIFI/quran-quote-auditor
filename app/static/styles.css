@@ -63,7 +63,7 @@ bdi.ltr { unicode-bidi: isolate; direction: ltr; }
 main { padding-top: 22px; padding-bottom: 52px; }
 
 /* the first lines of the page: what to do, in the writer's terms */
-.intro { max-width: 52rem; margin: 0 auto 18px; }
+.intro { max-width: 52rem; margin: 10px auto 18px; }
 .intro h1 { font-size: 1.5rem; font-weight: 600; line-height: 1.45; margin-bottom: 4px; }
 .intro .quran { font-size: 1.15em; line-height: 1; }
 .intro p { color: var(--ink-2); font-size: .98rem; line-height: 1.8; }
@@ -226,8 +226,6 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
 .d-after { background: var(--done-bg); color: var(--done); font-weight: 700; }
 .d-pre { font-size: 1rem; font-family: "Readex Pro", sans-serif; color: var(--ink-2); margin-inline-end: 6px; text-decoration: none; display: inline-block; }
 .d-arrow { color: var(--ink-2); font-size: 1.3rem; align-self: center; margin-top: .9rem; }
-.ch-src { font-size: .85rem; color: var(--ink-2); }
-.ch-src a { display: inline-block; padding: 8px 2px; }
 .actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .actions-row .btn { flex: 1 1 11rem; }
 .decide .actions-row .btn { flex: 1 1 10rem; font-weight: 600; }
@@ -399,7 +397,7 @@ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid v
   /* the bottom bar offers «التالي» here; these stay in the tab order, hidden until one has focus, so a keyboard user (or a desktop at 400% zoom)
      reaches «التالي» with Shift+Tab from the card instead of tabbing through the queue to the end of the page */
   .panel-nav:not(:focus-within) { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .ch-src a, .source-meta a { padding: 10px 2px; }
+  .source-meta a { padding: 10px 2px; }
 }
 
 /* ---- print record ---- */

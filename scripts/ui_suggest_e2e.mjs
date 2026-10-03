@@ -175,6 +175,16 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check(await waitBox(page), "the explicit action still works when automatic suggestions are off");
   await page.check("#opt-suggest");
 
+  // 11b. an input-method composition in progress is left alone, and answered once it ends
+  await reset(page);
+  const n3 = requests.length;
+  await page.evaluate(() => document.getElementById("article").dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true })));
+  await page.keyboard.insertText(LEAD + SIX);
+  await page.waitForTimeout(700);
+  check(requests.length === n3 && (await boxState(page)) === null, "while a composition is in progress nothing is sent and nothing is shown");
+  await page.evaluate(() => document.getElementById("article").dispatchEvent(new CompositionEvent("compositionend", { bubbles: true })));
+  check(await waitBox(page), "when the composition ends the suggestion is asked for and shown");
+
   // 12. touch: tapping «أدرج» inserts, the keyboard stays up (the button never takes focus)
   if (mobile) {
     await reset(page);

@@ -34,6 +34,11 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check((await page.locator("#article-view mark").count()) === 4, "the four quotations are marked in the article");
   const s0 = await state(page);
   const f3 = s0.findings.find((f) => f.id === 3);
+  // the marks are drawn behind the text: moving the caret into a quotation is announced, and its card opens beside the text
+  await caretAt(page, await page.evaluate((cp) => W.cpToUnit(document.getElementById("article").value, cp), f3.start + 2));
+  await page.keyboard.press("ArrowRight"); await page.keyboard.press("ArrowLeft");
+  await page.waitForTimeout(300);
+  check(/داخل الاقتباس/.test(await page.textContent("#sr-live")) && (await page.evaluate(() => String(current))) === "3", `entering a quotation with the caret is announced and opens its card («${norm(await page.textContent("#sr-live")).slice(0, 60)}»)`);
   await page.click('#finding-3 [data-act="approved"]');
   await page.waitForTimeout(300);
   check((await state(page)).findings.find((f) => f.id === 3).changes[0].decision === "approved", "a change is approved");

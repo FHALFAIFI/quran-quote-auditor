@@ -477,9 +477,13 @@ async function runAudit() {
     setStatus("");
     if (recheck) {
       const lost = invalidated.reduce((a, x) => a + x.count, 0);
-      const msg = `أُعيد التدقيق على نصّك الحالي. حُفظ ${toArabicDigits(carryNote.carried)} من قراراتك لاقتباسات لم يتغيّر نصها` +
-        `${lost + carryNote.reset.length ? `، وسقط ${toArabicDigits(lost + carryNote.reset.length)} لأن النص تغيّر` : ""}` +
-        `${movedMeanwhile ? `. عدّلتَ ${toArabicDigits(movedMeanwhile)} موضعًا أثناء التدقيق فأعد التدقيق مرة أخرى` : ""}.`;
+      const dropped = lost + carryNote.reset.length;
+      const parts = [
+        carryNote.carried ? `حُفظ ${toArabicDigits(carryNote.carried)} من قراراتك لاقتباسات لم يتغيّر نصها` : null,
+        dropped ? `سقط ${toArabicDigits(dropped)} لأن النص تغيّر` : null,
+        movedMeanwhile ? `عدّلتَ ${toArabicDigits(movedMeanwhile)} موضعًا أثناء التدقيق فأعد التدقيق مرة أخرى` : null,
+      ].filter(Boolean);
+      const msg = `أُعيد التدقيق على نصّك الحالي${parts.length ? ". " + parts.join("، ") : ""}.`;
       notify(msg, null);
       announce(msg);
       invalidated = [];
@@ -673,11 +677,13 @@ function onCaretMoved() {
   updateSelectionBar();
   const f = caretFinding();
   const id = f ? f.id : null;
-  if (id !== caretId) { caretId = id; renderDock(); }
+  if (id !== caretId) {
+    caretId = id; renderDock();
+    if (f) announce(`داخل الاقتباس ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}. القرار في اللوحة المجاورة.`);   // the marks are drawn behind the text and are not read by a screen reader
+  }
   if (f && String(f.id) !== String(current)) goTo(f.id, { scroll: null, focus: false, quiet: true });
 }
 
-const renderArticle = () => renderBackdrop();
 
 // ---------------------------------------------------------------- the decision panel
 // Move to a finding: the card, the row and the mark follow it. `scroll`: "panel" (bring the card into view), "article" (show it in the text).
@@ -728,7 +734,7 @@ function notify(text, undo) {
 function afterDecision(f, text, undo) {
   saveSession();
   notify(text, undo);
-  renderArticle();
+  renderBackdrop();
   renderFinal();
   const nxt = pendingKind(f) ? null : nextPending(f.id);
   if (nxt !== null) goTo(nxt, { scroll: "panel" });
@@ -736,7 +742,7 @@ function afterDecision(f, text, undo) {
 }
 
 function renderAll() {
-  renderArticle();
+  renderBackdrop();
   renderPanel();
   renderFinal();
   renderDock();
@@ -760,7 +766,7 @@ function setDecision(id, value) {
 function dismiss(f, on = true) {
   if (on) dismissed[f.id] = true; else delete dismissed[f.id];
   saveSession();
-  renderArticle(); renderFinal(); renderDock();
+  renderBackdrop(); renderFinal(); renderDock();
   if (on) {
     notify(`استبعدتَ الاقتباس ${toArabicDigits(f.id)} («${excerpt(f.quote)}»): ليس اقتباسًا قرآنيًا.`, () => dismiss(f, false));
     const nxt = nextPending(f.id);
