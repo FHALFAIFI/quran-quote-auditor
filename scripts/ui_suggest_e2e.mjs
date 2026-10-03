@@ -237,6 +237,79 @@ for (const [name, vp, mobile] of VIEWPORTS) {
     await page.waitForTimeout(200);
     check((await value(page)) === LEAD + SIX + " ليعبدون", "a click on «أدرج» inserts the word");
   }
+
+  // 13. (4 Oct) the first insertion stops before the next clause; the rest of the verse stays one action away
+  const accept = async () => { if (mobile) await page.locator("#suggest .sg-accept").first().tap(); else await page.keyboard.press("Tab"); await page.waitForTimeout(200); };
+  const AMANAT = "إن الله يأمركم أن تؤدوا الأمانات";
+  await reset(page);
+  await typeText(page, LEAD + AMANAT);
+  check(await waitBox(page), "4:58: a suggestion appears after «… أن تؤدوا الأمانات»");
+  st = await boxState(page);
+  const added = await page.evaluate(() => [...document.querySelectorAll("#suggest .w-add")].map((n) => n.textContent).join(" "));
+  check(st && /إلى أهلها/.test(st.text) && !/وإذا حكمتم ب?/.test(st.text.split("النساء")[0]), `it offers «إلى أهلها», not «إلى أهلها وإذا حكمتم» (${st?.text.slice(0, 60)})`);
+  check(added === "إِلَىٰ أَهْلِهَا", `the verse line marks exactly the two words to be inserted («${added}»)`);
+  check(st && /يُدرَج حتى «أهلها»، ثم نقترح ما يليه من الآية/.test(st.text), "before accepting, the box says where the insertion stops and that the rest follows");
+  await shot("4-short-piece");
+  await accept();
+  check((await value(page)) === LEAD + AMANAT + " إلى أهلها", `${mobile ? "a tap" : "Tab"} inserts «إلى أهلها» and nothing after it (${(await value(page)).slice(-30)})`);
+  check(await page.evaluate(() => document.activeElement.id === "article"), "the caret stays in the text");
+  check(await waitBox(page), "the next piece of the verse is offered at once");
+  st = await boxState(page);
+  check(st && /وإذا حكمتم بين الناس/.test(st.text) && /حتى «الناس»/.test(st.text), `the next piece is «وإذا حكمتم بين الناس» (${st?.text.slice(0, 60)})`);
+  await page.keyboard.press("Escape");
+  check((await boxState(page)) === null && (await value(page)) === LEAD + AMANAT + " إلى أهلها", "Escape stops there: the writer keeps exactly «… إلى أهلها»");
+  // the whole verse on request
+  await reset(page);
+  await typeText(page, LEAD + AMANAT);
+  await waitBox(page);
+  if (mobile) await page.locator("#suggest .sg-extend").first().tap(); else await page.locator("#suggest .sg-extend").first().click();
+  await page.waitForTimeout(200);
+  check((await value(page)).endsWith(" إلى أهلها وإذا حكمتم بين الناس أن تحكموا بالعدل إن الله نعما يعظكم به إن الله كان سميعا بصيرا"), "«إلى نهاية الآية» inserts the rest of the verse, from the source");
+  await page.waitForTimeout(500);
+  check((await boxState(page)) === null, "after the verse end nothing more is offered");
+  // the explicit action without a cue: the follow-up comes quietly, as the writer asked for the first piece
+  await reset(page);
+  await typeText(page, AMANAT);
+  await page.waitForTimeout(400);
+  check((await boxState(page)) === null, "without a cue nothing is offered while typing");
+  await page.locator("#complete-btn").click();
+  check(await waitBox(page), "«أكمل من المصحف» offers the first piece");
+  await accept();
+  check((await value(page)) === AMANAT + " إلى أهلها", `the explicit request inserts the same short piece (${(await value(page)).slice(-20)})`);
+  check(await waitBox(page) && /وإذا حكمتم/.test((await boxState(page))?.text || ""), "and the next piece follows without another request");
+  // an ambiguous beginning: each verse's own short piece, nothing chosen for the writer
+  await reset(page);
+  await typeText(page, LEAD + "﴿إن الله يأمركم");
+  await waitBox(page);
+  st = await boxState(page);
+  check(st && st.items === 2 && st.selected === 0 && /أن تذبحوا بقرة/.test(st.text) && /أن تؤدوا الأمانات/.test(st.text) && !/بقرة قالوا/.test(st.text) && !/الأمانات إلى/.test(st.text),
+    `«﴿إن الله يأمركم»: two verses, none preselected, each piece short (${st?.text.slice(0, 120)})`);
+  if (!mobile) {
+    await page.keyboard.press("ArrowDown");   // (Tab with nothing chosen inserts nothing: section 6)
+    await page.keyboard.press("Tab");
+  } else {
+    await page.locator("#suggest .sg-item").first().getByRole("button", { name: "اعرض الآية" }).tap();
+    await page.waitForTimeout(150);
+    await page.locator("#suggest .sg-accept").first().tap();
+  }
+  await page.waitForTimeout(200);
+  check((await value(page)) === LEAD + "﴿إن الله يأمركم أن تذبحوا بقرة", `the chosen verse's piece is inserted, ending before «قالوا» (${(await value(page)).slice(-25)})`);
+  // punctuation: inside «…» and after a comma the piece is the same, with one space before it
+  for (const typed of ["«" + AMANAT, AMANAT + "،"]) {
+    await reset(page);
+    await typeText(page, LEAD + typed);
+    await waitBox(page);
+    await accept();
+    check((await value(page)) === LEAD + typed + " إلى أهلها", `after «${typed.slice(0, 2)}…${typed.slice(-3)}» the piece is inserted with one space`);
+  }
+  // a short verse: the rest is the verse end, and the box promises nothing more
+  await reset(page);
+  await typeText(page, LEAD + "إنا أعطيناك");
+  await waitBox(page);
+  st = await boxState(page);
+  check(st && /الكوثر/.test(st.text) && !(await page.$("#suggest .sg-extend")) && !(await page.$("#sg-next")), "«إنا أعطيناك»: «الكوثر» alone, no «إلى نهاية الآية» and no «ثم نقترح»");
+  await accept();
+  check((await value(page)) === LEAD + "إنا أعطيناك الكوثر", "it is inserted, and nothing follows");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
 }
 finish(server, browser);

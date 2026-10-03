@@ -6,8 +6,9 @@ looked up in the word index that the audit already uses, so a suggestion is exac
 
 What is suggested
     continue       the typed words are the start of a verse (a distinctive exact prefix): the next few words, an exact
-                   continuation. A short chunk (at most ``CHUNK_WORDS`` words, or the rest of the verse when only a few
-                   remain) is offered, never the whole verse unasked; ``extend_text`` carries the remainder.
+                   continuation. A short piece is offered, never the whole verse unasked: it stops at the source's pause
+                   sign or before a new clause and never on a governing particle (``_chunk_bounds``); ``extend_text`` carries
+                   the remainder.
     complete_word  the caret sits inside the last word and it is a proper prefix of the verse's next word.
     replace        the typed words are a distinctive exact prefix, but the last typed word (followed by a space) is not
                    the verse's next word: a *probable* correction, never applied unasked.
@@ -57,6 +58,16 @@ _OPEN_QUOTES = "﴿«“{"
 _CLOSERS_FOR = {"﴿": "﴾", "«": "»", "“": "”", "{": "}", "(": ")", "[": "]"}
 _SENTENCE_END = ".!؟?\n"
 _PAUSE_SIGNS = "ۖۗۘۙۚۛۜ"
+
+# Where a first insertion should stop (folded forms, so a vocalised or Uthmani spelling of the verse is read the same way). A general
+# rule of Arabic syntax, not a list of verses: a word that opens a new clause (a conjunction with a condition, time, negation or a
+# verb of speech; «ثم», «بل»), and a particle that cannot end a phrase because it governs the next word.
+_CLAUSE_OPENERS = frozenset(arabic.folded(w) for w in (
+    "إذا وإذا فإذا إذ وإذ ثم بل لكن ولكن فلما ولما ولو فلو ولولا فإن فإنه ولا فلا "
+    "قال قالوا قالت قل وقال وقالوا وقالت فقال فقالوا فقالت").split())
+_NEEDS_NEXT = frozenset(arabic.folded(w) for w in (
+    "إلى على في من عن أن إن إلا الذي الذين التي ما لا لم لن قد يا أيها إذا إذ لو أو أم بين مع عند لدى حتى كي لكي كل "
+    "وإلى وعلى وفي ومن وعن وأن وإن والذين وما ولا ولم ولن وقد وإذا ثم بل").split())
 
 ARABIC_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 
@@ -161,11 +172,52 @@ def _verse_block(index: QuranIndex, surah: int, ayah_no: int, typed: tuple[int, 
     return {"text": a.text, "words": a.words, "typed": list(typed), "added": list(added), "page_url": ayah_page_url(surah, ayah_no)}
 
 
-def _chunk_bounds(n_words: int, nxt: int) -> tuple[int, int]:
-    """Word range [nxt, end) offered from a verse of ``n_words`` words whose next unwritten word is ``nxt``."""
-    remaining = n_words - nxt
-    take = remaining if remaining <= CHUNK_TAIL else CHUNK_WORDS
-    return nxt, nxt + take
+def _pauses_after(a) -> set[int]:
+    """Indexes of the words of ``a`` that the Hafs text itself follows with a pause sign (ۚ ۖ ۗ …): its own stopping points.
+
+    ``Ayah.words`` has the signs removed, so they are read from ``Ayah.text`` with the same word test as the index. If the two do not
+    line up (an unexpected spelling of the source), no pause is reported rather than a wrong one."""
+    out: set[int] = set()
+    i = -1
+    for piece in a.text.split():
+        if arabic.folded(arabic.literal(piece)):
+            i += 1
+        if i >= 0 and any(ch in _PAUSE_SIGNS for ch in piece):
+            out.add(i)
+    return out if i == len(a.words) - 1 else set()
+
+
+def _chunk_bounds(a, nxt: int) -> tuple[int, int]:
+    """Word range [nxt, end) offered first from verse ``a`` whose next unwritten word is ``nxt``.
+
+    A short piece the writer is likely to want whole, never more than ``CHUNK_TAIL`` words, and the rest one keystroke away:
+      * the source's own pause sign or the verse end, when it comes within ``CHUNK_TAIL`` words;
+      * otherwise before a word that opens a new clause («وإذا», «قالوا», «ثم» …), once at least two words are offered;
+      * otherwise ``CHUNK_WORDS`` words (three when that would strand two words before the stop), never ending on a particle that
+        needs what follows («إلى», «أن», «الذين»): shortened, or lengthened up to ``CHUNK_TAIL`` words when two particles open it.
+    Stopping one clause early costs the writer one more Tab; going one clause too far makes them delete words they did not want."""
+    folds, n = a.folded, len(a.words)
+    if nxt >= n:
+        return nxt, nxt
+    pauses = _pauses_after(a)
+    stop = next((i + 1 for i in range(nxt, n) if i in pauses), n)   # the pause sign or the verse end that comes first
+    window = stop - nxt if stop - nxt <= CHUNK_TAIL else CHUNK_WORDS
+    for end in range(nxt + 2, nxt + window):
+        if folds[end] in _CLAUSE_OPENERS and folds[end - 1] not in _NEEDS_NEXT:
+            return nxt, end
+    end = nxt + window
+    if end == stop:
+        return nxt, end
+    if stop - end <= 2 and folds[end][:1] not in ("و", "ف"):
+        end = nxt + (stop - nxt + 1) // 2   # six words before the stop: three and three, not four and a stranded fragment («إليه راجعون»)
+    k = end
+    while k > nxt + 2 and folds[k - 1] in _NEEDS_NEXT:
+        k -= 1
+    if folds[k - 1] in _NEEDS_NEXT:          # still on a particle («الله عن»): go on to the word it governs instead
+        k = end
+        while k < min(stop, nxt + CHUNK_TAIL) and folds[k - 1] in _NEEDS_NEXT:
+            k += 1
+    return nxt, k
 
 
 class _Style:
@@ -182,7 +234,7 @@ def _choice_from(index: QuranIndex, surah: int, ayah_no: int, nxt: int, typed_en
     a = index.ayahs[(surah, ayah_no)]
     if nxt >= len(a.words):
         return None
-    lo, hi = _chunk_bounds(len(a.words), nxt)
+    lo, hi = _chunk_bounds(a, nxt)
     chunk = a.words[lo:hi]
     rest = a.words[hi:]
     first_ayah = index.streams[surah][pl.pos - pl.length + 1][1] if pl.length > 0 else ayah_no

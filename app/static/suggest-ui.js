@@ -19,6 +19,7 @@
   let dismissedKey = null;    // `${caret}|${tail of before}` of a suggestion the writer dismissed
   let composing = false;
   let busy = false;
+  let chainNext = null;       // after an accepted piece that leaves words in the verse: ask for the next piece quietly, as the writer asked the first time
 
   const toAr = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
   const MARKS = /[ً-ٰٟۖ-ۭـ​-‏]/g;
@@ -54,7 +55,8 @@
     return { value, caret, from, before: value.slice(from, caret), after: value.slice(caret, caret + AFTER_CHARS) };
   }
 
-  async function ask(explicit) {
+  // `quiet`: the follow-up after an accepted piece — no «searching» line, and no hint when nothing follows
+  async function ask(explicit, quiet = false) {
     if (composing) return;
     if (!explicit && ta.selectionStart !== ta.selectionEnd) return hide();
     const ctx = context();
@@ -66,24 +68,24 @@
     if (abort) abort.abort();
     abort = new AbortController();
     busy = true;
-    if (explicit) showMessage("جارٍ البحث في نص المصحف…");
+    if (explicit && !quiet) showMessage("جارٍ البحث في نص المصحف…");
     try {
       const res = await fetch("/api/suggest", {
         method: "POST", headers: { "Content-Type": "application/json" }, signal: abort.signal,
         body: JSON.stringify({ before: ctx.before, after: ctx.after, explicit, distinct: prefs.distinct, request_id: mySeq }),
       });
       if (mySeq !== seq || context().caret !== ctx.caret || context().value.slice(ctx.from, ctx.caret) !== ctx.before) { clearSearching(); return; }
-      if (!res.ok) { if (explicit) showMessage(res.status === 429 ? "طلبات كثيرة؛ انتظر لحظات ثم أعد المحاولة." : "تعذّر الاتصال باقتراحات المصحف الآن."); return; }
+      if (!res.ok) { if (explicit && !quiet) showMessage(res.status === 429 ? "طلبات كثيرة؛ انتظر لحظات ثم أعد المحاولة." : "تعذّر الاتصال باقتراحات المصحف الآن."); return; }
       const data = await res.json();
       // A newer search, a keystroke, a caret move or another selection since the request left: the answer is for text that is gone.
       if (data.request_id !== seq || mySeq !== seq) { clearSearching(); return; }
       const now = context();
       if (now.value.slice(ctx.from, ctx.caret) !== ctx.before || now.caret !== ctx.caret || ta.selectionStart !== ta.selectionEnd && !explicit) { clearSearching(); return; }
       if (data.status === "suggest" && data.choices.length) show({ ...data, base: ctx.from, before: ctx.before, caret: ctx.caret, explicit });
-      else if (explicit) showMessage(hintText(data));
+      else if (explicit && !quiet) showMessage(hintText(data));
       else hide();
     } catch (e) {
-      if (e.name !== "AbortError" && explicit) showMessage("تعذّر الاتصال باقتراحات المصحف الآن.");
+      if (e.name !== "AbortError" && explicit && !quiet) showMessage("تعذّر الاتصال باقتراحات المصحف الآن.");
     } finally {
       if (mySeq === seq) busy = false;
     }
@@ -93,7 +95,7 @@
     clearTimeout(timer);
     if (abort) abort.abort();
     seq++;                                         // an answer to an earlier text can no longer be shown
-    timer = setTimeout(() => ask(false), DEBOUNCE_MS);
+    timer = setTimeout(() => { const c = chainNext; chainNext = null; c ? ask(c.explicit, true) : ask(false); }, DEBOUNCE_MS);
   }
 
   const HINTS = {
@@ -214,7 +216,12 @@
       list.append(item);
     });
     const hint = s.selected < 0 ? el("p", { class: "sg-keys small muted", text: "↓ لاختيار آية، ثم Tab للإدراج" }) : s.choices.length > 1 ? el("p", { class: "sg-keys small muted", text: "↑↓ للتنقّل بين الآيات" }) : null;
-    box.replaceChildren(...[head, list, hint].filter(Boolean));
+    // where the insertion stops and what comes after it, said before the writer accepts (on every screen, not only with a keyboard)
+    const cur = s.choices[s.selected >= 0 ? s.selected : 0];
+    const words = cur && cur.to_text ? cur.to_text.split(/\s+/) : [];
+    const next = s.selected >= 0 && words.length && cur.remaining_words > 0 && (cur.kind === "continue" || cur.kind === "complete_word")
+      ? el("p", { class: "sg-next small", id: "sg-next" }, "يُدرَج حتى «", el("span", { class: "quran", text: words[words.length - 1] }), "»، ثم نقترح ما يليه من الآية.") : null;
+    box.replaceChildren(...[head, list, next, hint].filter(Boolean));
     fit();
   }
 
@@ -228,6 +235,7 @@
     // The text must still be exactly what the suggestion was made for.
     if (ta.value.slice(s.base, s.base + s.before.length) !== s.before || ta.value.slice(startUnit, endUnit) !== c.from_text) { hide(); return; }
     const insert = c.insert_text + (extend && c.extend_text ? c.extend_text : "");
+    const more = !extend && c.remaining_words > 0 && (c.kind === "continue" || c.kind === "complete_word");
     hide();
     ta.focus({ preventScroll: true });
     ta.setSelectionRange(startUnit, endUnit);
@@ -238,9 +246,11 @@
       ta.setRangeText(insert, startUnit, endUnit, "end");
       ta.dispatchEvent(new Event("input", { bubbles: true }));
     }
+    // the insertion's own input event has just scheduled a lookup: make it the follow-up for the next piece (typing in between cancels it)
+    if (more) chainNext = { explicit: !!s.explicit };
     const msg = c.kind === "replace" ? `صُحّحت «${c.from_text}» إلى «${c.to_text}» (${c.label.replace(/\d+/g, toAr)}).`
-      : `أُدرجت من المصحف: «${c.to_text}» (${c.label.replace(/\d+/g, toAr)}).`;
-    announce(msg + " Ctrl+Z يتراجع عنه.");
+      : `أُدرجت من المصحف: «${extend ? c.to_text + c.extend_text : c.to_text}» (${c.label.replace(/\d+/g, toAr)}).`;
+    announce(msg + (more ? " ويُقترح ما يليه من الآية." : "") + " Ctrl+Z يتراجع عنه.");
     document.dispatchEvent(new CustomEvent("qqa:suggestion-accepted", { detail: { kind: c.kind, label: c.label, text: insert } }));
   }
 
@@ -307,7 +317,7 @@
     const optSuggest = $("opt-suggest"), optDistinct = $("opt-distinct");
     if (optSuggest) { optSuggest.checked = prefs.auto; optSuggest.addEventListener("change", () => { prefs.auto = optSuggest.checked; savePrefs(); if (!prefs.auto) hide(); }); }
     if (optDistinct) { optDistinct.checked = prefs.distinct; optDistinct.addEventListener("change", () => { prefs.distinct = optDistinct.checked; savePrefs(); }); }
-    ta.addEventListener("input", () => { hide(); dismissedKey = null; schedule(); });
+    ta.addEventListener("input", () => { hide(); dismissedKey = null; chainNext = null; schedule(); });
     ta.addEventListener("keydown", onKeydown);
     ta.addEventListener("compositionstart", () => { composing = true; hide(); });
     ta.addEventListener("compositionend", () => { composing = false; schedule(); });

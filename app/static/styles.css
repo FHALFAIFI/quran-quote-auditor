@@ -498,6 +498,8 @@ textarea.revised-text:focus { outline: 3px solid var(--accent); outline-offset: 
 .sg-actions:empty { display: none; }
 .sg-actions .btn { min-height: 44px; }
 .sg-keys { margin: 0; }
+.sg-next { margin: 0; color: var(--ink-2); line-height: 1.7; }
+.sg-next .quran { color: var(--ink); font-size: 1.15rem; line-height: 1.6; }
 .sg-msg { margin: 0; line-height: 1.7; }
 .suggest .sg-close { white-space: nowrap; }
 @media (max-width: 900px) {

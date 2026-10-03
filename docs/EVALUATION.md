@@ -524,6 +524,38 @@ The five misses are all silences, never a wrong suggestion. SG-009 and SG-055: t
 is not read as a lead-in when extra words come before the colon; SG-047 and SG-061: a three-word anchor made of common words falls under the rarity bar for a correction (SG-061 is checked only as far as
 `best_anchor` = 3 words; I did not trace the mass value). **Not fixed, deliberately**, so that B stays untouched; they are the first item of the roadmap (fresh set C needed to measure any change).
 
+### 4 Oct 2026: where the first insertion stops (a rule change after both sets had been run; disclosed reruns)
+
+A first-time-writer walkthrough (3 Oct, `docs/TEST_LOG.md`) found that «أدرج» after «… أن تؤدوا الأمانات» inserted «إلى أهلها وإذا حكمتم»: a fixed four
+words that ran into the next clause. The first piece is now chosen from the verse's structure (`_chunk_bounds` in `app/suggest.py`): it stops at the
+pause sign the Hafs text itself carries, or before a word that opens a new clause, and never ends on a particle that governs the next word; the rest of
+the verse is offered next (one more Tab) or at once («إلى نهاية الآية»). Every inserted word is still a word of the chosen verse. No detection, place,
+trigger or correction rule changed.
+
+Across every word position of the 6,236 verses (a property of the rule, not an accuracy measurement):
+
+| | Old rule (four words) | New rule |
+|---|---|---|
+| First pieces that run across a pause sign of the Hafs text | 10,813 | 0 |
+| Mid-verse pieces ending on a governing particle («إلى», «أن», «الذين», «إلا» …) | 10,572 of 48,578 | 31 of 50,898 |
+
+Both frozen sets were rerun on the final rule. **Set A is a development set; set B had been run once (above) and this is a post-hoc rerun after a rule
+change, so neither number is held-out evidence.** Set B was also run once on an intermediate version of the rule (whose last piece could end on «عن» and
+which split «ومن يتوكل على الله | فهو حسبه» too early); its summary was the same as the final one, and its result file was not kept. Neither set was used
+to choose the rule: the two fixes after the intermediate run came from reading the pieces the rule produced, which the sets list.
+
+| Set | Hits (of 76) | Wrong words | Wrong verse | False suggestions (of 39) | Ambiguous safe (of 14) | Corrections (of 22), shown as exact |
+|---|---|---|---|---|---|---|
+| A, run 4 (3 Oct) | 74 | 0 | 0 | 0 | 14 | 22, 0 |
+| A, 4 Oct | **71** | **3** | 0 | 0 | 14 | 22, 0 |
+| B, only run (3 Oct) | 71 | 0 | 0 | 0 | 14 | 19, 0 |
+| B, 4 Oct (post-hoc) | **69** | **2** | 0 | 0 | 14 | 19, 0 |
+
+The five new *wrong words* are one pattern: the source has a pause sign right after the next word, so the first piece is that word alone, which is
+a correct prefix of the two gold words the scorer requires: «والأرض ۚ» (A: SG-004), «لأزيدنكم ۖ» (SG-027), «مصباح ۖ» (SG-107), «السيئة ۚ» (B: SG-006),
+«لهم ۖ» (SG-014). Stopping there is the intended behaviour (the defect was going on into «ولئن كفرتم»), so the rule was kept and the labels and the
+scorer were left as they are. Result files: `eval/results/suggest-20261004-*-chunk-final.json`.
+
 ### What these numbers do not show
 
 Whether a writer accepts, ignores or is annoyed by a suggestion (no user study); behaviour on text outside these sets; the effect of a writer's own spelling habits beyond the cases written; any gain in speed.
