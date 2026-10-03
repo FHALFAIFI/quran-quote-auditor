@@ -122,6 +122,8 @@ textarea.ed-text:focus { outline: 3px solid var(--accent); outline-offset: -4px;
   font-family: "Noto Naskh Arabic", serif; font-size: .74em; line-height: 1.25; font-weight: 600; white-space: nowrap;
   color: var(--done); background: var(--surface); padding: 0 4px; border-radius: 3px; box-shadow: 0 0 0 1px var(--done-line);
 }
+/* a word to add has no characters under it: its label stands at the place, with a thin rule marking where it goes */
+.backdrop .fix.add { outline: 1px solid var(--done-line); }
 .fix-note { margin: 0; font-size: .86rem; color: var(--ink-2); line-height: 1.7; }
 .fix-note b { color: var(--done); font-weight: 600; }
 .backdrop mark.stale { background: var(--stale-bg); text-decoration: underline dashed var(--stale-line); text-decoration-thickness: 1.5px; text-underline-offset: 6px; }

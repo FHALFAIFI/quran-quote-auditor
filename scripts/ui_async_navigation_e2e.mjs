@@ -34,5 +34,16 @@ check((await page.locator("#current article").getAttribute("id")) === opened,
 // (until 4 Oct this read «٧ اقتباسات» in the progress line; two exact-but-common phrases are now counted apart there, so the state is checked)
 check(await page.evaluate((n) => pendingList().length === n - 1, pendingBefore),
   "the earlier quotation was still updated (one fewer open item)");
+// a check that fails: the error is shown on the card and keyboard focus stays on it (4 Oct)
+await page.unroute("**/api/phrase");
+await page.route("**/api/phrase", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "حدث خطأ في الخادم." }) }));
+const target = await page.evaluate(() => { const f = pendingList().find((g) => pendingKind(g) === "bounds"); if (f) goTo(f.id, { scroll: null }); return f?.id; });
+if (target !== undefined) {
+  await page.focus('#current [data-act="confirm-bounds"]');
+  await page.keyboard.press("Enter");
+  await page.waitForSelector("#current .card-error", { timeout: 15000 });
+  check(await page.evaluate(() => document.activeElement?.closest?.("#current") !== null && document.activeElement !== document.body), "a failed check shows its error on the card and focus stays on the card");
+} else check(false, "a boundary question to test a failed check");
+errors.splice(0, errors.length, ...errors.filter((e) => !/500/.test(e)));   // the simulated 500 is logged by the browser
 check(errors.length === 0, `no page errors ${errors.join(" | ")}`);
 finish(server, browser);

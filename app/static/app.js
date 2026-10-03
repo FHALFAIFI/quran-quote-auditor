@@ -58,6 +58,8 @@ const fill = (node, ...kids) => node.replaceChildren(...kids.flat(Infinity).filt
 const toArabicDigits = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
 // a character count with the Arabic thousands separator: «٢٠٬٠٠٠» (the Arabic zero is a dot, so «٢٠٠٠٠» reads as «٢····»)
 const arabicCount = (n) => toArabicDigits(String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "٬"));
+// a server notice in Arabic digits, numbers of four digits or more grouped («٦٬٠٠٠», not «٦٠٠٠»)
+const noticeText = (t) => toArabicDigits(String(t).replace(/\d{4,}/g, (m) => arabicCount(Number(m))));
 const fmtTime = (secs) => new Date(secs * 1000).toLocaleString("ar-u-nu-arab", { dateStyle: "medium", timeStyle: "short" });   // Arabic-Indic digits, as elsewhere on the page
 const motion = () => (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 // a short move may glide; a jump across a long article is instant (smooth scrolling over several screens takes seconds)
@@ -206,7 +208,7 @@ function pendingKind(f) {
 }
 const pendingList = () => activeFindings().filter((f) => pendingKind(f));
 // An exact match of a short or common phrase («في كل عام») that nothing marks as a quotation: the phrase search's own code «common», without
-// a near-miss («approximate»). In the labelled long-article sets about two in five of these were real quotations (4 Oct, docs/EVALUATION.md),
+// a near-miss («approximate»). In the two labelled article sets about two in five of these were real quotations (4 Oct, docs/EVALUATION.md),
 // so they stay listed, marked and reachable; they only wait behind the concrete decisions instead of leading the queue. No detection rule is changed.
 const isWeak = (f) => { const c = f.detection?.codes || []; return !!f.detection?.unconfirmed && c.includes("common") && !c.includes("approximate"); };
 const weakPending = (f) => pendingKind(f) === "verse" && isWeak(f);
@@ -556,7 +558,8 @@ const isModelNote = (n) => /الذكاء الاصطناعي|النموذج/.test
 function auditMeta(data) {
   const ai = data.ai || {};
   // information that asks nothing of the writer (what the model did, short common phrases left unlisted) is one click away
-  const details = (data.notices || []).filter((n) => n.level === "info").map((n) => el("p", { text: toArabicDigits(n.text) }));
+  const details = (data.notices || []).filter((n) => n.level === "info" && !(ai.outcome === "skipped_length" && /أطول من \d+ حرف/.test(n.text)))   // said by the line itself
+    .map((n) => el("p", { text: noticeText(n.text) }));
   let line = null, tone = "plain";
   if (data.mode === "reduced" && ai.outcome === "skipped_length") {
     tone = "limited";
@@ -597,7 +600,7 @@ function render(scroll) {
   $("legend").hidden = false;
   const data = lastResult;
   const notices = $("notices");
-  notices.replaceChildren(...(data.notices || []).filter((n) => n.level !== "info" && !isModelNote(n)).map((n) => el("div", { class: `notice ${n.level}`, text: toArabicDigits(n.text) })));
+  notices.replaceChildren(...(data.notices || []).filter((n) => n.level !== "info" && !isModelNote(n)).map((n) => el("div", { class: `notice ${n.level}`, text: noticeText(n.text) })));
   const meta = auditMeta(data);
   if (meta) notices.append(meta);
   renderVerdict(data);
@@ -608,6 +611,7 @@ function render(scroll) {
   syncEditorHeight();
   updateCount();
   if (scroll) goToFirstReview();
+  updateFinalInView();   // the layout changed without a scroll: the bar must not keep the old answer
 }
 
 // «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك»: the counted noun and the verb agree with the number.
@@ -663,21 +667,22 @@ async function goToFirstReview() {
 // textarea with its native Arabic caret, selection and undo, and sees the marks without any contenteditable machinery.
 // An approved correction is not written into the box (the box keeps the writer's own text, which undo, edit tracking and the recheck rely on).
 // It is drawn the way a proofreader marks a page: the source's word, small, above the writer's word; the copied text carries the change.
-const FIX_MAX = 40;
+const FIX_MAX = 24;   // a longer label is cut with «…» (the box clips what runs past its edge; the card and the copy carry the whole text)
 function fixLabel(c) {
   const d = deltaParts(c);
-  const t = `${d.prefix}${d.after}`;
+  const t = `${c.start === c.end ? "+ " : ""}${d.prefix}${d.after}`;   // a word to add is drawn at its place, marked «+»
   return Array.from(t).length > FIX_MAX ? Array.from(t).slice(0, FIX_MAX - 1).join("") + "…" : t;
 }
-const approvedFixes = () => approvedRows().map(({ c }) => c).filter((c) => !c.optional && c.end > c.start).sort((a, b) => a.start - b.start);
+// the same order as revision.js's plan(), so that of two overlapping changes the box draws the one the copy applies
+const approvedFixes = () => approvedRows().map(({ c }) => c).filter((c) => !c.optional).sort((a, b) => a.start - b.start || a.end - b.end);
 // [a, b) of the article as text, with each approved correction that lies wholly inside it wrapped in a .fix span
 function withFixes(a, b, fixes) {
   const out = [];
   let p = a;
   for (const c of fixes) {
-    if (c.start < p || c.end > b) continue;
+    if (c.start < p || c.end > b || (c.start === c.end && c.start === b && b < ART.length)) continue;   // an insertion at a boundary belongs to the segment that starts there
     if (c.start > p) out.push(cpSlice(p, c.start));
-    out.push(el("span", { class: "fix", "data-to": fixLabel(c) }, cpSlice(c.start, c.end)));
+    out.push(el("span", { class: c.start === c.end ? "fix add" : "fix", "data-to": fixLabel(c) }, cpSlice(c.start, c.end)));   // an insertion adds no character
     p = c.end;
   }
   if (p < b) out.push(cpSlice(p, b));
@@ -830,10 +835,12 @@ function afterDecision(f, text, undo) {
 }
 
 function renderAll() {
+  if (lastResult) renderVerdict(lastResult);   // the headline counts the phrases to confirm, which a decision can settle
   renderBackdrop();
   renderPanel();
   renderFinal();
   renderDock();
+  updateFinalInView();
 }
 
 function setDecision(id, value) {
@@ -855,7 +862,7 @@ function setDecision(id, value) {
 function dismiss(f, on = true) {
   if (on) dismissed[f.id] = true; else delete dismissed[f.id];
   saveSession();
-  renderBackdrop(); renderFinal(); renderDock();
+  renderVerdict(lastResult); renderBackdrop(); renderFinal(); renderDock();   // the headline counts what is dismissed
   if (on) {
     notify(`استبعدتَ الاقتباس ${toArabicDigits(f.id)} («${excerpt(f.quote)}»): ليس اقتباسًا قرآنيًا.`, () => dismiss(f, false));
     const nxt = nextPending(f.id);
@@ -888,7 +895,8 @@ function renderPanel() {
   const idx = f ? fs.indexOf(f) + 1 : 0;
   $("panel-title").textContent = f && pendingKind(f) ? "قرارك الآن" : pend.length ? "مراجعة اقتباس" : "اكتملت قراراتك";
   $("panel-progress").replaceChildren(el("b", { text: openText() }), f ? ` — ${toArabicDigits(idx)} من ${toArabicDigits(fs.length)}` : "");   // not «·»: beside an Arabic digit it reads as a zero («· ٣» looks like «٣٠»)
-  $("panel-nav").hidden = pend.length < 2 && !(pend.length === 1 && f && !pendingKind(f));
+  const nx = nextPending(current);
+  $("panel-nav").hidden = nx === null || String(nx) === String(current);   // shown only when it leads to another quotation
   const undo = $("undo-line");
   undo.hidden = !lastAction;
   if (lastAction) undo.replaceChildren(...undoNodes());
@@ -1348,7 +1356,8 @@ async function requestPhrase(start, end, choice, findingId, why) {
   cardError = null;
   const card = $("current").firstElementChild;
   // disabling the focused button would drop keyboard focus to the page: it waits on the card itself until the answer comes
-  if (card && card.contains(document.activeElement)) card.focus({ preventScroll: true });
+  const hadFocus = !!card && card.contains(document.activeElement);
+  if (hadFocus) card.focus({ preventScroll: true });
   card?.setAttribute("aria-busy", "true");
   card?.querySelectorAll("button").forEach((b) => { b.disabled = true; });
   setStatus("جارٍ فحص المقطع ومقارنته بنص المصحف…", false, true);
@@ -1365,12 +1374,13 @@ async function requestPhrase(start, end, choice, findingId, why) {
       // the offsets in the answer are for the text that was sent; the text has been edited since, so the answer is not applied
       setStatus("تغيّر النص أثناء الفحص فلم يُطبَّق الجواب. أعد الفحص على النص الحالي.", true);
       renderPanel();
+      if (hadFocus) $("current").firstElementChild?.focus({ preventScroll: true });
       return;
     }
     if (!res.ok) {
       const message = data.error || "تعذّر فحص المقطع.";
       setStatus("");
-      if (String(current) === startedOn) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
+      if (String(current) === startedOn) { cardError = message; goTo(findingId, { scroll: null, focus: hadFocus, keepError: true }); }
       else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
       return;
     }
@@ -1382,7 +1392,7 @@ async function requestPhrase(start, end, choice, findingId, why) {
     setStatus("");
     if (gen !== docGen || !lastResult) return;
     const message = "تعذّر الاتصال بالخادم. لم يتغيّر شيء؛ حاول مرة أخرى.";
-    if (String(current) === startedOn) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
+    if (String(current) === startedOn) { cardError = message; goTo(findingId, { scroll: null, focus: hadFocus, keepError: true }); }
     else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
   }
 }
@@ -1503,7 +1513,7 @@ function renderFinal() {
     if (s.type === "text") view.append(...bidi(s.text));
     else if (s.type === "del") view.append(el("del", { title: "قبل", text: s.text }));
     else if (s.type === "ins") view.append(el("ins", { title: "بعد (معتمد)", text: s.text }));
-    else view.append(el("span", { class: "unresolved", title: "اقتباس لم يُحسم — يحتاج مراجعة بشرية" }, bidi(s.text)), el("sup", { class: "unres-mark", text: toArabicDigits(s.id) }));
+    else view.append(el("span", { class: "unresolved", title: weakPending(findingById(s.id) || {}) ? "عبارة تشبه آية لم تؤكّدها — لم يتغيّر فيها شيء" : "اقتباس لم يُحسم — يحتاج مراجعة بشرية" }, bidi(s.text)), el("sup", { class: "unres-mark", text: toArabicDigits(s.id) }));
   }
   $("revised-text").value = text;
   $("reply-text").value = R.replyDraft(fs, changes, decisions);
@@ -1583,7 +1593,7 @@ async function copyRevised() {
   try {
     await navigator.clipboard.writeText(text);
     const pend = mainPendingList().length, weak = weakPendingList().length;
-    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${countAr(pend, "اقتباس واحد لم تقرّر فيه فنُسخ كما كتبتَه", "اقتباسان لم تقرّر فيهما فنُسخا كما كتبتَهما", "اقتباسات لم تقرّر فيها فنُسخت كما كتبتَها", "اقتباسًا لم تقرّر فيها فنُسخت كما كتبتَها")}` : ""}${weak ? `، و${weakText(weak)} نُسخت كما كتبتَها` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط؛ وما بقي غير محسوم يحتاج مراجعتك.`;
+    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${countAr(pend, "اقتباس واحد لم تقرّر فيه فنُسخ كما كتبتَه", "اقتباسان لم تقرّر فيهما فنُسخا كما كتبتَهما", "اقتباسات لم تقرّر فيها فنُسخت كما كتبتَها", "اقتباسًا لم تقرّر فيها فنُسخت كما كتبتَها")}` : ""}${weak ? `، و${countAr(weak, "عبارة واحدة للتأكيد نُسخت كما كتبتَها", "عبارتان للتأكيد نُسختا كما كتبتَهما", "عبارات للتأكيد نُسخت كما كتبتَها", "عبارة للتأكيد نُسخت كما كتبتَها")}` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط؛ وما بقي غير محسوم يحتاج مراجعتك.`;
     copyFeedback($("copy-btn"), $("copy-note"), msg, true);
     announce(msg);
   } catch {
@@ -1618,7 +1628,8 @@ function buildRecord() {
   const pending = changes.filter((c) => !decisions[c.id]);
   const notApplied = changes.filter((c) => decisions[c.id] === "rejected" || (!decisions[c.id] && !c.optional));
   const optionalPending = changes.filter((c) => !decisions[c.id] && c.optional).length;
-  const unresolved = unresolvedNow();
+  const unresolved = unresolvedNow().filter((f) => !weakPending(f));
+  const maybe = weakPendingList();
   const off = allFindings().filter((f) => dismissed[f.id]);
   const kv = (k, v) => el("tr", {}, el("th", { text: k }), el("td", {}, v));
 
@@ -1659,6 +1670,8 @@ function buildRecord() {
       `#${f.id} (السطر ${lineOf(f.start)}) «${f.quote}» — `,
       (f.review_reasons || []).join("؛ ") || (f.correction?.reason || "تصحيح مقترح لم يُعتمد"),
       f.source ? (f.wording.level === "fuzzy" ? ` — أقرب موضع مقترح (غير مؤكد): ${f.source.label}` : ` — الموضع في المصدر: ${f.source.label}`) : ""))) : el("p", { text: "لا يوجد في الاقتباسات المرصودة. (قد توجد اقتباسات لم تُرصد.)" }),
+    maybe.length ? el("h2", { text: "عبارات تشبه آيات لم يؤكّدها المحرر (لم يتغيّر فيها شيء)" }) : null,
+    maybe.length ? el("ul", {}, maybe.map((f) => el("li", { text: `#${f.id} (السطر ${lineOf(f.start)}) «${f.quote}» — ${(f.choices || []).map((c) => c.label).join("، ") || "—"}` }))) : null,
     off.length ? el("h2", { text: "مقاطع استبعدها المحرر (ليست اقتباسًا قرآنيًا)" }) : null,
     off.length ? el("ul", {}, off.map((f) => el("li", { text: `#${f.id} (السطر ${lineOf(f.start)}) «${f.quote}»` }))) : null,
     el("p", { class: "rec-foot", text: "أُعدّ بواسطة مدقق الاقتباسات القرآنية. نص المقال لا يُخزَّن على الخادم؛ هذا السجل مولَّد في المتصفح." }),

@@ -1,4 +1,4 @@
-"""What the «possible» tier holds on the labelled long-article sets: how many of its items overlap a gold quotation, by reason code.
+"""What the «possible» tier holds on the two labelled article sets (a short and a long one): how many of its items overlap a gold quotation, by reason code.
 
     python eval/possible_tier_composition.py [--out eval/results]
 

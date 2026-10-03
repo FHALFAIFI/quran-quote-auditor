@@ -65,9 +65,18 @@ _PAUSE_SIGNS = "ۖۗۘۙۚۛۜ"
 _CLAUSE_OPENERS = frozenset(arabic.folded(w) for w in (
     "إذا وإذا فإذا إذ وإذ ثم بل لكن ولكن فلما ولما ولو فلو ولولا فإن فإنه ولا فلا "
     "قال قالوا قالت قل وقال وقالوا وقالت فقال فقالوا فقالت").split())
-_NEEDS_NEXT = frozenset(arabic.folded(w) for w in (
+# Compared on letters, not on the folded form: folding makes «إليّ», «عليّ» (a pronoun ending, which can end a phrase) look like «إلى», «على».
+_NEEDS_NEXT = frozenset(arabic.letters(w) for w in (
     "إلى على في من عن أن إن إلا الذي الذين التي ما لا لم لن قد يا أيها إذا إذ لو أو أم بين مع عند لدى حتى كي لكي كل "
     "وإلى وعلى وفي ومن وعن وأن وإن والذين وما ولا ولم ولن وقد وإذا ثم بل").split())
+
+
+
+def _needs_next(word: str) -> bool:
+    """A particle that governs the next word, so a piece may not end on it. «بيّن» (a verb, with shadda) is not «بين»."""
+    letters = arabic.letters(word)
+    return letters in _NEEDS_NEXT and not (letters == "بين" and "\u0651" in word)
+
 
 ARABIC_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 
@@ -203,7 +212,7 @@ def _chunk_bounds(a, nxt: int) -> tuple[int, int]:
     stop = next((i + 1 for i in range(nxt, n) if i in pauses), n)   # the pause sign or the verse end that comes first
     window = stop - nxt if stop - nxt <= CHUNK_TAIL else CHUNK_WORDS
     for end in range(nxt + 2, nxt + window):
-        if folds[end] in _CLAUSE_OPENERS and folds[end - 1] not in _NEEDS_NEXT:
+        if folds[end] in _CLAUSE_OPENERS and not _needs_next(a.words[end - 1]):
             return nxt, end
     end = nxt + window
     if end == stop:
@@ -211,11 +220,11 @@ def _chunk_bounds(a, nxt: int) -> tuple[int, int]:
     if stop - end <= 2 and folds[end][:1] not in ("و", "ف"):
         end = nxt + (stop - nxt + 1) // 2   # six words before the stop: three and three, not four and a stranded fragment («إليه راجعون»)
     k = end
-    while k > nxt + 2 and folds[k - 1] in _NEEDS_NEXT:
+    while k > nxt + 2 and _needs_next(a.words[k - 1]):
         k -= 1
-    if folds[k - 1] in _NEEDS_NEXT:          # still on a particle («الله عن»): go on to the word it governs instead
+    if _needs_next(a.words[k - 1]):          # still on a particle («الله عن»): go on to the word it governs instead
         k = end
-        while k < min(stop, nxt + CHUNK_TAIL) and folds[k - 1] in _NEEDS_NEXT:
+        while k < min(stop, nxt + CHUNK_TAIL) and _needs_next(a.words[k - 1]):
             k += 1
     return nxt, k
 

@@ -13,7 +13,8 @@ const fixes = (page) => page.evaluate(() => [...document.querySelectorAll("#arti
   const ps = getComputedStyle(n, "::before"), em = parseFloat(getComputedStyle(n).fontSize);
   const top = r.top + 0.32 * em - parseFloat(ps.height);          // bottom: calc(100% - .32em)
   return { under: n.textContent, to: n.dataset.to, content: ps.content, shown: ps.display !== "none" && ps.color !== "rgba(0, 0, 0, 0)",
-    inside: top >= ed.top - 1 && r.right <= ed.right + 1 && r.left >= ed.left - 1, above: top < r.top };
+    // the label starts at the span's right edge (RTL) and runs left for its own width
+    inside: top >= ed.top - 1 && r.right <= ed.right + 1 && r.right - parseFloat(ps.width) >= ed.left - 1, above: top < r.top };
 }));
 const revised = (page) => page.evaluate(() => { document.getElementById("final")?.querySelector("details.full-text")?.setAttribute("open", ""); return document.getElementById("revised-text").value; });
 
@@ -91,6 +92,19 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   fx = await fixes(page);
   check(!fx.some((x) => x.to === "يوفى"), "after the recheck nothing is drawn for that quotation until the writer decides again");
   check(await page.locator('#current [data-act="approved"]').count() > 0, "its decision is asked again");
+
+  // a correction that adds a missing word has no characters under it: it is drawn at its place, marked «+»
+  const ADD = "وفي فاتحة الكتاب: ﴿الحمد لله العالمين﴾ [الفاتحة: 2].";
+  await page.goto(server.base); await page.evaluate(() => sessionStorage.clear()); await page.reload();
+  await audit(ADD);
+  const kind = await page.evaluate(() => { const c = requiredOf(findingById(current))[0]; return c && { len: c.end - c.start, rep: c.replacement }; });
+  check(kind && kind.len === 0 && /رب/.test(kind.rep), `the missing «رب» is an insertion (${JSON.stringify(kind)})`);
+  check(/عند الاعتماد يظهر «رب» فوق ما كتبتَه/.test(norm(await page.textContent("#current .fix-note").catch(() => ""))), "the card says where «رب» will appear");
+  await tap('#current [data-act="approved"]');
+  await page.waitForTimeout(700);
+  fx = await fixes(page);
+  check(fx.length === 1 && fx[0].under === "" && fx[0].to === "+ رب" && fx[0].shown && fx[0].inside, `the added word is drawn at its place as «+ رب» (${JSON.stringify(fx[0] || {})})`);
+  check((await page.inputValue("#article")) === ADD && /الحمد لله رب العالمين/.test(await revised(page)), "the box is unchanged and the copy has «الحمد لله رب العالمين»");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
 }
 finish(server, browser);

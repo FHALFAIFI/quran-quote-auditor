@@ -12,7 +12,8 @@ const long = (demo + "\n\n").repeat(Math.ceil(6400 / demo.length)).trim();   // 
 const HEALTH = { mode: "ai", ai_configured: true, provider: "Groq (qwen/qwen3.8-27b)", ai_last_call: { outcome: "never_called", cooldown_seconds: 0 } };
 const AI = { configured: true, provider: "groq", model: "qwen/qwen3.8-27b" };
 const SIM = {
-  over: (j) => { j.ai = { ...j.ai, ...AI, outcome: "skipped_length", responded: false }; },
+  over: (j) => { j.ai = { ...j.ai, ...AI, outcome: "skipped_length", responded: false };
+    j.notices = [{ level: "info", text: "لم يُستخدم الذكاء الاصطناعي لأن المقال أطول من 6000 حرف؛ فُحص المقال كاملًا بالعلامات وبالبحث في نص المصحف." }, ...j.notices]; },   // the server's own wording (app/audit.py)
   failed: (j) => { j.mode = "ai_failed"; j.provider = HEALTH.provider; j.ai = { ...j.ai, ...AI, responded: false, outcome: "failed", error: "HTTP 429", http_status: 429, elapsed_ms: 230 };
     j.notices = [{ level: "warning", text: "تعذّر الاستخراج بالذكاء الاصطناعي في هذا التدقيق. عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة." }, ...j.notices]; },
   answered: (j) => { j.mode = "ai"; j.provider = HEALTH.provider; j.provider_model = AI.model; j.ai = { ...j.ai, ...AI, responded: true, outcome: "ok", elapsed_ms: 900, proposed: 2, located: 2, discarded: 0, added_only: 0, also_found: 2, overlapped: 0 }; },
@@ -70,6 +71,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   m = await meta(page);
   check(m && m.lineVisible && /^المقال أطول من ٦٬٠٠٠ حرف، فلم يُسأل النموذج اللغوي\. فُحص كله بالعلامات وبالبحث في المصحف/.test(m.line), `SIMULATED: after it, the line says why the model was not asked («${m?.line.slice(0, 50)}…»)`);
   check(m && !/استجاب|اقترح نموذج/.test(m.visible) && m.errors === 0, "SIMULATED: nothing says the model answered; no error styling");
+  check(m && !/٦٠٠٠|6000/.test(m.detailsText + m.visible) && (m.detailsText.match(/أطول من/g) || []).length === 0, "SIMULATED: the server's own over-limit notice is not repeated in the details (nor its ungrouped «٦٠٠٠»)");
   check(/لم يُستدعَ النموذج لأن المقال أطول من ٦٬٠٠٠ حرف/.test(await record(page)), "SIMULATED: the record says the model was not called, and why");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
   await shot("over-limit");

@@ -66,6 +66,22 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   const head = norm(await page.textContent("#final-pending h3"));
   check(head.startsWith("٧ عبارات للتأكيد — وسيبقى كما كتبتَه"), `the final review lists them as unconfirmed, copied as written («${head}»)`);
   check(await page.evaluate(() => document.getElementById("copy-btn").classList.contains("ready")), "copying is ready: nothing in the phrases changes the text unless the writer confirms one");
+  // settling a phrase updates the headline too (it counted 7)
+  await page.locator("#current .not-quote").first().click();
+  await page.waitForTimeout(500);
+  check(/و٦ عبارات تشبه آيات/.test(norm(await page.textContent("#verdict"))), `after dismissing one phrase the headline says 6 («${norm(await page.textContent("#verdict")).slice(0, 90)}»)`);
+  // with one phrase left «التالي» would only reopen it: it is not offered
+  await page.evaluate(() => { const w = weakPendingList(); for (const f of w.slice(0, w.length - 2)) dismissed[f.id] = true; renderAll(); goTo(weakPendingList()[0].id, { scroll: null }); });
+  check(!(await page.isHidden("#panel-nav")), "with two phrases left «التالي» is offered");
+  await page.evaluate(() => { dismissed[weakPendingList()[1].id] = true; renderAll(); goTo(weakPendingList()[0].id, { scroll: null }); });
+  check(await page.isHidden("#panel-nav"), "with only the open one left, «التالي» and «السابق» are not shown (they would reopen it)");
+  await page.evaluate(() => { delete dismissed[allFindings().filter((f) => dismissed[f.id] && isWeak(f)).pop().id]; renderAll(); });
+  await page.evaluate(() => copyRevised());
+  await page.waitForTimeout(400);
+  check(/وعبارتان للتأكيد نُسختا كما كتبتَهما/.test(norm(await page.textContent("#copy-note"))), `the copy note says two phrases in the dual («${norm(await page.textContent("#copy-note")).slice(0, 80)}»)`);
+  const rec = await page.evaluate(() => { window.dispatchEvent(new Event("beforeprint")); const t = document.getElementById("print-record").innerText;
+    const n = R.unresolvedFindings(activeFindings(), decisions).filter((f) => !weakPending(f)).length; return { t, n, all: R.unresolvedFindings(activeFindings(), decisions).length }; });
+  check(/عبارات تشبه آيات لم يؤكّدها المحرر \(لم يتغيّر فيها شيء\)/.test(rec.t) && rec.t.includes(`غير محسومة ${rec.n} `) && rec.n < rec.all, `the record lists the phrases on their own and counts ${rec.n} unresolved quotations, not ${rec.all}`);
   await shot("2-phrases");
   check((await overflowX()) <= 1, "no sideways scroll");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);

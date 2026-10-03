@@ -33,7 +33,7 @@ Known gaps (`docs/EVALUATION.md`):
 
 - short repeated phrases are missed («وبالوالدين إحسانا», «فاستبقوا الخيرات»);
 - an unmarked near-miss gets no replacement until its boundary is settled;
-- ordinary prose that matches a verse exactly is shown as «possible» about once per 6,800 characters. On 4 Oct, «في كل عام» (the first open item of `LA01`) was diagnosed: tier «possible», code `common`. On the two labelled long-article sets an exact-but-common «possible» item is a real quotation 11 times in 26 (`eval/possible_tier_composition.py`). Draft PR #2 changed only where these appear (after the concrete decisions, as «عبارات للتأكيد») and how they are counted; **it did not change detection and does not reduce this noise**.
+- ordinary prose that matches a verse exactly is shown as «possible» about once per 6,800 characters. On 4 Oct, «في كل عام» (the first open item of `LA01`) was diagnosed: tier «possible», code `common`. On the two labelled article sets (`articles_frozen`, `articles_long_20261003`) an exact-but-common «possible» item is a real quotation 11 times in 26 (`eval/possible_tier_composition.py`). Draft PR #2 changed only where these appear (after the concrete decisions, as «عبارات للتأكيد») and how they are counted; **it did not change detection and does not reduce this noise**.
 
 - **Work:** a new frozen set C, written blind by someone who has not read the detector. It must contain:
   - at least 60 partial quotations,

@@ -537,7 +537,7 @@ Across every word position of the 6,236 verses (a property of the rule, not an a
 | | Old rule (four words) | New rule |
 |---|---|---|
 | First pieces that run across a pause sign of the Hafs text | 10,813 | 0 |
-| Mid-verse pieces ending on a governing particle («إلى», «أن», «الذين», «إلا» …) | 10,572 of 48,578 | 31 of 50,898 |
+| Mid-verse pieces ending on a governing particle («إلى», «أن», «الذين», «إلا» …) | 10,572 of 48,578 | 5 of 50,900 (2 at the five-word ceiling, 3 at the source's saktah mark) |
 
 Both frozen sets were rerun on the final rule. **Set A is a development set; set B had been run once (above) and this is a post-hoc rerun after a rule
 change, so neither number is held-out evidence.** Set B was also run once on an intermediate version of the rule (whose last piece could end on «عن» and
@@ -555,6 +555,12 @@ The five new *wrong words* are one pattern: the source has a pause sign right af
 a correct prefix of the two gold words the scorer requires: «والأرض ۚ» (A: SG-004), «لأزيدنكم ۖ» (SG-027), «مصباح ۖ» (SG-107), «السيئة ۚ» (B: SG-006),
 «لهم ۖ» (SG-014). Stopping there is the intended behaviour (the defect was going on into «ولئن كفرتم»), so the rule was kept and the labels and the
 scorer were left as they are. Result files: `eval/results/suggest-20261004-*-chunk-final.json`.
+
+**A further run after an independent review (4 Oct, ~02:10).** The review found that the particle list was compared on folded words, so «إليّ», «عليّ»
+(a pronoun ending, which can end a phrase) and «بيّن» (a verb) were taken for «إلى», «على», «بين»; 29 of the 31 pieces counted above ended on them at a
+pause sign, and pieces stopped needlessly before them. The list is now compared on letters (and «بيّن» by its shadda). Both sets were run again
+(`…-chunk-letters.json`): **summaries identical** to the runs above; one row in B changed its piece («بَشَرٌ مِثْلُكُمْ يُوحَىٰ» → «… يُوحَىٰ إِلَيَّ»),
+still «ok_choices». This is a third run of set B overall and the second after its first; it was not used to choose anything.
 
 ### What these numbers do not show
 
@@ -592,7 +598,7 @@ Reference abstentions (50) are mostly «difference» quotations: the reference s
 
 The interface review found ordinary prose, «في كل عام» (an exact match of التوبة 126, three common words, no marker, no reference), as the first item to decide in
 `LA01`. It comes from the unmarked-phrase search, tier «possible», reason code `common`. To decide whether such an item should lead the queue,
-`eval/possible_tier_composition.py` counted what the «possible» tier holds on the two labelled long-article sets (`eval/results/possible-tier-20261004-005103.json`):
+`eval/possible_tier_composition.py` counted what the «possible» tier holds on the two labelled article sets (`articles_frozen`: 5 articles of 434–5,809 characters; `articles_long_20261003`: 10 of 8,060–14,700) (`eval/results/possible-tier-20261004-005103.json`):
 
 | Reason code of the «possible» item | Overlaps a gold quotation | Does not |
 |---|---|---|

@@ -12,7 +12,7 @@ import pytest
 
 from app import arabic
 from app.quran_source import Ayah, QuranSource, settings
-from app.suggest import _CLAUSE_OPENERS, _NEEDS_NEXT, _PAUSE_SIGNS, CHUNK_TAIL, CHUNK_WORDS, _chunk_bounds, _pauses_after, suggest
+from app.suggest import _CLAUSE_OPENERS, _NEEDS_NEXT, _PAUSE_SIGNS, CHUNK_TAIL, CHUNK_WORDS, _chunk_bounds, _needs_next, _pauses_after, suggest
 
 FULL = QuranSource(cache_dir=settings.cache_dir)._load_disk()
 needs_full = pytest.mark.skipif(FULL is None, reason="no local copy of the Quranpedia text (run the app once)")
@@ -47,7 +47,7 @@ def test_the_first_piece_never_ends_on_a_particle_that_governs_the_next_word():
 def test_two_particles_at_the_start_lengthen_the_piece_to_the_word_they_govern():
     a = fake("أخذ عن الذين لم يكتبوا شيئا وعاد مسرعا إلى بيته صباحا")
     lo, hi = _chunk_bounds(a, 0)
-    assert (lo, hi) == (0, 5) and a.folded[hi - 1] not in _NEEDS_NEXT   # «أخذ عن الذين لم يكتبوا», never «أخذ عن»
+    assert (lo, hi) == (0, 5) and not _needs_next(a.words[hi - 1])   # «أخذ عن الذين لم يكتبوا», never «أخذ عن»
 
 
 def test_a_pause_sign_in_the_text_is_a_stop_even_after_one_word():
@@ -133,7 +133,7 @@ def test_an_ambiguous_beginning_offers_each_verse_its_own_short_piece_and_picks_
     got = {c["label"]: c["to_text"] for c in r["choices"]}
     assert got == {"البقرة: 67": "أن تذبحوا بقرة", "النساء: 58": "أن تؤدوا الأمانات"}   # before «قالوا»; never ending on «إلى»
     for c in r["choices"]:
-        assert folds(c["to_text"])[-1] not in _NEEDS_NEXT
+        assert not _needs_next(c["to_text"].split()[-1])
 
 
 @needs_full
@@ -156,9 +156,9 @@ def test_across_the_whole_text_no_first_piece_crosses_a_pause_sign_and_almost_no
             crossing += any(i in pauses for i in range(lo, hi - 1))
             if hi < len(a.words):
                 mid += 1
-                dangling += a.folded[hi - 1] in _NEEDS_NEXT
+                dangling += _needs_next(a.words[hi - 1])
     assert crossing == 0
-    assert dangling <= mid // 1000, (dangling, mid)          # 31 of 50,898 on 4 Oct 2026: a particle at the end of a five-word ceiling
+    assert dangling <= mid // 1000, (dangling, mid)          # 5 of 50,900 on 4 Oct 2026: 2 at the five-word ceiling (9:91-92), 3 at the source's saktah mark (75:27, 83:14)
 
 
 @needs_full
@@ -173,4 +173,9 @@ def test_tab_after_tab_tiles_every_verse_exactly():
 
 
 def test_the_word_lists_hold_no_duplicate_spellings():
-    assert all(w == arabic.folded(w) for w in _CLAUSE_OPENERS | _NEEDS_NEXT)
+    assert all(w == arabic.folded(w) for w in _CLAUSE_OPENERS) and all(w == arabic.letters(w) for w in _NEEDS_NEXT)
+
+
+def test_a_pronoun_ending_or_a_verb_is_not_taken_for_a_particle():
+    assert _needs_next("إِلَى") and _needs_next("عَلَىٰ") and _needs_next("بَيْنَ")
+    assert not _needs_next("إِلَيَّ") and not _needs_next("عَلَيَّ") and not _needs_next("بَيَّنَ")
