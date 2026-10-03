@@ -331,7 +331,7 @@ function syncEditorHeight() {
 function clearAudit() {
   docGen++;
   lastResult = null; decisions = {}; dismissed = {}; reviewed = {}; current = null; lastAction = null; cardError = null; pendingSel = null;
-  auditedText = ""; baseText = ""; invalidated = []; carryNote = null; isDemo = false; auditedAt = null;
+  auditedText = ""; baseText = ""; invalidated = []; carryNote = null; isDemo = false; auditedAt = null; finalInView = false;
   $("results").hidden = true; $("legend").hidden = true; $("panel").hidden = true; $("final").hidden = true;
   $("intro").classList.remove("audited");
   $("workbench").classList.add("no-panel");
@@ -1461,10 +1461,34 @@ function updateReplyCount() {
 }
 
 // ---------------------------------------------------------------- the bottom bar (narrow screens): where the review stands, and the next step
+// Is the writer reading the final review? Entered when its top passes 60% of the screen, left only when it is clearly away (75%, or
+// scrolled past), so the bar does not flicker at the edge.
+let finalInView = false;
+function updateFinalInView() {
+  const f = $("final");
+  let v = false;
+  if (!f.hidden && lastResult) {
+    const r = f.getBoundingClientRect();
+    v = finalInView ? r.top < innerHeight * 0.75 && r.bottom > 40 : r.top < innerHeight * 0.6 && r.bottom > 120;
+  }
+  if (v !== finalInView) { finalInView = v; renderDock(); }
+}
+let finalViewFrame = 0;
+const onScrollForDock = () => { if (!finalViewFrame) finalViewFrame = requestAnimationFrame(() => { finalViewFrame = 0; updateFinalInView(); }); };
+
+function hideDock(dock) {
+  // the bar must not take keyboard focus with it: focus goes to the heading of the review the writer is reading
+  if (dock.contains(document.activeElement)) $("final-title").focus({ preventScroll: true });
+  dock.hidden = true;
+  document.documentElement.style.setProperty("--dock-h", "0px");
+}
+
 function renderDock() {
   const dock = $("review-dock");
-  if (!lastResult || !allFindings().length) { dock.hidden = true; document.documentElement.style.setProperty("--dock-h", "0px"); return; }
+  if (!lastResult || !allFindings().length) { hideDock(dock); return; }
   const pend = pendingList();
+  // nothing waits and the final review is on screen: the bar would only offer the place the writer already is, over its buttons
+  if (!pend.length && finalInView) { hideDock(dock); return; }
   const here = caretId !== null ? findingById(caretId) : null;
   dock.hidden = false;
   // when the caret is inside a highlighted quotation the bar names it and offers to open its decision
@@ -1702,7 +1726,8 @@ document.addEventListener("DOMContentLoaded", () => {
   $("draft-export-json").addEventListener("click", exportDecisions);
   $("draft-auto").addEventListener("change", (e) => { if (e.target.checked) writeDraft(true); else { const d = readDraft(); if (d) writeDraft(false); } });
   window.addEventListener("beforeprint", () => { if (lastResult) { flushDerived(); buildRecord(); } });
-  window.addEventListener("resize", () => { syncDockHeight(); syncEditorHeight(); });
+  window.addEventListener("resize", () => { syncDockHeight(); syncEditorHeight(); updateFinalInView(); });
+  window.addEventListener("scroll", onScrollForDock, { passive: true });
   if (window.ResizeObserver) new ResizeObserver(syncDockHeight).observe($("review-dock"));
   document.fonts?.ready.then(() => { syncEditorHeight(); });
 
