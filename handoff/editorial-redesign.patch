@@ -1,0 +1,604 @@
+From 9618f04a0df899a3a266df79984e856c03ef912a Mon Sep 17 00:00:00 2001
+From: Fahad Alfaifi <281715064+FHALFAIFI@users.noreply.github.com>
+Date: Sat, 3 Oct 2026 03:56:28 +0300
+Subject: [PATCH] Pre-challenge: focus the Arabic review interface
+
+---
+ CHANGELOG.md                        |   1 +
+ app/static/app.js                   |  36 ++++---
+ app/static/index.html               |  20 ++--
+ app/static/styles.css               | 160 ++++++++++++++--------------
+ docs/TEST_LOG.md                    |   8 ++
+ scripts/ui_async_navigation_e2e.mjs |  36 +++++++
+ scripts/ui_e2e.mjs                  |   2 +-
+ scripts/ui_uthmani_e2e.mjs          |   2 +-
+ 8 files changed, 159 insertions(+), 106 deletions(-)
+ create mode 100644 scripts/ui_async_navigation_e2e.mjs
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index f679dd2..d3e812e 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -8,6 +8,7 @@ _Record every change made during the challenge here, with its date. Nothing yet.
+ 
+ | Date | Commit(s) | Change |
+ |---|---|---|
++| 2026-10-03 | (this commit) | Editorial interface revision: a quieter Arabic writing desk, stronger article/decision hierarchy, fewer competing cards and visible warnings, compact source attribution. A delayed phrase result now preserves the quotation the writer moved to. Windows browser checks normalise clipboard line endings. No detection rules, verse text or AI claims changed. |
+ | 2026-09-28 | `e864a02` | Shorter AI failure wait: 12 s budget, 8 s per attempt, cooldown |
+ | 2026-09-28 | `c2cf42b` | Labelled evaluation set, fallback results, clearer AI status banner |
+ | 2026-09-28 | `07a777a`, `2860743`, `125343a` | Vercel upload hygiene, RTL banner fix, deploy notes |
+diff --git a/app/static/app.js b/app/static/app.js
+index 8d5665b..dbb3076 100644
+--- a/app/static/app.js
++++ b/app/static/app.js
+@@ -271,7 +271,7 @@ function setInputCollapsed(on) {
+   if (on) $("summary-text").textContent = `المقال المُدقَّق: ${toArabicDigits(ART.length)} حرفًا، ${toArabicDigits(paraStarts().length)} ${paraStarts().length === 1 ? "فقرة" : paraStarts().length === 2 ? "فقرتان" : "فقرات"}.`;
+ }
+ 
+-const DEMO_NOTE = "هذا مقال تجريبي كُتب لهذا العرض؛ فيه خطآن مقصودان في الاقتباس (لفظ وإحالة)، وهما من صنع المثال وليسا نصًا قرآنيًا.";
++const DEMO_NOTE = "مقال تجريبي كُتب لهذا العرض؛ الخطآن فيه مقصودان (لفظ وإحالة)، وليسا نصًا قرآنيًا.";
+ 
+ async function loadSample(name, thenAudit) {
+   if (!name) return false;
+@@ -432,7 +432,7 @@ function renderVerdict(data) {
+   box.className = `verdict ${v.needing ? "has-review" : "clear"}`;
+   box.replaceChildren(...[
+     el("h2", { id: "verdict-title", tabindex: "-1", text: v.headline }),
+-    el("p", { class: "verdict-sub", text: "الفحص يشمل الاقتباسات التي رُصدت فقط، وليس حكمًا على المقال كله." }),
++    el("p", { class: "verdict-sub", text: "فحص للاقتباسات المرصودة، وليس حكمًا على المقال كله." }),
+     !v.total ? el("p", { class: "verdict-sub", text: "إن كان في مقالك آية لم نرصدها، حدّدها في المقال أدناه ثم اضغط «افحص المحدَّد»." }) : null,
+     isDemo ? el("p", { class: "verdict-demo", text: DEMO_NOTE }) : null,
+   ].filter(Boolean));
+@@ -683,8 +683,8 @@ function renderQueue() {
+   const off = fs.filter((f) => dismissed[f.id]);
+   $("queue").replaceChildren(...[
+     group("تنتظر قرارك", pend, true, "need"),
+-    group("لا تحتاج قرارًا أو حسمتَها", done, pend.length === 0 || done.length <= 3, "done"),
+-    group("استبعدتَها: ليست اقتباسًا", off, true, "off"),
++    group("تمت مراجعتها", done, pend.length === 0 || done.length <= 3, "done"),
++    group("استبعدتَها", off, true, "off"),
+   ].filter(Boolean));
+ }
+ 
+@@ -760,7 +760,9 @@ function decisionBlock(c, f, secondary) {
+   const quoteLevel = c.kind !== "reference" && c.kind !== "reference_add";
+   const short = Array.from(d.before + d.after + d.prefix).length <= 34;
+   const [yes, no] = short ? [`غيّر إلى «${d.prefix}${d.after}»`, `أبقِ «${d.prefix}${d.before}»`] : ["اعتمد هذا التغيير", "أبقِ ما كتبتُه"];
+-  const warns = (f.review_reasons || []).filter((x) => x !== c.reason).slice(0, 2);
++  // One concise warning stays beside the decision. The complete list remains
++  // in the expanded evidence section below the card.
++  const warns = (f.review_reasons || []).filter((x) => x !== c.reason).slice(0, 1);
+   const lead = c.kind === "reference" || !warns.length ? [c.reason] : warns;
+   const side = (cap, cls, text) => el("div", { class: "d-side" }, el("span", { class: "d-cap", text: cap }),
+     el("span", { class: cls }, d.prefix ? el("span", { class: "d-pre", text: d.prefix }) : null, text));
+@@ -1081,23 +1083,33 @@ async function requestPhrase(start, end, choice, findingId, why) {
+     const res = await fetch("/api/phrase", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+     let data;
+     try { data = await res.json(); } catch { data = { error: "استجابة غير متوقعة من الخادم." }; }
+-    if (!res.ok) { cardError = data.error || "تعذّر فحص المقطع."; setStatus(""); goTo(findingId, { scroll: null, focus: false, keepError: true }); return; }
++    if (!res.ok) {
++      const message = data.error || "تعذّر فحص المقطع.";
++      setStatus("");
++      if (String(current) === String(findingId)) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
++      else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
++      return;
++    }
+     setStatus("");
+-    applyPhrase(data.finding, why, f);
++    // The writer may have opened another quotation while this network request
++    // was running. Update the result without pulling them back to the old card.
++    applyPhrase(data.finding, why, f, String(current) === String(findingId) ? null : current);
+   } catch {
+-    cardError = "تعذّر الاتصال بالخادم. لم يتغيّر شيء؛ حاول مرة أخرى.";
+     setStatus("");
+-    goTo(findingId, { scroll: null, focus: false, keepError: true });
++    const message = "تعذّر الاتصال بالخادم. لم يتغيّر شيء؛ حاول مرة أخرى.";
++    if (String(current) === String(findingId)) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
++    else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
+   }
+ }
+ 
+-function applyPhrase(nf, why, previous) {
++function applyPhrase(nf, why, previous, preserveId = null) {
+   const overlapped = allFindings().filter((g) => g.start < nf.end && nf.start < g.end);
+   const priorState = overlapped.map((g) => ({ f: g, d: dismissed[g.id], r: reviewed[g.id], ch: Object.fromEntries((g.changes || []).map((c) => [c.id, decisions[c.id]]).filter(([, v]) => v)) }));
+   for (const old of overlapped) { for (const c of old.changes || []) delete decisions[c.id]; delete dismissed[old.id]; delete reviewed[old.id]; }
+   lastResult.findings = [...allFindings().filter((g) => !overlapped.includes(g)), nf].sort((a, b) => a.start - b.start);
+   lastResult.stats = computeStats(allFindings());
+-  current = nf.id;
++  const keepViewing = preserveId && allFindings().some((g) => String(g.id) === String(preserveId)) ? preserveId : null;
++  current = keepViewing ?? nf.id;
+   const undo = () => {
+     lastResult.findings = [...allFindings().filter((g) => g.id !== nf.id || g.start !== nf.start), ...priorState.map((p) => p.f)].sort((a, b) => a.start - b.start);
+     for (const p of priorState) { Object.assign(decisions, p.ch); if (p.d) dismissed[p.f.id] = true; if (p.r) reviewed[p.f.id] = true; }
+@@ -1111,7 +1123,7 @@ function applyPhrase(nf, why, previous) {
+   notify(text, priorState.length ? undo : null);
+   saveSession();
+   renderAll();
+-  goTo(nf.id, { scroll: "panel" });
++  goTo(current, { scroll: keepViewing ? null : "panel" });
+ }
+ 
+ function computeStats(findings) {
+diff --git a/app/static/index.html b/app/static/index.html
+index d62ede6..ec80be4 100644
+--- a/app/static/index.html
++++ b/app/static/index.html
+@@ -9,7 +9,7 @@
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
+   <link rel="stylesheet" href="/static/styles.css">
+-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312183F'/%3E%3Cpath d='M9 17l4 4 10-10' stroke='%232EF2C2' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
++  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2324312d'/%3E%3Cpath d='M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17' stroke='%23fffefa' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+   <script src="/static/surahs.js" defer></script>
+   <script src="/static/revision.js" defer></script>
+   <script src="/static/app.js" defer></script>
+@@ -18,7 +18,7 @@
+   <header class="site-header">
+     <div class="wrap header-inner">
+       <span class="brand-mark" aria-hidden="true">
+-        <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="9" fill="#6150EA"/><path d="M9 17l4 4 10-10" stroke="#2EF2C2" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
++        <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="6" fill="#24312d"/><path d="M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17" stroke="#fffefa" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
+       </span>
+       <div>
+         <h1>مدقق الاقتباسات القرآنية</h1>
+@@ -49,7 +49,7 @@
+         </div>
+         <div id="demo-hero" class="demo-hero">
+           <button id="demo-btn" type="button" class="btn primary demo-btn">جرّب المقال التجريبي</button>
+-          <p class="demo-copy">مقال قصير فيه أربعة اقتباسات، منها خطآن مقصودان (لفظ وإحالة)، وهو أسرع طريق لترى كيف تعمل الأداة. أو ألصق مقالك في المربع.</p>
++          <p class="demo-copy">شاهد كيف تراجع اقتباسًا وتصحيحًا قبل نسخه. أو ألصق مقالك أدناه.</p>
+         </div>
+         <textarea id="article" rows="11" dir="rtl" spellcheck="false" aria-label="نص المقال" placeholder="ألصق هنا مقالك العربي…"></textarea>
+         <div class="input-foot">
+@@ -98,7 +98,7 @@
+ 
+         <section id="article-col" class="article-col" aria-labelledby="article-title">
+           <h2 id="article-title">مقالك مع مواضع الاقتباس</h2>
+-          <p class="article-hint">اضغط على أي اقتباس مُعلَّم لتنتقل إليه. فاتتك عبارة؟ حدّدها هنا بالماوس أو بإصبعك ثم اضغط «افحص المحدَّد».</p>
++          <p class="article-hint">اضغط على اقتباس لمراجعته، أو حدّد عبارة لم تجدها لفحصها.</p>
+           <div id="sel-bar" class="sel-bar" hidden>
+             <span id="sel-text" class="sel-text"></span>
+             <button id="phrase-btn" type="button" class="btn small primary">افحص المحدَّد</button>
+@@ -158,12 +158,11 @@
+ 
+   <footer class="site-footer">
+     <div class="wrap footer-inner">
+-      <p>
+-        مصدر النص القرآني: <a href="https://quranpedia.net" target="_blank" rel="noopener">الموسوعة القرآنية — Quranpedia</a>،
+-        مصحف حفص عن عاصم عبر <a href="https://api.quranpedia.net/" target="_blank" rel="noopener">واجهة Quranpedia البرمجية</a>.
+-        لا يُستخدم الذكاء الاصطناعي مصدرًا لنص القرآن ولا حكَمًا على صحته؛ دوره اقتراح مواضع الاقتباس فقط.
+-        الآية المكتوبة بالرسم العثماني في المقال التجريبي نسخة حرفية من نص Tanzil (النص العثماني، الإصدار 1.1): <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project — tanzil.net</a> (رخصة CC BY 3.0)؛ أما الحكم على الاقتباسات فمبني على نص قرآنبيديا وحده.
+-      </p>
++      <p>نص التحقق: <a href="https://quranpedia.net" target="_blank" rel="noopener">قرآنبيديا</a> · نص المثال العثماني: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a></p>
++      <details class="privacy">
++        <summary>المصادر وطريقة التحقق</summary>
++        <p>تُقارن الاقتباسات بمصحف حفص عن عاصم عبر <a href="https://api.quranpedia.net/" target="_blank" rel="noopener">واجهة قرآنبيديا</a>. يقترح الذكاء الاصطناعي مواضع للفحص؛ ولا يُستخدم مصدرًا لنص القرآن أو حكمًا على صحته. الآية العثمانية في المقال التجريبي نسخة حرفية من نص Tanzil العثماني، الإصدار 1.1، وفق رخصة CC BY 3.0.</p>
++      </details>
+       <details class="privacy">
+         <summary>الخصوصية وحدود الاستخدام</summary>
+         <p>
+@@ -171,7 +170,6 @@
+         </p>
+         <p>الاستضافة المجانية تنام عند الخمول، فقد يتأخر أول طلب بعد فترة سكون (تذكر Render نحو دقيقة، وقيس مرة واحدة 23 ثانية). الأداة فحص أولي للاقتباسات وإحالاتها ولا تغني عن مراجعة بشرية.</p>
+       </details>
+-      <p class="muted">عمل ما قبل التحدي — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026، المسار الرابع: أدوات المعرفة والتحقق.</p>
+     </div>
+   </footer>
+ 
+diff --git a/app/static/styles.css b/app/static/styles.css
+index 973126d..0188f57 100644
+--- a/app/static/styles.css
++++ b/app/static/styles.css
+@@ -1,22 +1,20 @@
+-/* Quran quotation auditor — an Arabic editorial tool.
+-   Identity from the challenge template (navy, violet, a turquoise rule). Colour carries meaning only:
+-   amber = waits for your decision, green = matches / done / the source's wording, red = what you wrote that differs (a deletion),
+-   grey = neutral or put aside, violet = the one thing to press. */
++/* Quran quotation auditor — a quiet Arabic writing desk. The article and the
++   writer's decision take priority; source evidence remains one click away. */
+ :root {
+-  --navy: #12183F;
+-  --ink: #161B38;
+-  --ink-2: #454C70;       /* secondary text; 8.1:1 on white */
+-  --line: #D4D7E6;
+-  --line-soft: #E6E8F2;
+-  --paper: #F6F6F3;
+-  --surface: #FFFFFF;
+-  --accent: #5444D8;      /* primary action, links, focus; white on it 6.4:1 */
+-  --accent-soft: #ECE9FF;
+-  --need: #8A4B00;  --need-bg: #FFF3E0;  --need-line: #E2A24E;
+-  --done: #0B5D49;  --done-bg: #E6F5EF;  --done-line: #86C7B0;
+-  --old: #8E1A33;   --old-bg: #FCE8EC;
+-  --off: #4B5170;   --off-bg: #ECEDF3;
+-  --radius: 12px;
++  --navy: #24312d;
++  --ink: #202a26;
++  --ink-2: #52615a;
++  --line: #cdd4cd;
++  --line-soft: #e5e9e3;
++  --paper: #f6f6f1;
++  --surface: #fffefa;
++  --accent: #175c4c;
++  --accent-soft: #e4eee9;
++  --need: #795008;  --need-bg: #fcf2db;  --need-line: #c29a4b;
++  --done: #175c4c;  --done-bg: #e5f1ea;  --done-line: #79aa96;
++  --old: #9a3440;   --old-bg: #f9e9e9;
++  --off: #52615a;   --off-bg: #edf0eb;
++  --radius: 7px;
+   --dock-h: 0px;
+   color-scheme: light;
+ }
+@@ -27,16 +25,16 @@ html.has-sel-bar { scroll-padding-top: 72px; }
+ body {
+   margin: 0;
+   font-family: "Readex Pro", system-ui, "Segoe UI", Tahoma, sans-serif;
+-  font-size: 1.0625rem;
++  font-size: 1rem;
+   color: var(--ink);
+   background: var(--paper);
+-  line-height: 1.75;
++  line-height: 1.7;
+   min-height: 100vh;
+   display: flex;
+   flex-direction: column;
+ }
+ main { flex: 1 0 auto; width: 100%; }
+-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
++.wrap { max-width: 1220px; margin: 0 auto; padding: 0 24px; }
+ h1, h2, h3, p { margin: 0; }
+ h1, h2, h3 { line-height: 1.4; }
+ h2 { font-size: 1.15rem; font-weight: 600; }
+@@ -50,23 +48,24 @@ bdi.ltr { unicode-bidi: isolate; direction: ltr; }
+ [tabindex="-1"]:focus { outline: none; }
+ [tabindex="-1"]:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+ 
+-/* header: one quiet band */
+-.site-header { background: var(--navy); color: #fff; border-bottom: 3px solid #2EF2C2; }
+-.header-inner { display: flex; align-items: center; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+-.header-inner h1 { font-size: 1.25rem; font-weight: 700; }
+-.tagline { margin-top: 0; color: #D3D7EE; font-size: .88rem; line-height: 1.5; }
+-main { padding-top: 20px; padding-bottom: 36px; }
++/* A compact masthead makes the tool feel like an editor, not a dashboard. */
++.site-header { background: var(--surface); color: var(--ink); border-bottom: 1px solid var(--line); }
++.header-inner { display: flex; align-items: center; gap: 12px; padding-top: 17px; padding-bottom: 17px; }
++.brand-mark { display: flex; flex: 0 0 auto; }
++.header-inner h1 { font-size: 1.28rem; font-weight: 600; letter-spacing: -.02em; }
++.tagline { margin-top: 1px; color: var(--ink-2); font-size: .82rem; line-height: 1.5; }
++main { padding-top: 28px; padding-bottom: 52px; }
+ 
+ /* input */
+-.input-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+-.input-card.is-collapsed { padding: 10px 16px; }
++.input-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 30px; margin-bottom: 16px; }
++.input-card.is-collapsed { padding: 10px 16px; background: transparent; }
+ .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+ .samples { display: flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--ink-2); flex-wrap: wrap; min-width: 0; max-width: 100%; }
+ select, textarea, input, button { font-family: inherit; font-size: 1rem; color: var(--ink); }
+-select, input[type="number"] { border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; background: var(--surface); min-height: 44px; min-width: 0; max-width: 100%; }
++select, input[type="number"] { border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; background: var(--surface); min-height: 44px; min-width: 0; max-width: 100%; }
+ textarea {
+   width: 100%; resize: vertical; min-height: 200px; padding: 12px 14px;
+-  border: 1.5px solid var(--line); border-radius: 12px; background: #FCFCFA;
++  border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+   font-family: "Noto Naskh Arabic", "Readex Pro", serif; font-size: 1.15rem; line-height: 2;
+ }
+ textarea:focus { outline: 3px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+@@ -77,9 +76,11 @@ textarea:focus { outline: 3px solid var(--accent); outline-offset: 1px; border-c
+ .input-summary[hidden] { display: none; }
+ .input-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: .95rem; }
+ .stale-note { color: var(--need); background: var(--need-bg); border-radius: 8px; padding: 1px 10px; }
+-.demo-hero { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 2px 0 12px; padding: 12px 14px; border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); }
++.demo-hero { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 4px 0 20px; padding: 0; }
+ .demo-hero[hidden] { display: none; }
+-.demo-copy { flex: 1 1 18rem; font-size: .92rem; color: var(--ink-2); }
++.demo-copy { flex: 1 1 18rem; font-size: .9rem; color: var(--ink-2); max-width: 42rem; }
++.input-card.is-empty { max-width: 900px; margin: 26px auto 80px; }
++.input-card.is-empty .card-head h2 { font-size: 1.42rem; }
+ .input-card.is-empty textarea { min-height: 0; height: 6.5rem; }
+ .input-card.is-empty textarea:focus { height: 12rem; }
+ .help { margin-top: 10px; font-size: .9rem; color: var(--ink-2); }
+@@ -89,11 +90,11 @@ textarea:focus { outline: 3px solid var(--accent); outline-offset: 1px; border-c
+ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ 
+ /* buttons: one primary per place; 44 px targets everywhere */
+-.btn { background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 18px; min-height: 44px; cursor: pointer; font-weight: 500; color: var(--ink); line-height: 1.4; }
++.btn { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 18px; min-height: 44px; cursor: pointer; font-weight: 500; color: var(--ink); line-height: 1.4; }
+ .btn:hover { border-color: var(--ink-2); }
+ .btn.small { padding: 6px 14px; font-size: .92rem; }
+ .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+-.btn.primary:hover { background: #4636C2; border-color: #4636C2; }
++.btn.primary:hover { background: #104737; border-color: #104737; }
+ .btn.ghost { background: transparent; color: var(--ink-2); }
+ .btn.approve { border-color: var(--done); color: var(--done); font-weight: 600; }
+ .btn.approve:hover { background: var(--done-bg); }
+@@ -113,11 +114,10 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } * { scroll-behavior: auto !important; } }
+ 
+ /* verdict + how the audit was made */
+-.verdict { background: var(--surface); border: 1px solid var(--line); border-inline-start: 5px solid var(--done); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 12px; scroll-margin-top: 12px; }
+-.verdict.has-review { border-inline-start-color: var(--need-line); }
+-.verdict h2 { font-size: 1.3rem; font-weight: 700; line-height: 1.5; }
++.verdict { background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 0 0 14px; margin-bottom: 20px; scroll-margin-top: 12px; }
++.verdict h2 { font-size: 1.42rem; font-weight: 600; line-height: 1.45; }
+ .verdict-sub, .verdict-demo { margin-top: 4px; font-size: .9rem; color: var(--ink-2); }
+-.verdict-demo { border-inline-start: 3px solid var(--line); padding-inline-start: 10px; }
++.verdict-demo { padding-inline-start: 0; }
+ .notice { border-radius: 10px; padding: 6px 12px; margin-bottom: 8px; font-size: .9rem; background: var(--off-bg); color: var(--ink); }
+ .notice.warning { background: var(--need-bg); color: var(--need); }
+ .notice.error { background: var(--old-bg); color: var(--old); }
+@@ -126,9 +126,9 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ .audit-meta p { margin: 2px 0; }
+ 
+ /* the workbench: the article and the current decision side by side; one column on a phone (decision first) */
+-.workbench { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 29rem); grid-template-areas: "article panel"; gap: 20px; align-items: start; margin-bottom: 18px; }
++.workbench { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 29rem); grid-template-areas: "article panel"; gap: 30px; align-items: start; margin-bottom: 34px; }
+ .workbench.no-panel { grid-template-columns: minmax(0, 1fr); grid-template-areas: "article"; }
+-.panel { grid-area: panel; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; padding: 2px 2px 8px; }
++.panel { grid-area: panel; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; padding: 0 2px 8px; }
+ .article-col { grid-area: article; min-width: 0; }
+ @media (min-width: 901px) {
+   .article-col { position: sticky; top: 12px; max-height: calc(100vh - 24px); display: flex; flex-direction: column; }
+@@ -152,9 +152,9 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ .article-col h2 { margin-bottom: 4px; }
+ .article-hint { font-size: .88rem; color: var(--ink-2); margin-bottom: 8px; }
+ .article-view {
+-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 22px;
++  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 36px;
+   white-space: pre-wrap; overflow-wrap: anywhere;
+-  font-family: "Noto Naskh Arabic", "Readex Pro", serif; font-size: 1.2rem; line-height: 2.1; max-width: 42rem;
++  font-family: "Noto Naskh Arabic", "Readex Pro", serif; font-size: 1.25rem; line-height: 2.15; max-width: 45rem;
+ }
+ .article-view mark, .ctx mark.q-hit { color: inherit; border-radius: 4px; padding: 1px 2px; }
+ .article-view mark { cursor: pointer; }
+@@ -167,25 +167,22 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ .sel-bar .btn.primary { background: #fff; color: var(--navy); border-color: #fff; }
+ 
+ /* the card of one quotation */
+-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 12px; margin-bottom: 14px; scroll-margin-top: 12px; }
++.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 8px; margin-bottom: 16px; scroll-margin-top: 12px; }
+ .card > * { min-width: 0; }
+-.finding.need { border-color: var(--need-line); border-inline-start: 5px solid var(--need-line); }
+-.finding.done { border-inline-start: 5px solid var(--done-line); }
++.finding.need { border-color: var(--line); border-top: 2px solid var(--need-line); }
++.finding.done { border-top: 2px solid var(--done-line); }
+ .f-head { display: flex; align-items: center; gap: 4px 10px; flex-wrap: wrap; }
+-.f-where { font-size: .88rem; color: var(--ink-2); margin-inline-end: auto; }
+-.state { display: inline-block; border-radius: 999px; padding: 0 10px; font-size: .84rem; font-weight: 500; background: var(--off-bg); color: var(--off); white-space: nowrap; }
+-.state::before { content: "– "; }
++.f-where { font-size: .8rem; color: var(--ink-2); margin-inline-end: auto; }
++.state { display: inline-block; border-radius: 3px; padding: 0 7px; font-size: .78rem; font-weight: 500; background: var(--off-bg); color: var(--off); white-space: nowrap; }
+ .state.need { background: var(--need-bg); color: var(--need); }
+-.state.need::before { content: "● "; }
+ .state.done { background: var(--done-bg); color: var(--done); }
+-.state.done::before { content: "✓ "; }
+ .row-label { font-size: .8rem; color: var(--ink-2); font-weight: 500; }
+ .f-ctx { display: grid; gap: 2px; }
+-.ctx { font-family: "Noto Naskh Arabic", "Readex Pro", serif; font-size: 1.15rem; line-height: 2.05; overflow-wrap: anywhere; }
+-.ctx mark.q-hit { background: var(--accent-soft); box-shadow: inset 0 -2px 0 var(--accent); }
++.ctx { font-family: "Noto Naskh Arabic", "Readex Pro", serif; font-size: 1.12rem; line-height: 1.8; overflow-wrap: anywhere; }
++.ctx mark.q-hit { background: var(--accent-soft); box-shadow: inset 0 -1px 0 var(--accent); }
+ .show-in-article { justify-self: start; font-size: .85rem; }
+ @media (min-width: 901px) { .show-in-article { display: none; } }
+-.where { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; font-size: .95rem; }
++.where { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; font-size: .87rem; line-height: 1.55; }
+ .where-label { color: var(--ink-2); }
+ .ref-note { font-size: .88rem; color: var(--ink-2); }
+ .ref-note.incorrect { color: var(--old); font-weight: 600; }
+@@ -194,8 +191,8 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ .q-title { font-size: 1.08rem; font-weight: 700; line-height: 1.5; }
+ .ask, .decide { display: grid; gap: 10px; }
+ .decide + .decide { border-top: 1px solid var(--line-soft); padding-top: 12px; }
+-.decide.secondary { background: var(--paper); border-radius: 10px; padding: 10px 12px; }
+-.ch-lead { font-size: .92rem; color: var(--need); }
++.decide.secondary { background: transparent; border-radius: 0; padding: 12px 0 0; border-top: 1px solid var(--line-soft); }
++.ch-lead { font-size: .87rem; color: var(--need); line-height: 1.55; }
+ .okline { color: var(--done); font-weight: 500; }
+ .ask-note { border-top: 1px dashed var(--line); padding-top: 8px; }
+ 
+@@ -203,7 +200,7 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ .delta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; unicode-bidi: isolate; }
+ .d-side { display: grid; gap: 0; justify-items: start; }
+ .d-cap { font-size: .76rem; color: var(--ink-2); }
+-.d-before, .d-after { display: inline-block; border-radius: 8px; padding: 0 12px; font-family: "Amiri Quran", "Noto Naskh Arabic", serif; font-size: 1.6rem; line-height: 2; unicode-bidi: isolate; overflow-wrap: anywhere; }
++.d-before, .d-after { display: inline-block; border-radius: 3px; padding: 0 8px; font-family: "Amiri Quran", "Noto Naskh Arabic", serif; font-size: 1.5rem; line-height: 1.8; unicode-bidi: isolate; overflow-wrap: anywhere; }
+ .d-before { background: var(--old-bg); color: var(--old); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+ .d-after { background: var(--done-bg); color: var(--done); font-weight: 700; }
+ .d-pre { font-size: 1rem; font-family: "Readex Pro", sans-serif; color: var(--ink-2); margin-inline-end: 6px; text-decoration: none; display: inline-block; }
+@@ -245,9 +242,9 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ .ch-after { background: var(--done-bg); color: var(--done); }
+ .ch-after.quran { font-size: 1.2rem; line-height: 2.1; }
+ .quran { font-family: "Amiri Quran", "Amiri", "Traditional Arabic", serif; font-size: 1.35rem; line-height: 2.3; }
+-.source-box { border: 1px solid var(--done-line); background: #F6FCF9; border-radius: 12px; padding: 8px 12px; }
+-.source-box .w-hit { background: rgba(46, 242, 194, .3); border-radius: 4px; }
+-.source-box .w-dim { color: #66708F; }
++.source-box { border: 1px solid var(--done-line); background: var(--done-bg); border-radius: 6px; padding: 8px 12px; }
++.source-box .w-hit { background: #c0ded0; border-radius: 2px; }
++.source-box .w-dim { color: var(--ink-2); }
+ .ayah-no { color: var(--done); font-family: "Readex Pro", sans-serif; font-size: .85rem; }
+ .source-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: .85rem; margin-top: 4px; }
+ .source-meta a { display: inline-block; padding: 6px 2px; }
+@@ -273,31 +270,32 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
+ .ch-reason { font-size: .88rem; }
+ 
+ /* the list of all quotations: one line each, the open ones first */
+-.queue { display: grid; gap: 8px; }
+-.q-group > summary { font-weight: 600; color: var(--ink); padding: 4px 0; }
++.queue { display: grid; gap: 2px; margin-top: 6px; border-top: 1px solid var(--line); padding-top: 9px; }
++.q-group > summary { font-weight: 500; color: var(--ink-2); font-size: .88rem; padding: 4px 0; }
+ .q-group.need > summary { color: var(--need); }
+-.q-group ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; }
+-.row { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 10px; align-items: center; text-align: start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; min-height: 44px; cursor: pointer; font-weight: 400; }
++.q-group ul { list-style: none; margin: 3px 0 8px; padding: 0; display: grid; gap: 0; }
++.row { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 10px; align-items: center; text-align: start; background: transparent; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; padding: 5px 4px; min-height: 44px; cursor: pointer; font-weight: 400; }
++.row:hover { background: var(--accent-soft); }
+ .row .row-q { font-family: "Noto Naskh Arabic", serif; font-size: 1.02rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ .row .state { grid-column: 2; justify-self: start; }
+-.row.current { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+-.row-num { background: var(--navy); color: #fff; border-radius: 8px; min-width: 28px; text-align: center; font-weight: 600; font-size: .85rem; padding: 1px 6px; grid-row: 1 / span 2; }
++.row.current { background: var(--accent-soft); border-inline-start: 2px solid var(--accent); }
++.row-num { background: transparent; color: var(--ink-2); border-radius: 0; min-width: 24px; text-align: center; font-weight: 600; font-size: .85rem; padding: 1px 3px; grid-row: 1 / span 2; }
+ .row.off .row-q { text-decoration: line-through; color: var(--ink-2); }
+-.done-card { gap: 10px; border-inline-start: 5px solid var(--done-line); }
++.done-card { gap: 10px; border-top: 2px solid var(--done-line); }
+ 
+ /* the final check */
+-.final { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 12px; scroll-margin-top: 12px; margin-bottom: 18px; }
++.final { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 32px; display: grid; gap: 14px; scroll-margin-top: 12px; margin-bottom: 18px; }
+ .final[hidden] { display: none; }
+ .final-sentence { font-size: 1.05rem; font-weight: 500; }
+ .final h3 { margin-bottom: 6px; }
+ .change-list, .open-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+-.change-list li { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
++.change-list li { border-bottom: 1px solid var(--line); padding: 8px 0; }
+ .cl-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: .9rem; }
+ .final .ctx { margin-top: 2px; }
+ del, ins { unicode-bidi: isolate; border-radius: 4px; padding: 0 3px; text-decoration: none; }
+ del { background: var(--old-bg); color: var(--old); text-decoration: line-through; }
+ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid var(--done-line); }
+-.open-box { background: var(--need-bg); border: 1px solid var(--need-line); border-radius: 10px; padding: 10px 12px; }
++.open-box { background: var(--need-bg); border-inline-start: 2px solid var(--need-line); border-radius: 3px; padding: 10px 14px; }
+ .open-box h3 { color: var(--need); }
+ .open-list li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+ .open-list .row-q { flex: 1 1 10rem; min-width: 0; font-family: "Noto Naskh Arabic", serif; }
+@@ -323,7 +321,7 @@ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid v
+    so a focused control is never left behind it (WCAG 2.2: 2.4.11, failure F110). */
+ .dock { display: none; }
+ @media (max-width: 900px) {
+-  .dock { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--surface); border-top: 2px solid var(--navy); box-shadow: 0 -2px 10px rgba(18, 24, 63, .12); }
++  .dock { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -3px 12px rgba(26, 40, 33, .08); }
+   .dock[hidden] { display: none; }
+   .dock-text { font-size: .92rem; font-weight: 600; line-height: 1.45; min-width: 0; }
+   .dock .btn { flex: 0 0 auto; padding-inline: 18px; }
+@@ -336,12 +334,12 @@ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid v
+ .legend-grid dt { font-weight: 600; color: var(--ink); }
+ .legend-grid dd { margin: 0; }
+ 
+-.site-footer { background: var(--navy); color: #D3D7EE; padding: 18px 0; font-size: .86rem; }
+-.site-footer a { color: #7FF7DA; }
+-.site-footer .muted { color: #B6BCE0; }
++.site-footer { background: #eeefe9; color: var(--ink-2); padding: 20px 0 calc(var(--dock-h) + 28px); font-size: .82rem; border-top: 1px solid var(--line); }
++.site-footer a { color: var(--accent); }
++.site-footer .muted { color: var(--ink-2); }
+ .footer-inner p { margin: 4px 0; }
+-.site-footer details.privacy summary { color: #7FF7DA; padding: 6px 0; }
+-.site-footer details.privacy p { color: #D3D7EE; }
++.site-footer details.privacy summary { color: var(--accent); padding: 6px 0; }
++.site-footer details.privacy p { color: var(--ink-2); }
+ 
+ @media (max-width: 560px) {
+   .wrap { padding-inline: 12px; }
+@@ -360,7 +358,7 @@ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid v
+   .q-title { font-size: 1rem; }
+   .f-head { gap: 2px 8px; }
+   .show-in-article { min-height: 24px; }
+-  .verdict { padding: 12px; }
++  .verdict { padding: 0 0 12px; }
+   .verdict h2 { font-size: 1.15rem; }
+   .actions { width: 100%; }
+   .actions .btn.primary { flex: 1; }
+@@ -385,13 +383,13 @@ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid v
+   body { background: #fff !important; }
+   body > *:not(#print-record) { display: none !important; }
+   .print-record { display: block; color: #000; font-size: 10.5pt; line-height: 1.6; }
+-  .print-record h1 { font-size: 17pt; margin-bottom: 4pt; color: #12183F; border-bottom: 2pt solid #2EF2C2; padding-bottom: 4pt; }
+-  .print-record h2 { font-size: 12pt; margin: 12pt 0 4pt; color: #12183F; }
++  .print-record h1 { font-size: 17pt; margin-bottom: 4pt; color: var(--navy); border-bottom: 2pt solid var(--accent); padding-bottom: 4pt; }
++  .print-record h2 { font-size: 12pt; margin: 12pt 0 4pt; color: var(--navy); }
+   .rec-disclaimer { border: 1pt solid #999; padding: 6pt 8pt; background: #FFF8DD; }
+   .print-record table { width: 100%; border-collapse: collapse; margin: 4pt 0; }
+   .print-record th, .print-record td { border: .5pt solid #888; padding: 3pt 5pt; vertical-align: top; text-align: start; }
+-  .rec-meta th { width: 26%; background: #F2F4FF; }
+-  .rec-table th { background: #F2F4FF; font-size: 9pt; }
++  .rec-meta th { width: 26%; background: var(--off-bg); }
++  .rec-table th { background: var(--off-bg); font-size: 9pt; }
+   .rec-table td.q { font-family: "Amiri Quran", "Amiri", serif; font-size: 11.5pt; }
+   .rec-table td.url { direction: ltr; unicode-bidi: plaintext; font-size: 7.5pt; word-break: break-all; }
+   .rec-table tr { break-inside: avoid; }
+diff --git a/docs/TEST_LOG.md b/docs/TEST_LOG.md
+index a6d0434..9fafb34 100644
+--- a/docs/TEST_LOG.md
++++ b/docs/TEST_LOG.md
+@@ -642,3 +642,11 @@ Two false alarms of my own script (a hidden first button on desktop; a tall card
+ - **What was done.** The user set `GROQ_MAX_COMPLETION_TOKENS=800` on Render (not readable from outside; `/api/health` does not show it). Two live calls, both on build `82c919c`, both HTTP 200, `ai.outcome` ok, proposed 4, located 4, discarded 0, added by the model 0, no error, not truncated: one audit of the demonstration article (929 ms) and, about 2.5 minutes later, one recorded video take (760 ms). That is two calls and no controlled test; it does not prove the 429 cannot return. The demonstration article needs about 75–90 output tokens; an answer longer than the cap is treated as a failure (the AI result is dropped, the deterministic result stands, AI is skipped for the cooldown).
+ - **Current-limit wording corrected** in `README.md` (variable table and a note), `docs/RENDER_DEPLOY.md` (variables table and Groq limits), `docs/PILOT.md` (cost table) and `.env.example` (commented line), which had said only 8,000 (or 7,000 input) tokens/minute or «leave unset». The code default is unchanged at 4096 and `render.yaml` is unchanged.
+ - **No Groq call was made for this note** and no media or code changed. The model still added no detection in any audit; no AI benefit is claimed.
++
++## 3 Oct 2026 — editorial interface revision (local branch; not deployed)
++
++- **Observation.** A fresh live audit had multiple competing containers for the same review: a result banner, decision card, expanded queue, article view and final check. The prior purple/navy treatment, pills and nested cards made the writing task harder to scan. The existing user-owned live tab was left untouched.
++- **Change.** A narrower, quieter entry screen; warm paper and dark ink; one restrained green action color; a compact header and footer; flat queue rows; the article and current decision as the primary view. One uncertainty reason stays next to the decision, with the full reasons and verse evidence in its disclosure. The source and privacy links remain. No verse text, detector or evaluation label changed.
++- **Interaction.** A delayed `/api/phrase` response previously took focus back to the older quotation after the writer moved on. The result now updates the older finding while preserving the current card. `scripts/ui_async_navigation_e2e.mjs` holds the response until after navigation and checks both properties.
++- **Local checks (AI off, no Groq calls).** 351 Python tests; 11 Node revision tests; `ui_journey_e2e`, `ui_long_e2e`, `ui_phrase_e2e`, `ui_e2e`, `ui_boundary_e2e`, `ui_uthmani_e2e`, `ui_final_qa` and the new delayed-response check all pass. The first long run exposed a footer disclosure that could sit behind the mobile dock; footer spacing was corrected and the full long run passed on rerun. Axe-core WCAG 2.0–2.2 A/AA found 0 violations on entry, audit and final states at 1366, 390 and 320 px. Windows clipboard line endings were normalised in two browser assertions; the copied text itself was unchanged.
++- **Release boundary.** This branch has not been merged or deployed. The submission video and slide screenshots still depict the current live interface and will need a new take if this design is published.
+diff --git a/scripts/ui_async_navigation_e2e.mjs b/scripts/ui_async_navigation_e2e.mjs
+new file mode 100644
+index 0000000..d65312e
+--- /dev/null
++++ b/scripts/ui_async_navigation_e2e.mjs
+@@ -0,0 +1,36 @@
++// A phrase check may finish after the writer opens another quotation. Its
++// response must update the earlier finding without taking focus away.
++// NODE_PATH=<scratch>/node_modules node scripts/ui_async_navigation_e2e.mjs [--server URL]
++import fs from "fs";
++import path from "path";
++import { chromium, check, root, testServer, openPage, finish } from "./_ui_common.mjs";
++
++const article = JSON.parse(fs.readFileSync(path.join(root, "eval/articles_frozen.json"), "utf8"))
++  .cases.find((c) => c.id.startsWith("L1-")).article;
++const server = await testServer();
++const browser = await chromium.launch();
++const { page, errors, audit } = await openPage(browser, server.base, { width: 1366, height: 900 }, false, "async-nav");
++await page.goto(server.base);
++await audit(article);
++
++let release, intercepted;
++const barrier = new Promise((resolve) => { release = resolve; });
++const started = new Promise((resolve) => { intercepted = resolve; });
++await page.route("**/api/phrase", async (route) => {
++  intercepted();
++  await barrier;
++  await route.continue();
++});
++await page.click('#current [data-act="confirm-bounds"]');
++await started;
++await page.click("#next-btn");
++const opened = await page.locator("#current article").getAttribute("id");
++check(opened === "finding-3", "the writer can open the next quotation while a check is pending");
++release();
++await page.waitForFunction(() => document.querySelector("#undo-line")?.textContent.includes("ثبّتَّ حدود"), null, { timeout: 30000 });
++check((await page.locator("#current article").getAttribute("id")) === opened,
++  "the completed response does not pull the writer back to the previous quotation");
++check((await page.locator("#panel-progress").textContent()).includes("٧ اقتباسات"),
++  "the earlier quotation was still updated");
++check(errors.length === 0, `no page errors ${errors.join(" | ")}`);
++finish(server, browser);
+diff --git a/scripts/ui_e2e.mjs b/scripts/ui_e2e.mjs
+index 6ae58de..fcfc8e5 100644
+--- a/scripts/ui_e2e.mjs
++++ b/scripts/ui_e2e.mjs
+@@ -61,7 +61,7 @@ await shot("03-final");
+ 
+ await page.click("#copy-btn");
+ const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => null));
+-check(clip === null || clip === revised, "the copy button puts the revised article on the clipboard");
++check(clip === null || clip.replace(/\r\n?/g, "\n") === revised, "the copy button puts the revised article on the clipboard");
+ check(clip === null || /تم النسخ/.test(await page.locator("#copy-btn").innerText()), "the copy button confirms the copy on the button itself");
+ check(clip === null || (await page.locator("#copy-note").innerText()).includes("نُسخ المقال المعدّل"), "a note beside the copy button confirms the copy");
+ 
+diff --git a/scripts/ui_uthmani_e2e.mjs b/scripts/ui_uthmani_e2e.mjs
+index 6d52794..0703d36 100644
+--- a/scripts/ui_uthmani_e2e.mjs
++++ b/scripts/ui_uthmani_e2e.mjs
+@@ -58,7 +58,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1280, height: 800 }, fals
+   await page.click("#copy-btn");
+   await page.waitForTimeout(300);
+   const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => null));
+-  check(clip === null || clip === revised, "copy puts the revised article on the clipboard");
++  check(clip === null || clip.replace(/\r\n?/g, "\n") === revised, "copy puts the revised article on the clipboard");
+   check((await page.textContent("#copy-note")).includes("نُسخ"), "copy gives feedback beside the button");
+   await shot("2-final");
+   check(errors.length === 0, `no page errors ${errors.join(";")}`);
+-- 
+2.55.0.windows.3
+
