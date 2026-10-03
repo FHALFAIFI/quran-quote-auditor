@@ -588,6 +588,27 @@ They are a disagreement between a label and a documented policy, not a wrong aya
 **Five missed quotations** (e.g. «فَاسْتَبِقُوا الْخَيْرَاتِ», two words, repeated in the Quran, footnote reference) are short or repeated phrases without markers; they are the known limit of the unmarked search.
 Reference abstentions (50) are mostly «difference» quotations: the reference stays «غير محسومة» until the wording is settled, by design.
 
+### 4 Oct 2026: what the «possible» tier holds, and where the interface puts it (no detection change)
+
+The interface review found ordinary prose, «في كل عام» (an exact match of التوبة 126, three common words, no marker, no reference), as the first item to decide in
+`LA01`. It comes from the unmarked-phrase search, tier «possible», reason code `common`. To decide whether such an item should lead the queue,
+`eval/possible_tier_composition.py` counted what the «possible» tier holds on the two labelled long-article sets (`eval/results/possible-tier-20261004-005103.json`):
+
+| Reason code of the «possible» item | Overlaps a gold quotation | Does not |
+|---|---|---|
+| `approximate` (a near miss: some words differ) | 27 | 5 |
+| `common` (exact, but short or common) | 10 | 14 |
+| `non_quran_cue` (a hadith/du'a cue precedes it) | 4 | 1 |
+| `non_quran_cue` + `common` | 1 | 1 |
+
+So an exact-but-common item is a real quotation about two times in five on these sets (11 of 26), and in `LA01` itself five of its seven are real
+(«وقل رب زدني» and «وما يعقلها إلا» are misquotations). Hiding them, or raising a threshold, would lose real quotations; nothing was changed in detection
+(the seven detection sets were rerun on 4 Oct and their rows are identical to the recorded runs). What changed is the order and the wording in the interface:
+an unconfirmed `common` item without `approximate` is listed as «عبارات للتأكيد: قد تكون اقتباسات», still marked in the text and reachable, after the
+concrete decisions; the headline counts it apart («و٧ عبارات تشبه آيات ولم نتأكد أنها اقتباسات، تنتظر تأكيدك») instead of among the quotations found.
+`approximate` items stay in the main queue (27 of 32 real, mostly misquotations). These counts are from author-written, unreviewed labels on development data;
+they guided an ordering decision and are not a precision estimate.
+
 ### Length: measured, not assumed (`scripts/measure_length.py`, `eval/results/length-20261003-local.json`; macOS arm64, Python 3.14, AI off, median of 3, fresh process)
 
 | Input | Characters | Audit time | Findings | Response | Process memory |

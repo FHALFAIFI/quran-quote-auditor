@@ -27,14 +27,15 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await audit(cases.L1);
   await page.waitForTimeout(600);
   check((await overflowX()) <= 1, "results: no horizontal overflow");
-  const state = await page.evaluate(() => ({ total: lastResult.findings.length, pending: lastResult.findings.filter((f) => pendingKind(f)).map((f) => f.id), start: Object.fromEntries(lastResult.findings.map((f) => [f.id, f.start])) }));
+  const state = await page.evaluate(() => ({ total: lastResult.findings.length, pending: lastResult.findings.filter((f) => pendingKind(f) && !weakPending(f)).map((f) => f.id), start: Object.fromEntries(lastResult.findings.map((f) => [f.id, f.start])) }));
   console.log(`INFO  ${state.total} quotations, ${state.pending.length} waiting`);
   check(state.pending.length >= 3, "the article has several quotations waiting for the writer");
   check(norm(await page.textContent("#panel-progress")).includes(" من " + (state.total).toLocaleString("ar-EG")), `the panel says which of ${state.total} this is`);
   check(/الفقرة [٠-٩]+ من [٠-٩]+/.test(norm(await page.textContent("#current .f-where"))), "the card says where in the article (paragraph number)");
   check(state.pending.every((id, i, a) => i === 0 || state.start[id] > state.start[a[i - 1]]), "the pending list is in the order of the article");
 
-  // the sequence: «التالي» visits every waiting quotation once, in article order, and comes back to the first
+  // the sequence: «التالي» visits every waiting decision once, in article order, and comes back to the first (since 4 Oct the exact-but-common
+  // phrases «عبارات للتأكيد» come only after these: scripts/ui_possible_order_e2e.mjs)
   const seen = [];
   const nextBtn = mobile ? "#dock-next" : "#next-btn";
   for (let i = 0; i < state.pending.length + 1; i++) {

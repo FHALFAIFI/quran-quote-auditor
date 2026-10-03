@@ -21,6 +21,7 @@ await page.route("**/api/phrase", async (route) => {
   await barrier;
   await route.continue();
 });
+const pendingBefore = await page.evaluate(() => pendingList().length);
 await page.click('#current [data-act="confirm-bounds"]');
 await started;
 await page.click("#next-btn");
@@ -30,7 +31,8 @@ release();
 await page.waitForFunction(() => document.querySelector("#undo-line")?.textContent.includes("ثبّتَّ حدود"), null, { timeout: 30000 });
 check((await page.locator("#current article").getAttribute("id")) === opened,
   "the completed response does not pull the writer back to the previous quotation");
-check((await page.locator("#panel-progress").textContent()).includes("٧ اقتباسات"),
-  "the earlier quotation was still updated");
+// (until 4 Oct this read «٧ اقتباسات» in the progress line; two exact-but-common phrases are now counted apart there, so the state is checked)
+check(await page.evaluate((n) => pendingList().length === n - 1, pendingBefore),
+  "the earlier quotation was still updated (one fewer open item)");
 check(errors.length === 0, `no page errors ${errors.join(" | ")}`);
 finish(server, browser);

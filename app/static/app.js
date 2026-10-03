@@ -58,7 +58,7 @@ const fill = (node, ...kids) => node.replaceChildren(...kids.flat(Infinity).filt
 const toArabicDigits = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
 // a character count with the Arabic thousands separator: «٢٠٬٠٠٠» (the Arabic zero is a dot, so «٢٠٠٠٠» reads as «٢····»)
 const arabicCount = (n) => toArabicDigits(String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "٬"));
-const fmtTime = (secs) => new Date(secs * 1000).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" });
+const fmtTime = (secs) => new Date(secs * 1000).toLocaleString("ar-u-nu-arab", { dateStyle: "medium", timeStyle: "short" });   // Arabic-Indic digits, as elsewhere on the page
 const motion = () => (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 // a short move may glide; a jump across a long article is instant (smooth scrolling over several screens takes seconds)
 const motionFor = (distance) => (Math.abs(distance) > innerHeight * 1.5 ? "auto" : motion());
@@ -205,6 +205,14 @@ function pendingKind(f) {
   return null;
 }
 const pendingList = () => activeFindings().filter((f) => pendingKind(f));
+// An exact match of a short or common phrase («في كل عام») that nothing marks as a quotation: the phrase search's own code «common», without
+// a near-miss («approximate»). In the labelled long-article sets about two in five of these were real quotations (4 Oct, docs/EVALUATION.md),
+// so they stay listed, marked and reachable; they only wait behind the concrete decisions instead of leading the queue. No detection rule is changed.
+const isWeak = (f) => { const c = f.detection?.codes || []; return !!f.detection?.unconfirmed && c.includes("common") && !c.includes("approximate"); };
+const weakPending = (f) => pendingKind(f) === "verse" && isWeak(f);
+const mainPendingList = () => pendingList().filter((f) => !weakPending(f));
+const weakPendingList = () => pendingList().filter(weakPending);
+const orderedPending = () => [...mainPendingList(), ...weakPendingList()];
 const PENDING_TEXT = { verse: "يحتاج تأكيدك", bounds: "حدود الاقتباس غير محسومة", fix: "تصحيح مقترح بانتظار قرارك", review: "يحتاج مراجعتك", stale: "عُدّل بعد التدقيق" };
 // [text, class] — one plain state per quotation, never a stack of badges. The second class tells apart what the tool matched («exact»),
 // a passage that may not be a quotation or may be another verse («possible»), what rests on the writer's own word («own»), and a correction
@@ -225,6 +233,14 @@ function pendingText(n) {
   if (n === 1) return "اقتباس واحد ينتظر قرارك";
   if (n === 2) return "اقتباسان ينتظران قرارك";
   return n <= 10 ? `${toArabicDigits(n)} اقتباسات تنتظر قرارك` : `${toArabicDigits(n)} اقتباسًا ينتظر قرارك`;
+}
+
+// «٣ عبارات للتأكيد»: phrases that may be quotations, said apart from the quotations that wait for a decision
+const weakText = (n) => countAr(n, "عبارة واحدة للتأكيد", "عبارتان للتأكيد", "عبارات للتأكيد", "عبارة للتأكيد");
+function openText() {
+  const m = mainPendingList().length, w = weakPendingList().length;
+  if (!m && w) return weakText(w);
+  return pendingText(m) + (w ? `، و${weakText(w)}` : "");
 }
 
 // ---------------------------------------------------------------- session state
@@ -498,7 +514,7 @@ async function runAudit() {
     lastAction = null; cardError = null; pendingSel = null;
     auditedAt = Date.now() / 1000;
     const keep = anchor !== undefined ? allFindings().find((f) => f.start <= anchor && anchor <= f.end) : null;
-    current = (keep || pendingList()[0] || activeFindings()[0] || {}).id ?? null;
+    current = (keep || orderedPending()[0] || activeFindings()[0] || {}).id ?? null;
     saveSession();
     render(!recheck);
     loadHealth();  // refresh the banner with this call's real outcome
@@ -516,7 +532,8 @@ async function runAudit() {
       announce(msg);
       invalidated = [];
     } else {
-      announce(`اكتمل التدقيق. ${verdictText(data).headline}.`);
+      const v = verdictText(data);
+      announce(`اكتمل التدقيق. ${v.headline}.${v.maybe ? " " + v.maybe : ""}`);
     }
   } catch (e) {
     setStatus(e.name === "AbortError" ? "انتهت مهلة الطلب. مقالك ما زال في المربع." : "تعذّر الاتصال بالخادم. مقالك ما زال في المربع.", true, false, runAudit);
@@ -595,25 +612,33 @@ function render(scroll) {
 
 // «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك»: the counted noun and the verb agree with the number.
 function verdictText(data) {
-  const fs = (data.findings || []).filter((f) => !dismissed[f.id]);
+  const all = (data.findings || []).filter((f) => !dismissed[f.id]);
+  // a phrase that may be a quotation (an exact but common phrase, unconfirmed) is said apart, never counted as a quotation found
+  const maybe = all.filter((f) => !f.stale && weakPending(f)).length;
+  const fs = all.filter((f) => f.stale || !weakPending(f));
   const total = fs.length, n = fs.filter((f) => f.needs_review || f.stale).length;
   const found = total === 1 ? "وجدنا اقتباسًا واحدًا" : total === 2 ? "وجدنا اقتباسين" : `وجدنا ${toArabicDigits(total)} ${total <= 10 ? "اقتباسات" : "اقتباسًا"}`;
+  const also = maybe ? countAr(maybe, "وعبارة واحدة تشبه آية ولم نتأكد أنها اقتباس، تنتظر تأكيدك.", "وعبارتان تشبهان آيتين ولم نتأكد أنهما اقتباسان، تنتظران تأكيدك.",
+    "عبارات تشبه آيات ولم نتأكد أنها اقتباسات، تنتظر تأكيدك.", "عبارة تشبه آيات ولم نتأكد أنها اقتباسات، تنتظر تأكيدك.") : null;
+  const maybeLine = also && maybe > 2 ? `و${also}` : also;
+  if (!total && maybe) return { headline: "لم نجد اقتباسًا مؤكدًا في النص", total, needing: 0, maybe: maybeLine.replace(/^و/, "") };
   if (!total) return { headline: "لم نجد اقتباسات قرآنية في النص", total, needing: 0 };
   let tail;
   if (n === 0) tail = total === 1 ? "ولا يحتاج إلى قرارك" : "ولا يحتاج أيٌّ منها إلى قرارك";
   else if (n === total) tail = total === 1 ? "ويحتاج إلى قرارك" : total === 2 ? "يحتاج كلاهما إلى قرارك" : "تحتاج كلها إلى قرارك";
   else tail = n === 1 ? "يحتاج واحد منها إلى قرارك" : n === 2 ? "يحتاج اثنان إلى قرارك" : `${n <= 10 ? "تحتاج" : "يحتاج"} ${toArabicDigits(n)} منها إلى قرارك`;
-  return { headline: tail.startsWith("و") ? `${found} ${tail}` : `${found}؛ ${tail}`, total, needing: n };
+  return { headline: tail.startsWith("و") ? `${found} ${tail}` : `${found}؛ ${tail}`, total, needing: n, maybe: maybeLine };
 }
 
 function renderVerdict(data) {
   const v = verdictText(data);
   const box = $("verdict");
-  box.className = `verdict ${v.needing ? "has-review" : "clear"}`;
+  box.className = `verdict ${v.needing || v.maybe ? "has-review" : "clear"}`;
   box.replaceChildren(...[
     el("h2", { id: "verdict-title", tabindex: "-1", text: v.headline }),
+    v.maybe ? el("p", { class: "verdict-maybe", text: v.maybe }) : null,
     el("p", { class: "verdict-sub", text: "فحص للاقتباسات المرصودة، وليس حكمًا على المقال كله." + (edited() ? " النص تغيّر بعد هذا التدقيق." : "") }),
-    !v.total ? el("p", { class: "verdict-sub", text: "إن كان في مقالك آية لم نرصدها، حدّدها في المقال ثم اضغط «افحص المحدَّد»." }) : null,
+    !v.total && !v.maybe ? el("p", { class: "verdict-sub", text: "إن كان في مقالك آية لم نرصدها، حدّدها في المقال ثم اضغط «افحص المحدَّد»." }) : null,
     isDemo ? el("p", { class: "verdict-demo", text: DEMO_NOTE }) : null,
   ].filter(Boolean));
 }
@@ -768,14 +793,16 @@ function goTo(id, { scroll = "panel", focus = true, keepError = false, quiet = f
   if (f && !quiet) announce(`الاقتباس ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}`);
 }
 
-// The next quotation after `fromId` that still waits for the writer (wrapping round), in the order of the article.
+// The next quotation after `fromId` that still waits for the writer (wrapping round), in the order of the article: the concrete decisions
+// first, and the phrases that may be quotations («عبارات للتأكيد») once none of those is left.
 function nextPending(fromId, dir = 1) {
   const fs = activeFindings();
   if (!fs.length) return null;
+  const want = mainPendingList().length ? (f) => pendingKind(f) && !weakPending(f) : (f) => pendingKind(f);
   const i = fs.findIndex((f) => String(f.id) === String(fromId));
   for (let k = 1; k <= fs.length; k++) {
     const f = fs[((i < 0 ? (dir > 0 ? -1 : 0) : i) + dir * k + fs.length * 2) % fs.length];
-    if (pendingKind(f)) return f.id;
+    if (want(f)) return f.id;
   }
   return null;
 }
@@ -860,7 +887,7 @@ function renderPanel() {
   const f = fs.find((x) => String(x.id) === String(current)) || null;
   const idx = f ? fs.indexOf(f) + 1 : 0;
   $("panel-title").textContent = f && pendingKind(f) ? "قرارك الآن" : pend.length ? "مراجعة اقتباس" : "اكتملت قراراتك";
-  $("panel-progress").replaceChildren(el("b", { text: pendingText(pend.length) }), f ? ` · ${toArabicDigits(idx)} من ${toArabicDigits(fs.length)}` : "");
+  $("panel-progress").replaceChildren(el("b", { text: openText() }), f ? ` · ${toArabicDigits(idx)} من ${toArabicDigits(fs.length)}` : "");
   $("panel-nav").hidden = pend.length < 2 && !(pend.length === 1 && f && !pendingKind(f));
   const undo = $("undo-line");
   undo.hidden = !lastAction;
@@ -895,12 +922,14 @@ function renderQueue() {
   const group = (title, items, open, cls) => (items.length ? el("details", { class: `q-group ${cls}`, open: open ? "" : null },
     el("summary", {}, `${title} (${toArabicDigits(items.length)})`), el("ul", {}, items.map(row))) : null);
   const stale = fs.filter((f) => f.stale);
-  const pend = fs.filter((f) => !f.stale && !dismissed[f.id] && pendingKind(f));
+  const pend = fs.filter((f) => !f.stale && !dismissed[f.id] && pendingKind(f) && !weakPending(f));
+  const maybe = fs.filter((f) => !f.stale && !dismissed[f.id] && weakPending(f));
   const done = fs.filter((f) => !f.stale && !dismissed[f.id] && !pendingKind(f));
   const off = fs.filter((f) => dismissed[f.id]);
   $("queue").replaceChildren(...[
     group("عُدّلت بعد التدقيق", stale, true, "stale"),
     group("تنتظر قرارك", pend, true, "need"),
+    group("عبارات للتأكيد: قد تكون اقتباسات", maybe, true, "maybe"),
     group("تمت مراجعتها", done, pend.length === 0 || done.length <= 3, "done"),
     group("استبعدتَها", off, true, "off"),
   ].filter(Boolean));
@@ -964,7 +993,7 @@ function staleBlock(f) {
 function forgetStale(f) {
   lastResult.findings = allFindings().filter((g) => g !== f);
   lastResult.stats = computeStats(lastResult.findings);
-  if (String(current) === String(f.id)) current = (pendingList()[0] || activeFindings()[0] || {}).id ?? null;
+  if (String(current) === String(f.id)) current = (orderedPending()[0] || activeFindings()[0] || {}).id ?? null;
   saveSession();
   renderVerdict(lastResult); renderAll(); updateCount();
   notify(`أزلتَ علامة الموضع «${excerpt(f.quote)}» من القائمة.`, null);
@@ -1318,6 +1347,9 @@ async function requestPhrase(start, end, choice, findingId, why) {
   const gen = docGen, sentText = lastArticle;
   cardError = null;
   const card = $("current").firstElementChild;
+  // disabling the focused button would drop keyboard focus to the page: it waits on the card itself until the answer comes
+  if (card && card.contains(document.activeElement)) card.focus({ preventScroll: true });
+  card?.setAttribute("aria-busy", "true");
   card?.querySelectorAll("button").forEach((b) => { b.disabled = true; });
   setStatus("جارٍ فحص المقطع ومقارنته بنص المصحف…", false, true);
   try {
@@ -1460,7 +1492,7 @@ function renderFinal() {
 
   const open = [...new Map([...pend, ...unresolved].map((f) => [f.id, f])).values()].sort((a, b) => a.start - b.start);
   fill($("final-pending"), open.length ? el("div", { class: "open-box" },
-    el("h3", { text: pend.length ? `${pendingText(pend.length)} — وسيبقى كما كتبتَه إن لم تقرّر` : "اقتباسات لم تحسمها الأداة" }),
+    el("h3", { text: pend.length ? `${openText()} — وسيبقى كما كتبتَه إن لم تقرّر` : "اقتباسات لم تحسمها الأداة" }),
     el("ul", { class: "open-list" }, open.map((f) => el("li", {}, el("span", { class: "row-num", text: toArabicDigits(f.id) }), el("span", { class: "row-q", dir: "rtl" }, excerpt(f.quote)),
       el("span", { class: `state ${pendingKind(f) ? "need" : "off"}`, text: pendingKind(f) ? PENDING_TEXT[pendingKind(f)] : reviewed[f.id] ? "راجعتَه بنفسك؛ لم تحسمه الأداة" : "لم تحسمه الأداة" }),
       el("button", { type: "button", class: "link-btn", onclick: () => goTo(f.id, { scroll: "panel" }), text: pendingKind(f) ? "قرّر" : "راجع" }))))) : null);
@@ -1476,7 +1508,7 @@ function renderFinal() {
   $("revised-text").value = text;
   $("reply-text").value = R.replyDraft(fs, changes, decisions);
   updateReplyCount();
-  $("copy-btn").classList.toggle("ready", !pend.length);
+  $("copy-btn").classList.toggle("ready", !mainPendingList().length);
   $("copy-note").classList.toggle("copy-bad", $("copy-note").classList.contains("copy-bad"));
   if (refused.length) $("final-changes").append(el("p", { class: "notice error", text: `تعذّر تطبيق ${countAr(refused.length, "تغيير واحد", "تغييرين", "تغييرات", "تغييرًا")} (تداخل أو إزاحة)؛ يبقى النص المنسوخ في ذلك كما كتبتَه.` }));
 }
@@ -1520,7 +1552,7 @@ function renderDock() {
   const here = caretId !== null ? findingById(caretId) : null;
   dock.hidden = false;
   // when the caret is inside a highlighted quotation the bar names it and offers to open its decision
-  $("dock-text").textContent = here ? `الاقتباس ${toArabicDigits(here.id)}: ${stateOf(here)[0]}` : pendingText(pend.length);
+  $("dock-text").textContent = here ? `الاقتباس ${toArabicDigits(here.id)}: ${stateOf(here)[0]}` : openText();
   $("dock-open").hidden = !here;
   const btn = $("dock-next");
   btn.textContent = pend.length ? "التالي" : "المراجعة الأخيرة";
@@ -1550,8 +1582,8 @@ async function copyRevised() {
   const text = $("revised-text").value;
   try {
     await navigator.clipboard.writeText(text);
-    const pend = pendingList().length;
-    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${countAr(pend, "اقتباس واحد لم تقرّر فيه فنُسخ كما كتبتَه", "اقتباسان لم تقرّر فيهما فنُسخا كما كتبتَهما", "اقتباسات لم تقرّر فيها فنُسخت كما كتبتَها", "اقتباسًا لم تقرّر فيها فنُسخت كما كتبتَها")}` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط؛ وما بقي غير محسوم يحتاج مراجعتك.`;
+    const pend = mainPendingList().length, weak = weakPendingList().length;
+    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${countAr(pend, "اقتباس واحد لم تقرّر فيه فنُسخ كما كتبتَه", "اقتباسان لم تقرّر فيهما فنُسخا كما كتبتَهما", "اقتباسات لم تقرّر فيها فنُسخت كما كتبتَها", "اقتباسًا لم تقرّر فيها فنُسخت كما كتبتَها")}` : ""}${weak ? `، و${weakText(weak)} نُسخت كما كتبتَها` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط؛ وما بقي غير محسوم يحتاج مراجعتك.`;
     copyFeedback($("copy-btn"), $("copy-note"), msg, true);
     announce(msg);
   } catch {
@@ -1605,7 +1637,7 @@ function buildRecord() {
       kv("مصدر النص القرآني", `${data.source.name} — ${data.source.url}`),
       kv("وقت جلب المصدر", data.source.fetched_at ? fmtTime(data.source.fetched_at) + (data.source.stale ? " (نسخة مخبأة)" : "") : "المصدر غير متاح — لم يُحكم على أي اقتباس"),
       kv("هل عمل الاستخراج بالذكاء الاصطناعي؟", aiRecordText(data)),
-      kv("الأعداد", `اقتباسات مرصودة ${activeFindings().length} · تصحيحات معتمدة ${approved.length} · مرفوضة ${rejected.length} · بلا قرار ${pending.length} · غير محسومة ${unresolved.length} · مستبعدة (ليست اقتباسًا) ${off.length}`),
+      kv("الأعداد", `اقتباسات مرصودة ${activeFindings().filter((f) => !weakPending(f)).length} · عبارات تشبه آيات لم يؤكّدها المحرر ${weakPendingList().length} · تصحيحات معتمدة ${approved.length} · مرفوضة ${rejected.length} · بلا قرار ${pending.length} · غير محسومة ${unresolved.length} · مستبعدة (ليست اقتباسًا) ${off.length}`),
     ),
     el("h2", { text: "التصحيحات المعتمدة" }),
     approved.length ? el("table", { class: "rec-table" },

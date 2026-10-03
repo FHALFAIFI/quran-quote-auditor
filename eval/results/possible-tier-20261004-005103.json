@@ -1,0 +1,468 @@
+{
+ "written": "2026-10-04T00:51:03+0300",
+ "sets": [
+  "eval/articles_frozen.json",
+  "eval/articles_long_20261003.json"
+ ],
+ "by_codes": {
+  "approximate": {
+   "gold": 27,
+   "not_gold": 5
+  },
+  "common": {
+   "gold": 10,
+   "not_gold": 14
+  },
+  "non_quran_cue": {
+   "gold": 4,
+   "not_gold": 1
+  },
+  "non_quran_cue,common": {
+   "gold": 1,
+   "not_gold": 1
+  }
+ },
+ "items": [
+  {
+   "set": "articles_frozen.json",
+   "case": "L1-patience-near-limit",
+   "quote": "إن الله مع الصابرين",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_frozen.json",
+   "case": "L1-patience-near-limit",
+   "quote": "بعضهم على بعض",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_frozen.json",
+   "case": "L2-orphans-incomplete-and-wrong",
+   "quote": "إنما نطعمكم لوجه الله لا نريد منكم أجرا ولا شكورا",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "في كل عام",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "وقل رب زدني",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "أحاط بكل شيء",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "يؤتي الحكمة من يشاء",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "ولا تقف ما ليس لك به علم",
+   "codes": "non_quran_cue",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "وما يعقلها إلا",
+   "codes": "non_quran_cue,common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "واتقوا الله ويعلمكم الله",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA01-knowledge-essay",
+   "quote": "أفلا يتدبرون القرآن",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA02-trade-ethics-column",
+   "quote": "وأوفوا المكيال والميزان بالقسط",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA02-trade-ethics-column",
+   "quote": "النبيين والصديقين والشهداء",
+   "codes": "non_quran_cue,common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA02-trade-ethics-column",
+   "quote": "وَأَشْهِدُوا إِذَا تَبَايَعْتُمْ",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA02-trade-ethics-column",
+   "quote": "وأوفوا بالعقد إن العهد كان مسئولا",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA02-trade-ethics-column",
+   "quote": "يا أيها الذين آمنوا اتقوا الله وذروا ما بقي من الربا إن كنتم حقا مؤمنين",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA02-trade-ethics-column",
+   "quote": "إذ قال له قومه",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA02-trade-ethics-column",
+   "quote": "وقال حسبنا الله ونعم الوكيل",
+   "codes": "approximate",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA03-technology-and-the-heart",
+   "quote": "لا تلهكم أموالكم ولا أبناؤكم عن ذكر الله",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA03-technology-and-the-heart",
+   "quote": "ولا تطع من أغفلنا قلبه ذكرنا واتبع هواه",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA03-technology-and-the-heart",
+   "quote": "أيحب أحدكم أن يأكل لحم أخيه فكرهتموه",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA03-technology-and-the-heart",
+   "quote": "ومن الناس من يشتري لهو الحديث عن سبيل الله بغير علم",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA04-patience-column",
+   "quote": "واصبر فإن الله لا يضيع ثواب المحسنين",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA04-patience-column",
+   "quote": "وما علينا إلا أن نتوكل عليه",
+   "codes": "approximate",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA04-patience-column",
+   "quote": "ولمن صبر وغفر إن لمن عزم الأمور",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA04-patience-column",
+   "quote": "الأمر بالمعروف والنهي عن المنكر",
+   "codes": "approximate",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA04-patience-column",
+   "quote": "وصابروا إن الله مع الصابرين",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA04-patience-column",
+   "quote": "والله مع الصابرين",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA04-patience-column",
+   "quote": "ثم كان من الذين آمنوا وتواصوا بالصبر بالمرحمة",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA05-family-essay",
+   "quote": "هو الذي خلقكم من نفس واحدة وجعل منها زوجها ليسكنوا إليها",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA05-family-essay",
+   "quote": "لا تضار والدة بولدها ولا مولود بولده",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA05-family-essay",
+   "quote": "رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً",
+   "codes": "non_quran_cue",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA05-family-essay",
+   "quote": "رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA05-family-essay",
+   "quote": "إنما أموالكم وأولادكم",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA05-family-essay",
+   "quote": "وإن تعفوا وتغفروا فإن الله غفور رحيم",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA06-environment-feature",
+   "quote": "وَيُهْلِكَ الْحَرْثَ وَالنَّسْلَ",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA06-environment-feature",
+   "quote": "والحمد لله رب",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA06-environment-feature",
+   "quote": "الذي سخّر لنا",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA07-time-sermon",
+   "quote": "وجاهد في سبيل",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA07-time-sermon",
+   "quote": "وهو الذي جعل الليل والنهار خلفة لمن أراد يذكر أو أراد شكورا",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA07-time-sermon",
+   "quote": "ولا الليل سابق النهار في فلك يسبحون",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA07-time-sermon",
+   "quote": "أحرص الناس على",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA07-time-sermon",
+   "quote": "حتى إذا جاء أحدهم الموت قال رب ارجعوني لعلي أعمل صالحا فيما تركت",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA07-time-sermon",
+   "quote": "ولا تقولن لشيء إني فاعل ذلك غدا",
+   "codes": "non_quran_cue",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA08-charity-footnotes",
+   "quote": "لا تبطلوا صدقاتكم بالمنة والأذى",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA08-charity-footnotes",
+   "quote": "خير من صدقة يصحبها أذى",
+   "codes": "approximate",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA08-charity-footnotes",
+   "quote": "والذين في أموالهم حق للسائل والمحروم",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA08-charity-footnotes",
+   "quote": "إنما الصدقات للفقراء والعاملين عليها",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA08-charity-footnotes",
+   "quote": "والرقاب، والغارمون، وفي سبيل الله، وابن السبيل",
+   "codes": "approximate",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA08-charity-footnotes",
+   "quote": "وتعاونوا على البر والتقوى ولا تعاونوا على الإثم والعدوان",
+   "codes": "non_quran_cue",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA09-neighbours-letters",
+   "quote": "من كان يؤمن بالله واليوم الآخر",
+   "codes": "non_quran_cue",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA09-neighbours-letters",
+   "quote": "خذ العفو وأمر بالمعروف وأعرض عن الجاهلين",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA09-neighbours-letters",
+   "quote": "بالتي هي أحسن",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA09-neighbours-letters",
+   "quote": "عباد الله المخلصين",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA09-neighbours-letters",
+   "quote": "وَقُولُوا لِلنَّاسِ حُسْنًا",
+   "codes": "common",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA09-neighbours-letters",
+   "quote": "قال لقمان لابنه",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA09-neighbours-letters",
+   "quote": "ولا تصاعر خدك للناس ولا تمش في الأرض مرحا",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA10-youth-graduation-speech",
+   "quote": "الحمد لله الذي",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA10-youth-graduation-speech",
+   "quote": "إذ أوى الفتية إلى الكهف فقالوا ربنا آتنا من لدنك مغفرة وهيئ لنا من أمرنا رشدا",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA10-youth-graduation-speech",
+   "quote": "يا أيها الذين آمنوا لماذا تقولون ما لا تفعلون",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA10-youth-graduation-speech",
+   "quote": "قل للمؤمنين يغضضوا من أبصارهم ويحفظوا فروجهم",
+   "codes": "approximate",
+   "overlaps_gold": true
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA10-youth-graduation-speech",
+   "quote": "قال معاذ الله",
+   "codes": "common",
+   "overlaps_gold": false
+  },
+  {
+   "set": "articles_long_20261003.json",
+   "case": "LA10-youth-graduation-speech",
+   "quote": "من آمن وعمل صالحًا",
+   "codes": "common",
+   "overlaps_gold": false
+  }
+ ]
+}

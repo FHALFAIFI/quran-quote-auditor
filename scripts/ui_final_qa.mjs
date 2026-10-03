@@ -170,6 +170,8 @@ for (const [name, vp, mobile] of VIEWPORTS) {
       decided++;
       console.log(`INFO  ${label}: decision ${decided} on ${s.name} «${s.text}»; progress was «${progress}»`);
       await page.waitForTimeout(500);
+      // a verse or boundary check goes to the server; the card says it is busy until the answer is drawn (4 Oct: focus waits on the card)
+      await page.waitForFunction(() => !document.querySelector('#current [aria-busy="true"]'), null, { timeout: 30000 });
       if (/حسمتَ كل/.test(norm(await page.textContent("#panel-progress")))) break;  // nothing waits any more: the list is done
       if ((await page.evaluate(() => document.querySelector("#current article")?.id)) === cardBefore && (await page.locator("#next-btn").isEnabled())) {
         // the same card is still shown (a boundary or verse was settled and the result is there to read): the way on is «التالي» in the panel header
