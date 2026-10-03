@@ -297,7 +297,8 @@ def main() -> int:
     out_dir.mkdir(exist_ok=True)
     tag = f"-{args.tag}" if args.tag else ""
     out = out_dir / f"{args.mode}-{datetime.now().strftime('%Y%m%d-%H%M%S')}{tag}.json"
-    out.write_text(json.dumps({"summary": summary, "ai_calls": ai_log, "rows": rows, "negative_hits": neg_hits, "formula_hits": formula_hits, "extra_findings": extra_findings}, ensure_ascii=False, indent=1), encoding="utf-8")
+    notice = {k: data[k] for k in ("_text_source", "_notice") if k in data}  # third-party text in the rows keeps its credit and licence notice
+    out.write_text(json.dumps({**notice, "summary": summary, "ai_calls": ai_log, "rows": rows, "negative_hits": neg_hits, "formula_hits": formula_hits, "extra_findings": extra_findings}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     for r in rows:
         if not r["detected"]:
