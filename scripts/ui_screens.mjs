@@ -53,6 +53,19 @@ for (const [tag, vp, mobile] of VPS) {
   await page.screenshot({ path: out("02-suggest") });
   await ctx.close();
 
+  // 4 Oct: the first piece of a verse says where it stops; after accepting it the next piece is offered
+  ({ ctx, page } = await open(vp, mobile));
+  await page.click("#article");
+  await page.keyboard.type("قال تعالى: إن الله يأمركم أن تؤدوا الأمانات", { delay: 5 });
+  await page.waitForSelector("#suggest:not([hidden]) .sg-item", { timeout: 60000 }).catch(() => {});
+  await sleep(500);
+  await page.screenshot({ path: out("02b-suggest-piece") });
+  if (mobile) await page.locator("#suggest .sg-accept").first().tap(); else await page.keyboard.press("Tab");
+  await page.waitForSelector("#suggest:not([hidden]) .sg-item", { timeout: 60000 }).catch(() => {});
+  await sleep(500);
+  await page.screenshot({ path: out("02c-next-piece") });
+  await ctx.close();
+
   ({ ctx, page } = await open(vp, mobile));
   await page.click("#demo-btn");
   await waitCard(page);
@@ -62,6 +75,10 @@ for (const [tag, vp, mobile] of VPS) {
   await page.waitForSelector('[data-change="4-reference"]', { timeout: 15000 });
   await sleep(900);
   await page.screenshot({ path: out("05-last-decision") });
+  // the approved correction drawn in the box (4 Oct)
+  await page.evaluate(() => document.querySelector("#article-view .fix")?.scrollIntoView({ block: "center" }));
+  await sleep(500);
+  await page.screenshot({ path: out("05b-approved-in-box") });
   await page.click('[data-change="4-reference"] button[data-act="approved"]');
   await sleep(900);
   await page.evaluate(() => document.getElementById("final").scrollIntoView({ block: "start" }));
@@ -86,6 +103,28 @@ for (const [tag, vp, mobile] of VPS) {
     if (sim === "length") { await waitCard(page); await page.screenshot({ path: out("sim-07-long-at-first-card"), fullPage: false }); }
     await ctx.close();
   }
+
+  // a long article opened on its first concrete decision, and its phrases to confirm (4 Oct; no simulation)
+  ({ ctx, page } = await open(vp, mobile));
+  await audit(page, longCase);
+  await page.screenshot({ path: out("11-long-first-card") });
+  await page.evaluate(() => { const g = document.querySelector("#queue .q-group.maybe"); if (g) { g.open = true; g.scrollIntoView({ block: "center" }); } });
+  await sleep(500);
+  await page.screenshot({ path: out("12-long-phrases-to-confirm") });
+  await ctx.close();
+
+  // an edit inside the approved quotation: the mark and the decision fall, the quotation is stale (4 Oct)
+  ({ ctx, page } = await open(vp, mobile));
+  await audit(page, await (await fetch(server.base + "/static/samples/sample-demo.txt")).text());
+  await page.click('[data-change="3-wording"] button[data-act="approved"]');
+  await sleep(700);
+  await page.evaluate(() => { const ta = document.getElementById("article"); const i = ta.value.indexOf("الصابرون") + 3; ta.focus(); ta.setSelectionRange(i, i); });
+  await page.keyboard.type("ـ");
+  await sleep(600);
+  await page.evaluate(() => document.querySelector("#article-view mark.stale")?.scrollIntoView({ block: "center" }));
+  await sleep(400);
+  await page.screenshot({ path: out("13-edited-after-approval") });
+  await ctx.close();
 
   for (const doc of ["sources", "privacy", "limitations"]) {
     ({ ctx, page } = await open(vp, mobile));

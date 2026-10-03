@@ -887,7 +887,7 @@ function renderPanel() {
   const f = fs.find((x) => String(x.id) === String(current)) || null;
   const idx = f ? fs.indexOf(f) + 1 : 0;
   $("panel-title").textContent = f && pendingKind(f) ? "قرارك الآن" : pend.length ? "مراجعة اقتباس" : "اكتملت قراراتك";
-  $("panel-progress").replaceChildren(el("b", { text: openText() }), f ? ` · ${toArabicDigits(idx)} من ${toArabicDigits(fs.length)}` : "");
+  $("panel-progress").replaceChildren(el("b", { text: openText() }), f ? ` — ${toArabicDigits(idx)} من ${toArabicDigits(fs.length)}` : "");   // not «·»: beside an Arabic digit it reads as a zero («· ٣» looks like «٣٠»)
   $("panel-nav").hidden = pend.length < 2 && !(pend.length === 1 && f && !pendingKind(f));
   const undo = $("undo-line");
   undo.hidden = !lastAction;

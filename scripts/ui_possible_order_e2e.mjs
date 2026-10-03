@@ -25,6 +25,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   check(/و٧ عبارات تشبه آيات ولم نتأكد أنها اقتباسات، تنتظر تأكيدك/.test(verdict), "and says the 7 phrases apart, unconfirmed");
   const progress = norm(await page.textContent("#panel-progress"));
   check(progress.startsWith("١٠ اقتباسات تنتظر قرارك، و٧ عبارات للتأكيد"), `the panel says the same («${progress}»)`);
+  check(/ — [٠-٩]+ من [٠-٩]+$/.test(progress) && !/·/.test(progress), "the position is set off by a dash, not a middle dot (which reads as an Arabic zero beside a digit)");
 
   const first = await page.evaluate(() => { const c = document.querySelector("#current article"); return { id: c.id, quote: c.querySelector(".q-hit")?.textContent, state: c.querySelector(".f-head .state")?.textContent }; });
   check(first.quote !== "في كل عام" && first.state !== "يحتاج تأكيدك", `the first card is a concrete decision, not «في كل عام» (${first.id}: ${first.state})`);

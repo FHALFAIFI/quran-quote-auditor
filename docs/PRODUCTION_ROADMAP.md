@@ -40,7 +40,7 @@ Known gaps (`docs/EVALUATION.md`):
   - at least 40 one-word-wrong quotations of 3–6 words,
   - at least 30 two-word repeated phrases,
   - at least 40 prose look-alikes, including exact matches of common phrases («في كل عام», «من كل شيء»).
-  
+
   Any rule change is measured on C once, after it is frozen.
 - **Exit tests:**
   - 0 wrong replacements and 0 "matched" verdicts on a misquotation (unchanged gates);

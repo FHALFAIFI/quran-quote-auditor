@@ -46,6 +46,15 @@ for (const name of ["chromium", "firefox", "webkit"]) {
     check(await waitBox(page) && /لعبادتي/.test(await page.textContent("#suggest")) && /ليعبدون/.test(await page.textContent("#suggest")), "the wrong word is offered as a possible correction");
     await page.keyboard.press("Escape");
     check((await page.inputValue("#article")).endsWith("لعبادتي"), "dismissing leaves the text alone");
+    // 4 Oct: the first piece of 4:58 stops at «أهلها», by Tab or by a tap, and the next piece follows
+    await page.fill("#article", "");
+    await page.keyboard.type(LEAD + "إن الله يأمركم أن تؤدوا الأمانات", { delay: 6 });
+    check(await waitBox(page) && /يُدرَج حتى «أهلها»/.test(await page.textContent("#suggest")), "4:58: the box says the insertion stops at «أهلها»");
+    if (mobile) await page.locator("#suggest .sg-accept").first().tap(); else await page.keyboard.press("Tab");
+    await page.waitForTimeout(250);
+    check((await page.inputValue("#article")).endsWith("الأمانات إلى أهلها"), `4:58: ${mobile ? "a tap" : "Tab"} inserts «إلى أهلها» and nothing after it`);
+    check(await waitBox(page) && /وإذا حكمتم بين الناس/.test(await page.textContent("#suggest")), "4:58: the next piece is offered");
+    await page.keyboard.press("Escape");
 
     // audit, mark alignment, edit, recheck
     await page.click("#clear-btn");
@@ -67,6 +76,9 @@ for (const name of ["chromium", "firefox", "webkit"]) {
     check(Math.abs(align.ta - align.view) <= 3 && align.markInside, `the highlight layer wraps like the text box (${align.ta} / ${align.view} px)`);
     check((await page.locator("#article-view mark").count()) === 4, "four quotations are marked");
     await page.click('#finding-3 [data-act="approved"]');
+    await page.waitForTimeout(400);
+    const fx = await page.evaluate(() => { const n = document.querySelector("#article-view .fix"); if (!n) return null; const r = n.getBoundingClientRect(), b = getComputedStyle(n, "::before"); return { under: n.textContent, content: b.content, h: parseFloat(b.height), w: r.width }; });
+    check(fx && fx.under === "يجزى" && /يوفى/.test(fx.content) && fx.h > 8 && (await page.inputValue("#article")) === readSample("sample-demo"), `an approved «يوفى» is drawn over «يجزى» and the box is unchanged (${JSON.stringify(fx)})`);
     await page.evaluate(() => { const ta = document.getElementById("article"); const f = lastResult.findings[3]; const u = W.cpToUnit(ta.value, f.start + 3); ta.focus(); ta.setSelectionRange(u, u); });
     await page.keyboard.type("ز", { delay: 6 });
     await page.waitForTimeout(500);
@@ -75,6 +87,15 @@ for (const name of ["chromium", "firefox", "webkit"]) {
     await page.waitForFunction(() => !edited(), null, { timeout: 30000 });
     await page.waitForTimeout(400);
     check((await page.inputValue("#revised-text")).includes("يوفى"), "after the recheck the approval of the untouched quotation is still applied");
+    if (mobile) {
+      // with nothing left to decide, the bar offers the final review and is gone once that review is on screen
+      const left = await page.evaluate(() => pendingList().map((f) => `${f.id}:${pendingKind(f)}`));
+      // what the recheck asks again (the edited quotation) is settled through the page state; the bar is what is checked here
+      await page.evaluate(() => { for (const f of pendingList()) { if (requiredOf(f).length) requiredOf(f).forEach((c) => { decisions[c.id] = "rejected"; }); else reviewed[f.id] = true; } renderAll(); });
+      await page.evaluate(() => document.getElementById("final").scrollIntoView({ block: "start" }));
+      await page.waitForTimeout(800);
+      check(await page.evaluate(() => !pendingList().length && document.getElementById("review-dock").hidden), `phone: with nothing left (was ${left.join(",") || "none"}), the bottom bar is gone while the final review is on screen`);
+    }
     check(errors.length === 0, `no page errors ${errors.join(" | ")}`);
     await ctx.close();
   }

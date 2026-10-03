@@ -5,7 +5,8 @@
 //
 // Rules: WCAG 2.0/2.1/2.2 A and AA tags plus best-practice. States: empty, the demo's first decision, a boundary question with the span
 // editor open, a possible quotation with the verse form open, the long article, the final check with every <details> opened, no findings,
-// the model-failed state, a verse suggestion open (one verse; several verses), the stale state after an edit, and the three trust pages. Starts its OWN AI-off server unless --server is given.
+// the model-failed state, a verse suggestion open (one verse; several verses), the stale state after an edit, the three trust pages, and (4 Oct) the suggestion that says where it stops, an approved correction
+// drawn in the box, a long article with phrases to confirm, and the final review with nothing open. Starts its OWN AI-off server unless --server is given.
 import { createRequire } from "module";
 import { chromium, check, readSample, testServer, openPage, openRow, finish } from "./_ui_common.mjs";
 import fs from "fs";
@@ -41,6 +42,15 @@ for (const [name, vp, mobile] of [["320", { width: 320, height: 640 }, true], ["
   await fresh(); await typeAt("قال تعالى: وما خلقت الجن والإنس إلا"); await run(page, `${name}px verse suggestion (one verse)`);
   await fresh(); await typeAt("قال تعالى: وما خلقت الجن والإنس إلا لعبادتي"); await run(page, `${name}px probable correction`);
   await fresh(); await typeAt("قال تعالى: يا أيها الذين آمنوا كتب"); await page.keyboard.press("ArrowDown"); await run(page, `${name}px several verses, one open`);
+  // 4 Oct: the first piece with where it stops; an approved correction drawn above the writer's word; the phrases to confirm in a long article;
+  // the final review with the phone's bar gone
+  await fresh(); await typeAt("قال تعالى: إن الله يأمركم أن تؤدوا الأمانات"); await run(page, `${name}px suggestion that says where it stops`);
+  await fresh(); await audit(readSample("sample-demo")); await page.locator('#current button[data-act="approved"]').first().click(); await page.waitForTimeout(600); await run(page, `${name}px approved correction drawn in the box`);
+  const LA01 = JSON.parse(fs.readFileSync(path.join(root, "eval/articles_long_20261003.json"), "utf8")).cases[0].article;
+  await fresh(); await audit(LA01); await run(page, `${name}px long article with phrases to confirm`);
+  await fresh(); await audit(readSample("sample-demo"));
+  for (let i = 0; i < 2; i++) { await page.locator('#current button[data-act="approved"]').first().click(); await page.waitForTimeout(500); }
+  await page.evaluate(() => goToFinal()); await page.waitForTimeout(1000); await run(page, `${name}px final review, nothing open`);
   // the stale state: an edit inside a quotation after the audit
   await fresh(); await audit(readSample("sample-demo"));
   await page.evaluate(() => { const ta = document.getElementById("article"); const f = lastResult.findings[3]; const u = W.cpToUnit(ta.value, f.start + 3); ta.focus(); ta.setSelectionRange(u, u); });
