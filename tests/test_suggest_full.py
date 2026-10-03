@@ -206,3 +206,25 @@ def test_endpoint_without_the_source_says_so_and_proposes_nothing(monkeypatch):
     main._hits.clear()
     j = TestClient(main.app).post("/api/suggest", json={"before": "قال تعالى: إن مع العسر"}).json()
     assert j["status"] == "none" and j["reason"] == "source_unavailable" and j["choices"] == []
+
+
+def test_a_word_typed_with_a_comma_but_no_space_gets_a_space_before_the_insertion():
+    for typed in ("قال تعالى: وما خلقت الجن والإنس إلا،", "قال تعالى: وما خلقت الجن والإنس إلا"):
+        c = best(ask(typed))
+        assert c["insert_text"] == " ليعبدون", typed
+        assert typed[: c["replace_start"]] + c["insert_text"] == typed + " ليعبدون"
+    assert best(ask("قال تعالى: وما خلقت الجن والإنس إلا "))["insert_text"] == "ليعبدون"   # a space is already there
+
+
+def test_endpoint_refuses_text_it_would_have_to_cut(client):
+    from app.suggest import MAX_AFTER, MAX_BEFORE
+    assert client.post("/api/suggest", json={"before": "ا" * MAX_BEFORE}).status_code == 200
+    assert client.post("/api/suggest", json={"before": "ا" * (MAX_BEFORE + 1)}).status_code == 422
+    assert client.post("/api/suggest", json={"before": "x", "after": "ا" * (MAX_AFTER + 1)}).status_code == 422
+
+
+def test_the_rate_limiter_forgets_old_addresses_even_when_all_of_them_are_recent():
+    main._hits.clear()
+    for i in range(5600):
+        main._rate_limited(f"10.0.{i // 250}.{i % 250}")
+    assert len(main._hits) <= 5100

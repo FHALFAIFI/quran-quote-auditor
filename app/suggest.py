@@ -210,7 +210,7 @@ def _choice_from(index: QuranIndex, surah: int, ayah_no: int, nxt: int, typed_en
 
 def suggest(index: QuranIndex, before: str, after: str = "", *, explicit: bool = False, distinct: bool = False) -> dict:
     """Suggestions for the caret placed at the end of ``before`` (code-point offsets in the result refer to ``before``)."""
-    before = before[-MAX_BEFORE:]
+    before = before[-MAX_BEFORE:]   # the endpoint already refuses more; offsets in the result refer to this (untruncated) string
     after = after[:MAX_AFTER]
     base = {"status": "none", "reason": None, "trigger": None, "choices": [], "ambiguous": False, "places": 0}
 
@@ -265,7 +265,7 @@ def suggest(index: QuranIndex, before: str, after: str = "", *, explicit: bool =
         return trig, None
 
     style = _Style(run)
-    lead_space = " " if mid_word else ""
+    lead_space = " " if before and not before[-1].isspace() else ""   # right after a word, or after «،» / «؛» typed without a space
 
     # --- continuations: the typed words (all of them, complete) end inside a verse
     cont: list[_Place] = []
@@ -352,7 +352,7 @@ def suggest(index: QuranIndex, before: str, after: str = "", *, explicit: bool =
                 first_ayah = stream[pl.pos - pl.length + 1][1]
                 ch = {
                     "kind": kind, "certainty": "probable",
-                    "replace_start": wrong.start if kind == "replace" else wrong.start, "replace_end": wrong.end if kind == "replace" else wrong.start,
+                    "replace_start": wrong.start, "replace_end": wrong.end if kind == "replace" else wrong.start,
                     "from_text": wrong.raw if kind == "replace" else "", "to_text": to_text,
                     "insert_text": to_text if kind == "replace" else to_text + " ",
                     "extend_text": None, "typed_words": best_anchor, "added_words": len(words), "remaining_words": 0,

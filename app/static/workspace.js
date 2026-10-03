@@ -49,10 +49,11 @@
   }
 
   // ---- zones: what an edit must not touch if a decision is to survive ---------------------------------------------
-  // What the verdict was read from: the sentence before the quotation (a lead-in such as «قال تعالى» is looked for just before it:
-  // 48 characters, about six words), the quotation, its closing mark, the next word when nothing but spaces / commas separates them (the end
-  // rule reads it), its reference and every change. Text beyond a full stop or a line break does not enter the verdict.
-  const LEAD_WINDOW = 48;
+  // What the verdict was read from: the sentence before the quotation (the server looks for a lead-in such as «قال تعالى» up to 80
+  // characters before it: audit.py reads 80, phrases.quran_cue 70), the quotation, its closing mark, the next word when nothing but
+  // spaces / commas separates them (the end rule reads it), its reference and every change. Text beyond a full stop or a line break
+  // does not enter the verdict.
+  const LEAD_WINDOW = 80;
   const CLOSERS = "﴾»\"”)}]";
   function zoneOf(text, start, end, extra) {
     const t = cps(text);

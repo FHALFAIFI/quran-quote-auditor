@@ -105,7 +105,7 @@ test("an approved correction is applied to the edited text only where it still s
 });
 
 test("carry: a decision survives a new audit only for an untouched finding with the same words, place and change", () => {
-  const text = "أول ﴿إن مع العسر يسرى﴾ ثم قال في موضع آخر بعيد عنه بجمل كثيرة وكلمات متعددة ﴿الحمد لله رب العالمين﴾ وختم القول بما تيسر.";
+  const text = "أول ﴿إن مع العسر يسرى﴾. ثم قال في موضع آخر بعيد عنه بجمل كثيرة وكلمات متعددة ﴿الحمد لله رب العالمين﴾ وختم القول بما تيسر.";   // two sentences: an edit in the first does not touch the second
   const f1 = finding(text, 1, "إن مع العسر يسرى", ["يسرى", "يسرا"]);
   const f2 = finding(text, 2, "الحمد لله رب العالمين");
   const prev = { findings: [f1, f2], decisions: { "1-wording": "approved" }, dismissed: { 2: true }, reviewed: {} };
@@ -148,4 +148,24 @@ test("applyText replaces a code-point range", () => {
   assert.equal(W.applyText("abc", 1, 2, "XY"), "aXYc");
   assert.equal(W.cpToUnit("😀a", 1), 2);
   assert.equal(W.unitToCp("😀a", 2), 1);
+});
+
+test("the zone reaches a lead-in as far back as the server looks for one (80 characters)", () => {
+  const lead = "قال تعالى";
+  const filler = " " + "كلمة ".repeat(13);          // 66 characters of ordinary words between the lead-in and the quotation, no full stop
+  const text = lead + filler + "﴿إن مع العسر يسرا﴾";
+  const start = Array.from(text).indexOf("إ", Array.from(lead + filler).length);
+  const end = start + Array.from("إن مع العسر يسرا").length;
+  const [zs] = W.zoneOf(text, start, end, []);
+  assert.ok(start - 0 > 48 && start <= 80, `the lead-in is ${start} characters before the quotation`);
+  assert.equal(zs, 0, "an edit of «قال تعالى» that far back touches the quotation's zone");
+});
+
+test("two quotations in ONE sentence share a zone: an edit to the first stales the second too (the lead-in window is 80 characters)", () => {
+  const text = "أول ﴿إن مع العسر يسرى﴾ ثم ﴿الحمد لله رب العالمين﴾ وختم.";
+  const f1 = finding(text, 1, "إن مع العسر يسرى", ["يسرى", "يسرا"]);
+  const f2 = finding(text, 2, "الحمد لله رب العالمين");
+  const edited = text.replace("يسرى", "يسرا");
+  const r = W.applyEdit([f1, f2], W.diffEdit(text, edited), edited);
+  assert.deepEqual(r.findings.map((f) => !!f.stale), [true, true]);
 });

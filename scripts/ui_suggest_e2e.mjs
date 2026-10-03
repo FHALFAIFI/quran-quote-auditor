@@ -175,6 +175,38 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check(await waitBox(page), "the explicit action still works when automatic suggestions are off");
   await page.check("#opt-suggest");
 
+  // 11a. «auto off» means nothing is sent while typing, even if the opt-in «distinct» box was ticked before
+  await reset(page);
+  await page.evaluate(() => { document.getElementById("options").open = true; });
+  await page.check("#opt-distinct");
+  await page.uncheck("#opt-suggest");
+  const n4 = requests.length;
+  await typeText(page, "وما خلقت الجن والإنس إلا");
+  await typeText(page, " " + LEAD + SIX);
+  await page.waitForTimeout(800);
+  check(requests.length === n4 && (await boxState(page)) === null, "with automatic suggestions off nothing is sent while typing, even with «العبارة المميزة» ticked");
+  await page.uncheck("#opt-distinct");
+  await page.check("#opt-suggest");
+
+  // 11c. the «searching» line does not outlive an answer that is dropped because the caret moved
+  await reset(page);
+  await page.route("**/api/suggest", async (route) => { await new Promise((r) => setTimeout(r, 1500)); try { await route.continue(); } catch { /* cancelled */ } });
+  await page.fill("#article", LEAD + SIX);
+  await page.evaluate(() => { const ta = document.getElementById("article"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); });
+  await page.click("#complete-btn");
+  await page.waitForTimeout(300);
+  check((await boxState(page))?.text.includes("جارٍ البحث"), "an explicit request shows that it is searching");
+  await page.waitForTimeout(500);
+  check((await boxState(page))?.text.includes("جارٍ البحث"), "the «searching» line stays while a slow answer is awaited (it is not hidden by the focus going back to the text)");
+  check(await waitBox(page, 5000) && (await boxState(page)).items >= 1, "and the slow answer is shown when it arrives");
+  await page.keyboard.press("Escape");
+  await page.click("#complete-btn");
+  await page.waitForTimeout(200);
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(2200);
+  check((await boxState(page)) === null, "the «searching» line is gone once the caret has moved and the answer was dropped");
+  await page.unroute("**/api/suggest");
+
   // 11b. an input-method composition in progress is left alone, and answered once it ends
   await reset(page);
   const n3 = requests.length;

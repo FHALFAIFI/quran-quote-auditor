@@ -45,8 +45,8 @@ class SuggestRequest(BaseModel):
     """The words before (and after) the caret, and why the browser asks: the writer pressed «أكمل من المصحف» (explicit) or chose
     suggestions without a lead-in (distinct). No article is sent, only this window of text; it is not stored or logged."""
 
-    before: str = Field(..., max_length=MAX_BEFORE * 2)
-    after: str = Field("", max_length=MAX_AFTER * 2)
+    before: str = Field(..., max_length=MAX_BEFORE)   # offsets in the answer refer to this string: more is refused, not cut
+    after: str = Field("", max_length=MAX_AFTER)
     explicit: bool = False
     distinct: bool = False
     request_id: int | None = Field(None, ge=0, le=2**31)
@@ -83,9 +83,12 @@ def _rate_limited(ip: str, bucket: str = "audit") -> bool:
         if len(q) >= limit:
             return True
         q.append(now)
-        if len(_hits) > 5000:  # bound memory
+        if len(_hits) > 5000:  # bound memory: first the keys with no recent request, then (a flood of distinct addresses) the oldest keys
             for k in [k for k, v in _hits.items() if not v][:1000]:
                 _hits.pop(k, None)
+            if len(_hits) > 5000:
+                for k in list(_hits)[:1000]:
+                    _hits.pop(k, None)
         return False
 
 

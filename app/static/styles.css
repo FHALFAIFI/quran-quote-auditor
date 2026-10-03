@@ -482,3 +482,6 @@ textarea.revised-text:focus { outline: 3px solid var(--accent); outline-offset: 
   .doc-table tbody th { width: auto; padding-top: 10px; }
   .doc-table td::before { content: attr(data-label) ": "; font-weight: 600; color: var(--ink-2); }
 }
+
+.hint-touch { display: none; }
+@media (hover: none) { .hint-kbd { display: none; } .hint-touch { display: inline; } }

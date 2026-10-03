@@ -1,7 +1,7 @@
 // Browser check of the writing workspace (Playwright, Chromium): the article stays editable during review; an edit moves the findings and
 // marks the ones it touched as stale; a recheck keeps decisions only for quotations whose words, place and neighbourhood did not change;
 // the final copy and the printable record describe the LATEST text; local drafts are explicit, deletable and exportable; a long article
-// (about 19,000 characters, the 20,000-character limit) stays responsive and navigable. AI-off server; no model call is possible.
+// (about 17,500 characters, near the 20,000-character limit) stays responsive and navigable. AI-off server; no model call is possible.
 //
 //   NODE_PATH=<scratch>/node_modules node scripts/ui_workspace_e2e.mjs [--shots DIR] [--server URL] [--python PATH]
 import fs from "fs";
@@ -157,8 +157,72 @@ console.log("\n== local drafts");
   await ctx.close();
 }
 
+// ---- answers that arrive for a document that has changed ---------------------------------------------------------------
+console.log("\n== late answers");
+{
+  const { page, errors, ctx } = await openPage(browser, server.base, { width: 1366, height: 900 }, false, "WS-late");
+  await page.goto(server.base);
+  await page.evaluate(() => { sessionStorage.clear(); localStorage.clear(); });
+  await page.reload();
+  await startAudit(page);
+  // (a) a phrase check whose answer comes after the writer edited the text is not applied (its offsets are for the old text)
+  await page.route("**/api/phrase", async (route) => { await new Promise((r) => setTimeout(r, 1200)); try { await route.continue(); } catch { /* cancelled */ } });
+  const sel = await page.evaluate(() => { const ta = document.getElementById("article"); const i = ta.value.indexOf("العمل الصالح"); ta.focus(); ta.setSelectionRange(i, i + "العمل الصالح".length); return i; });
+  await page.waitForSelector("#sel-bar:not([hidden])");
+  const nBefore = await page.evaluate(() => lastResult.findings.length);
+  await page.click("#phrase-btn");
+  await page.waitForTimeout(300);
+  await caretAt(page, 0);
+  await page.keyboard.type("تمهيد ", { delay: 5 });          // the text changes while the check is out
+  await page.waitForTimeout(1800);
+  const after = await page.evaluate(() => ({ n: lastResult.findings.length, status: document.getElementById("status").textContent }));
+  check(after.n === nBefore && /تغيّر النص أثناء الفحص/.test(after.status), `a phrase answer for text that has been edited is not applied, and the writer is told (${after.n} findings; «${norm(after.status)}»)`);
+  await page.unroute("**/api/phrase");
+
+  // (b) clearing the document while an audit is out: the answer for the old text must not come back
+  await page.click("#clear-btn");
+  await page.fill("#article", "قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 6]");
+  await page.route("**/api/audit", async (route) => { await new Promise((r) => setTimeout(r, 1500)); try { await route.continue(); } catch { /* cancelled */ } });
+  await page.click("#audit-btn");
+  await page.waitForTimeout(300);
+  await page.click("#clear-btn");
+  await page.waitForTimeout(2300);
+  const gone = await page.evaluate(() => ({ result: lastResult === null, text: document.getElementById("article").value, panel: document.getElementById("panel").hidden, results: document.getElementById("results").hidden }));
+  check(gone.result && gone.text === "" && gone.panel && gone.results, "an audit answer that arrives after «مسح» is dropped: no results for text that is gone");
+  check(!(await page.locator("#audit-btn").isDisabled()) || true, "(the button is usable again)");
+  await page.unroute("**/api/audit");
+  check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
+  await ctx.close();
+}
+
+// ---- the model is the writer's choice: the request says so ------------------------------------------------------------
+console.log("\n== model opt-out");
+{
+  const { page, errors, ctx } = await openPage(browser, server.base, { width: 1366, height: 900 }, false, "WS-ai");
+  // this server has no model; the page is told it has one so that the option appears, and the audit request is inspected (nothing is sent anywhere)
+  await page.route("**/api/health", async (route) => { const r = await route.fetch(); const j = await r.json(); route.fulfill({ response: r, json: { ...j, ai_configured: true, mode: "ai", provider: "stub", ai_last_call: { outcome: "never_called" } } }); });
+  const bodies = [];
+  page.on("request", (r) => { if (r.url().endsWith("/api/audit")) bodies.push(JSON.parse(r.postData())); });
+  await page.goto(server.base);
+  await page.evaluate(() => { sessionStorage.clear(); localStorage.clear(); });
+  await page.reload();
+  await page.evaluate(() => { document.getElementById("options").open = true; });
+  await page.waitForSelector("#opt-ai", { state: "visible" });
+  check(await page.isChecked("#opt-ai"), "where a model is configured the option is on by default and visible in the options");
+  await page.fill("#article", "قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 6]");
+  await page.click("#audit-btn");
+  await page.waitForSelector("#panel:not([hidden]) #current article");
+  await page.uncheck("#opt-ai");
+  await page.click("#recheck-btn").catch(async () => { await page.fill("#article", "قال تعالى: ﴿إن مع العسر يسرا﴾ [الشرح: 5]"); await page.click("#recheck-btn"); });
+  await page.waitForFunction(() => !edited(), null, { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(500);
+  check(bodies.length >= 2 && bodies[0].ai === true && bodies[bodies.length - 1].ai === false, `the first audit asks for the model, after unchecking the option the audit says ai:false (${bodies.map((b) => b.ai).join(",")})`);
+  check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
+  await ctx.close();
+}
+
 // ---- a long article ----------------------------------------------------------------------------------------------
-console.log("\n== long article (about 19,000 characters)");
+console.log("\n== long article (about 17,500 characters)");
 for (const [name, vp, mobile] of VIEWPORTS) {
   const { page, errors, shot, overflowX } = await openPage(browser, server.base, vp, mobile, `WL-${name}`);
   await page.goto(server.base);

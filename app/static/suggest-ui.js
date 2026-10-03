@@ -40,9 +40,9 @@
   function worthAsking(before) {
     const tail = before.slice(-300);
     if (openQuote(tail)) return true;
-    const sentence = tail.slice(Math.max(tail.lastIndexOf("."), tail.lastIndexOf("؟"), tail.lastIndexOf("\n")) + 1, tail.length);
+    const sentence = tail.slice(Math.max(tail.lastIndexOf("."), tail.lastIndexOf("!"), tail.lastIndexOf("؟"), tail.lastIndexOf("?"), tail.lastIndexOf("\n")) + 1, tail.length);
     if (CUE.test(sentence.replace(MARKS, ""))) return true;
-    return prefs.distinct && sentence.trim().split(/\s+/).length >= 4;
+    return prefs.auto && prefs.distinct && sentence.trim().split(/\s+/).length >= 4;
   }
 
   // ---- the request ----------------------------------------------------------------------------------------------
@@ -58,9 +58,10 @@
     if (composing) return;
     if (!explicit && ta.selectionStart !== ta.selectionEnd) return hide();
     const ctx = context();
-    if (!explicit && (!prefs.auto && !prefs.distinct)) return hide();
+    if (!explicit && !prefs.auto) return hide();   // «اقتراح الآيات أثناء الكتابة» off: nothing is sent while typing, whatever else is ticked
     if (!explicit && !worthAsking(ctx.before)) return hide();
     if (!explicit && dismissedKey === `${ctx.caret}|${ctx.before.slice(-60)}`) return;
+    if (explicit) clearTimeout(timer);            // a debounced automatic request from earlier typing must not cancel the writer's explicit one
     const mySeq = ++seq;
     if (abort) abort.abort();
     abort = new AbortController();
@@ -71,12 +72,13 @@
         method: "POST", headers: { "Content-Type": "application/json" }, signal: abort.signal,
         body: JSON.stringify({ before: ctx.before, after: ctx.after, explicit, distinct: prefs.distinct, request_id: mySeq }),
       });
+      if (mySeq !== seq || context().caret !== ctx.caret || context().value.slice(ctx.from, ctx.caret) !== ctx.before) { clearSearching(); return; }
       if (!res.ok) { if (explicit) showMessage(res.status === 429 ? "طلبات كثيرة؛ انتظر لحظات ثم أعد المحاولة." : "تعذّر الاتصال باقتراحات المصحف الآن."); return; }
       const data = await res.json();
       // A newer search, a keystroke, a caret move or another selection since the request left: the answer is for text that is gone.
-      if (data.request_id !== seq || mySeq !== seq) return;
+      if (data.request_id !== seq || mySeq !== seq) { clearSearching(); return; }
       const now = context();
-      if (now.value.slice(ctx.from, ctx.caret) !== ctx.before || now.caret !== ctx.caret || ta.selectionStart !== ta.selectionEnd && !explicit) return;
+      if (now.value.slice(ctx.from, ctx.caret) !== ctx.before || now.caret !== ctx.caret || ta.selectionStart !== ta.selectionEnd && !explicit) { clearSearching(); return; }
       if (data.status === "suggest" && data.choices.length) show({ ...data, base: ctx.from, before: ctx.before, caret: ctx.caret, explicit });
       else if (explicit) showMessage(hintText(data));
       else hide();
@@ -115,6 +117,8 @@
     setTimeout(() => { live.textContent = text; }, 30);
   }
 
+  let msgCaret = -1;      // where the caret was when a message (not a suggestion) was shown
+  const clearSearching = () => { if (box && !box.hidden && box.classList.contains("is-message") && /جارٍ البحث/.test(box.textContent)) hide(); };
   function hide() {
     state = null;
     if (box) { box.hidden = true; box.replaceChildren(); box.classList.remove("is-message"); }
@@ -132,6 +136,7 @@
     box.classList.add("is-message");
     box.hidden = false;
     box.replaceChildren(el("p", { class: "sg-msg", text }), el("button", { type: "button", class: "btn small ghost sg-close", text: "إغلاق", onclick: hide }));
+    msgCaret = ta.selectionEnd;
     place(ta.selectionEnd);
     announce(text);
   }
@@ -291,6 +296,7 @@
 
   function onSelection() {
     // The caret moved away from the place the suggestion was made for: it no longer applies.
+    if (!state && box && !box.hidden && box.classList.contains("is-message") && ta.selectionEnd !== msgCaret && document.activeElement === ta) { hide(); return; }
     if (state && (document.activeElement !== ta || ta.selectionEnd !== state.caret || (!state.explicit && ta.selectionStart !== ta.selectionEnd))) hide();
   }
 
@@ -305,11 +311,11 @@
     ta.addEventListener("keydown", onKeydown);
     ta.addEventListener("compositionstart", () => { composing = true; hide(); });
     ta.addEventListener("compositionend", () => { composing = false; schedule(); });
-    ta.addEventListener("blur", () => { setTimeout(() => { if (!box.contains(document.activeElement)) hide(); }, 120); });
+    ta.addEventListener("blur", () => { setTimeout(() => { if (document.activeElement !== ta && !box.contains(document.activeElement)) hide(); }, 120); });   // focus came back (the toolbar button gives it back at once): keep the box
     document.addEventListener("selectionchange", onSelection);
-    // Buttons in the box must not take the caret (or close the phone's keyboard) away from the text.
+    // Buttons in the box must not take the caret (or close the phone's keyboard) away from the text. Only mousedown is cancelled (touch browsers send
+    // an emulated one before the click): cancelling pointerdown stops WebKit from sending the click at all, and a tap on «أدرج» did nothing.
     box.addEventListener("mousedown", (e) => e.preventDefault());
-    box.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") e.preventDefault(); });
     $("complete-btn")?.addEventListener("click", () => { ta.focus({ preventScroll: true }); ask(true); });
     $("sel-complete")?.addEventListener("click", () => { ta.focus({ preventScroll: true }); ask(true); });
     window.addEventListener("resize", () => { if (state) { place(state.caret); fit(); } });

@@ -33,6 +33,7 @@ let lastAction = null;   // { text, undo } shown above the card: what the last c
 let cardError = null;    // an error that belongs to the card (a verse check that failed), shown beside its buttons
 let pendingSel = null;   // { start, end } the writer highlighted in the editor
 let recheckBusy = false;
+let docGen = 0;          // bumped when the document is replaced (clear, sample, draft); an answer for an older one is dropped
 const STORE_KEY = "qqa-session-v3";
 
 function el(tag, attrs, ...children) {
@@ -221,10 +222,16 @@ function pendingText(n) {
 }
 
 // ---------------------------------------------------------------- session state
+let sessionWarned = false;
 function saveSession() {
   try {
-    sessionStorage.setItem(STORE_KEY, JSON.stringify({ article: lastArticle, result: lastResult, decisions, dismissed, reviewed, current, auditedAt, isDemo, auditedText, baseText, invalidated }));
-  } catch { /* storage unavailable: state stays in memory only */ }
+    sessionStorage.setItem(STORE_KEY, JSON.stringify({ article: lastArticle, result: lastResult, decisions, dismissed, reviewed, current, auditedAt, isDemo,
+      auditedText: auditedText === lastArticle ? null : auditedText, baseText: baseText === lastArticle ? null : baseText, invalidated }));
+    sessionWarned = false;
+  } catch {
+    // storage unavailable or full (a long article with many findings): the state stays in memory only, and the writer is told once
+    if (!sessionWarned && lastResult) { sessionWarned = true; setStatus("تعذّر حفظ نتيجة التدقيق في هذا المتصفح (المساحة ممتلئة أو التخزين معطّل)؛ تبقى القرارات ما دامت الصفحة مفتوحة، فلا تُعد تحميلها.", true); }
+  }
 }
 function loadSession() {
   try {
@@ -308,6 +315,7 @@ function syncEditorHeight() {
 
 // A new document (a sample, a clear): the old audit does not describe this text.
 function clearAudit() {
+  docGen++;
   lastResult = null; decisions = {}; dismissed = {}; reviewed = {}; current = null; lastAction = null; cardError = null; pendingSel = null;
   auditedText = ""; baseText = ""; invalidated = []; carryNote = null; isDemo = false; auditedAt = null;
   $("results").hidden = true; $("legend").hidden = true; $("panel").hidden = true; $("final").hidden = true;
@@ -422,6 +430,7 @@ async function runAudit() {
   if (cpCount(sent) > MAX_CHARS) { setStatus(`النص أطول من الحد المسموح (${toArabicDigits(MAX_CHARS)} حرف).`, true); return; }
   if (recheckBusy) return;
   const recheck = !!lastResult;
+  const gen = docGen;
   recheckBusy = true;
   const btn = $("audit-btn");
   btn.textContent = "جارٍ التدقيق…";
@@ -441,6 +450,7 @@ async function runAudit() {
     });
     let data;
     try { data = await res.json(); } catch { data = { error: "استجابة غير متوقعة من الخادم." }; }
+    if (gen !== docGen) { setStatus(""); return; }   // «مسح», a sample or a restored draft replaced the document while this audit ran: its answer describes text that is gone
     if (!res.ok) { setStatus(data.error || "تعذّر إكمال التدقيق.", true, false, res.status >= 500 || res.status === 429 ? runAudit : null); return; }
 
     // The result describes `sent`. If the writer kept typing while the audit ran, move it through those edits first.
@@ -1250,6 +1260,7 @@ async function requestPhrase(start, end, choice, findingId, why) {
   // Where the writer is now. If they open another quotation while the request runs,
   // the answer updates its own finding but does not pull them away from that card.
   const startedOn = String(current);
+  const gen = docGen, sentText = lastArticle;
   cardError = null;
   const card = $("current").firstElementChild;
   card?.querySelectorAll("button").forEach((b) => { b.disabled = true; });
@@ -1262,6 +1273,13 @@ async function requestPhrase(start, end, choice, findingId, why) {
     const res = await fetch("/api/phrase", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     let data;
     try { data = await res.json(); } catch { data = { error: "استجابة غير متوقعة من الخادم." }; }
+    if (gen !== docGen || !lastResult) { setStatus(""); return; }   // the writer cleared or replaced the document meanwhile
+    if (lastArticle !== sentText) {
+      // the offsets in the answer are for the text that was sent; the text has been edited since, so the answer is not applied
+      setStatus("تغيّر النص أثناء الفحص فلم يُطبَّق الجواب. أعد الفحص على النص الحالي.", true);
+      renderPanel();
+      return;
+    }
     if (!res.ok) {
       const message = data.error || "تعذّر فحص المقطع.";
       setStatus("");
@@ -1275,6 +1293,7 @@ async function requestPhrase(start, end, choice, findingId, why) {
     applyPhrase(data.finding, why, f, String(current) === startedOn ? null : current);
   } catch {
     setStatus("");
+    if (gen !== docGen || !lastResult) return;
     const message = "تعذّر الاتصال بالخادم. لم يتغيّر شيء؛ حاول مرة أخرى.";
     if (String(current) === startedOn) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
     else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
@@ -1549,6 +1568,7 @@ function readDraft() {
 function writeDraft(auto) {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: Date.now(), text: lastArticle, auto: !!auto }));
+    draftAuto = !!auto;
     draftNote(`حُفظت المسودة (${toArabicDigits(cpCount(lastArticle))} حرفًا) في هذا المتصفح فقط. القرارات والنتائج لا تُحفظ؛ تحتاج بعد الاستعادة إلى إعادة التدقيق.`);
     $("draft-auto-row").hidden = false;
     return true;
@@ -1558,14 +1578,15 @@ function writeDraft(auto) {
   }
 }
 let autosaveTimer = null;
+let draftAuto = false;   // mirrors the saved draft's "auto" flag, so typing does not parse localStorage
 function autosaveDraft() {
-  const d = readDraft();
-  if (!d || !d.auto) return;
+  if (!draftAuto) return;
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(() => writeDraft(true), 800);
 }
 function deleteDraft() {
   try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+  draftAuto = false;
   $("draft-auto-row").hidden = true;
   $("draft-banner").hidden = true;
   draftNote("حُذفت المسودة المحفوظة من هذا المتصفح.");
@@ -1670,6 +1691,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showDraftBanner();
   }
   const d0 = readDraft();
+  draftAuto = !!(d0 && d0.auto);
   $("draft-auto-row").hidden = !d0;
   $("draft-auto").checked = !!(d0 && d0.auto);
   syncEditorHeight();
