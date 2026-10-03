@@ -61,7 +61,7 @@ await shot("03-final");
 
 await page.click("#copy-btn");
 const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => null));
-check(clip === null || clip === revised, "the copy button puts the revised article on the clipboard");
+check(clip === null || clip.replace(/\r\n?/g, "\n") === revised, "the copy button puts the revised article on the clipboard");
 check(clip === null || /تم النسخ/.test(await page.locator("#copy-btn").innerText()), "the copy button confirms the copy on the button itself");
 check(clip === null || (await page.locator("#copy-note").innerText()).includes("نُسخ المقال المعدّل"), "a note beside the copy button confirms the copy");
 

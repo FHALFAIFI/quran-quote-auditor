@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312183F'/%3E%3Cpath d='M9 17l4 4 10-10' stroke='%232EF2C2' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2324312d'/%3E%3Cpath d='M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17' stroke='%23fffefa' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
   <script src="/static/surahs.js" defer></script>
   <script src="/static/revision.js" defer></script>
   <script src="/static/app.js" defer></script>
@@ -18,7 +18,7 @@
   <header class="site-header">
     <div class="wrap header-inner">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="9" fill="#6150EA"/><path d="M9 17l4 4 10-10" stroke="#2EF2C2" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="6" fill="#24312d"/><path d="M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17" stroke="#fffefa" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
       </span>
       <div>
         <h1>مدقق الاقتباسات القرآنية</h1>
@@ -49,7 +49,7 @@
         </div>
         <div id="demo-hero" class="demo-hero">
           <button id="demo-btn" type="button" class="btn primary demo-btn">جرّب المقال التجريبي</button>
-          <p class="demo-copy">مقال قصير فيه أربعة اقتباسات، منها خطآن مقصودان (لفظ وإحالة)، وهو أسرع طريق لترى كيف تعمل الأداة. أو ألصق مقالك في المربع.</p>
+          <p class="demo-copy">شاهد كيف تراجع اقتباسًا وتصحيحًا قبل نسخه. أو ألصق مقالك أدناه.</p>
         </div>
         <textarea id="article" rows="11" dir="rtl" spellcheck="false" aria-label="نص المقال" placeholder="ألصق هنا مقالك العربي…"></textarea>
         <div class="input-foot">
@@ -98,7 +98,7 @@
 
         <section id="article-col" class="article-col" aria-labelledby="article-title">
           <h2 id="article-title">مقالك مع مواضع الاقتباس</h2>
-          <p class="article-hint">اضغط على أي اقتباس مُعلَّم لتنتقل إليه. فاتتك عبارة؟ حدّدها هنا بالماوس أو بإصبعك ثم اضغط «افحص المحدَّد».</p>
+          <p class="article-hint">اضغط على اقتباس لمراجعته، أو حدّد عبارة لم تجدها لفحصها.</p>
           <div id="sel-bar" class="sel-bar" hidden>
             <span id="sel-text" class="sel-text"></span>
             <button id="phrase-btn" type="button" class="btn small primary">افحص المحدَّد</button>
@@ -158,12 +158,11 @@
 
   <footer class="site-footer">
     <div class="wrap footer-inner">
-      <p>
-        مصدر النص القرآني: <a href="https://quranpedia.net" target="_blank" rel="noopener">الموسوعة القرآنية — Quranpedia</a>،
-        مصحف حفص عن عاصم عبر <a href="https://api.quranpedia.net/" target="_blank" rel="noopener">واجهة Quranpedia البرمجية</a>.
-        لا يُستخدم الذكاء الاصطناعي مصدرًا لنص القرآن ولا حكَمًا على صحته؛ دوره اقتراح مواضع الاقتباس فقط.
-        الآية المكتوبة بالرسم العثماني في المقال التجريبي نسخة حرفية من نص Tanzil (النص العثماني، الإصدار 1.1): <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project — tanzil.net</a> (رخصة CC BY 3.0)؛ أما الحكم على الاقتباسات فمبني على نص قرآنبيديا وحده.
-      </p>
+      <p>نص التحقق: <a href="https://quranpedia.net" target="_blank" rel="noopener">قرآنبيديا</a> · نص المثال العثماني: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a></p>
+      <details class="privacy">
+        <summary>المصادر وطريقة التحقق</summary>
+        <p>تُقارن الاقتباسات بمصحف حفص عن عاصم عبر <a href="https://api.quranpedia.net/" target="_blank" rel="noopener">واجهة قرآنبيديا</a>. يقترح الذكاء الاصطناعي مواضع للفحص؛ ولا يُستخدم مصدرًا لنص القرآن أو حكمًا على صحته. الآية العثمانية في المقال التجريبي نسخة حرفية من نص Tanzil العثماني، الإصدار 1.1، وفق رخصة CC BY 3.0.</p>
+      </details>
       <details class="privacy">
         <summary>الخصوصية وحدود الاستخدام</summary>
         <p>
@@ -171,7 +170,6 @@
         </p>
         <p>الاستضافة المجانية تنام عند الخمول، فقد يتأخر أول طلب بعد فترة سكون (تذكر Render نحو دقيقة، وقيس مرة واحدة 23 ثانية). الأداة فحص أولي للاقتباسات وإحالاتها ولا تغني عن مراجعة بشرية.</p>
       </details>
-      <p class="muted">عمل ما قبل التحدي — تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي 2026، المسار الرابع: أدوات المعرفة والتحقق.</p>
     </div>
   </footer>
 

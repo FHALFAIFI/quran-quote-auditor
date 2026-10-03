@@ -58,7 +58,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1280, height: 800 }, fals
   await page.click("#copy-btn");
   await page.waitForTimeout(300);
   const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => null));
-  check(clip === null || clip === revised, "copy puts the revised article on the clipboard");
+  check(clip === null || clip.replace(/\r\n?/g, "\n") === revised, "copy puts the revised article on the clipboard");
   check((await page.textContent("#copy-note")).includes("نُسخ"), "copy gives feedback beside the button");
   await shot("2-final");
   check(errors.length === 0, `no page errors ${errors.join(";")}`);

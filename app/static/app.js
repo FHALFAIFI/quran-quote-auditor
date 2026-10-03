@@ -271,7 +271,7 @@ function setInputCollapsed(on) {
   if (on) $("summary-text").textContent = `المقال المُدقَّق: ${toArabicDigits(ART.length)} حرفًا، ${toArabicDigits(paraStarts().length)} ${paraStarts().length === 1 ? "فقرة" : paraStarts().length === 2 ? "فقرتان" : "فقرات"}.`;
 }
 
-const DEMO_NOTE = "هذا مقال تجريبي كُتب لهذا العرض؛ فيه خطآن مقصودان في الاقتباس (لفظ وإحالة)، وهما من صنع المثال وليسا نصًا قرآنيًا.";
+const DEMO_NOTE = "مقال تجريبي كُتب لهذا العرض؛ الخطآن فيه مقصودان (لفظ وإحالة)، وليسا نصًا قرآنيًا.";
 
 async function loadSample(name, thenAudit) {
   if (!name) return false;
@@ -432,7 +432,7 @@ function renderVerdict(data) {
   box.className = `verdict ${v.needing ? "has-review" : "clear"}`;
   box.replaceChildren(...[
     el("h2", { id: "verdict-title", tabindex: "-1", text: v.headline }),
-    el("p", { class: "verdict-sub", text: "الفحص يشمل الاقتباسات التي رُصدت فقط، وليس حكمًا على المقال كله." }),
+    el("p", { class: "verdict-sub", text: "فحص للاقتباسات المرصودة، وليس حكمًا على المقال كله." }),
     !v.total ? el("p", { class: "verdict-sub", text: "إن كان في مقالك آية لم نرصدها، حدّدها في المقال أدناه ثم اضغط «افحص المحدَّد»." }) : null,
     isDemo ? el("p", { class: "verdict-demo", text: DEMO_NOTE }) : null,
   ].filter(Boolean));
@@ -683,8 +683,8 @@ function renderQueue() {
   const off = fs.filter((f) => dismissed[f.id]);
   $("queue").replaceChildren(...[
     group("تنتظر قرارك", pend, true, "need"),
-    group("لا تحتاج قرارًا أو حسمتَها", done, pend.length === 0 || done.length <= 3, "done"),
-    group("استبعدتَها: ليست اقتباسًا", off, true, "off"),
+    group("تمت مراجعتها", done, pend.length === 0 || done.length <= 3, "done"),
+    group("استبعدتَها", off, true, "off"),
   ].filter(Boolean));
 }
 
@@ -760,7 +760,9 @@ function decisionBlock(c, f, secondary) {
   const quoteLevel = c.kind !== "reference" && c.kind !== "reference_add";
   const short = Array.from(d.before + d.after + d.prefix).length <= 34;
   const [yes, no] = short ? [`غيّر إلى «${d.prefix}${d.after}»`, `أبقِ «${d.prefix}${d.before}»`] : ["اعتمد هذا التغيير", "أبقِ ما كتبتُه"];
-  const warns = (f.review_reasons || []).filter((x) => x !== c.reason).slice(0, 2);
+  // One concise warning stays beside the decision. The complete list remains
+  // in the expanded evidence section below the card.
+  const warns = (f.review_reasons || []).filter((x) => x !== c.reason).slice(0, 1);
   const lead = c.kind === "reference" || !warns.length ? [c.reason] : warns;
   const side = (cap, cls, text) => el("div", { class: "d-side" }, el("span", { class: "d-cap", text: cap }),
     el("span", { class: cls }, d.prefix ? el("span", { class: "d-pre", text: d.prefix }) : null, text));
@@ -1081,23 +1083,33 @@ async function requestPhrase(start, end, choice, findingId, why) {
     const res = await fetch("/api/phrase", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     let data;
     try { data = await res.json(); } catch { data = { error: "استجابة غير متوقعة من الخادم." }; }
-    if (!res.ok) { cardError = data.error || "تعذّر فحص المقطع."; setStatus(""); goTo(findingId, { scroll: null, focus: false, keepError: true }); return; }
+    if (!res.ok) {
+      const message = data.error || "تعذّر فحص المقطع.";
+      setStatus("");
+      if (String(current) === String(findingId)) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
+      else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
+      return;
+    }
     setStatus("");
-    applyPhrase(data.finding, why, f);
+    // The writer may have opened another quotation while this network request
+    // was running. Update the result without pulling them back to the old card.
+    applyPhrase(data.finding, why, f, String(current) === String(findingId) ? null : current);
   } catch {
-    cardError = "تعذّر الاتصال بالخادم. لم يتغيّر شيء؛ حاول مرة أخرى.";
     setStatus("");
-    goTo(findingId, { scroll: null, focus: false, keepError: true });
+    const message = "تعذّر الاتصال بالخادم. لم يتغيّر شيء؛ حاول مرة أخرى.";
+    if (String(current) === String(findingId)) { cardError = message; goTo(findingId, { scroll: null, focus: false, keepError: true }); }
+    else setStatus(`تعذّر فحص الاقتباس ${toArabicDigits(findingId)}: ${message}`, true);
   }
 }
 
-function applyPhrase(nf, why, previous) {
+function applyPhrase(nf, why, previous, preserveId = null) {
   const overlapped = allFindings().filter((g) => g.start < nf.end && nf.start < g.end);
   const priorState = overlapped.map((g) => ({ f: g, d: dismissed[g.id], r: reviewed[g.id], ch: Object.fromEntries((g.changes || []).map((c) => [c.id, decisions[c.id]]).filter(([, v]) => v)) }));
   for (const old of overlapped) { for (const c of old.changes || []) delete decisions[c.id]; delete dismissed[old.id]; delete reviewed[old.id]; }
   lastResult.findings = [...allFindings().filter((g) => !overlapped.includes(g)), nf].sort((a, b) => a.start - b.start);
   lastResult.stats = computeStats(allFindings());
-  current = nf.id;
+  const keepViewing = preserveId && allFindings().some((g) => String(g.id) === String(preserveId)) ? preserveId : null;
+  current = keepViewing ?? nf.id;
   const undo = () => {
     lastResult.findings = [...allFindings().filter((g) => g.id !== nf.id || g.start !== nf.start), ...priorState.map((p) => p.f)].sort((a, b) => a.start - b.start);
     for (const p of priorState) { Object.assign(decisions, p.ch); if (p.d) dismissed[p.f.id] = true; if (p.r) reviewed[p.f.id] = true; }
@@ -1111,7 +1123,7 @@ function applyPhrase(nf, why, previous) {
   notify(text, priorState.length ? undo : null);
   saveSession();
   renderAll();
-  goTo(nf.id, { scroll: "panel" });
+  goTo(current, { scroll: keepViewing ? null : "panel" });
 }
 
 function computeStats(findings) {

@@ -8,6 +8,7 @@ _Record every change made during the challenge here, with its date. Nothing yet.
 
 | Date | Commit(s) | Change |
 |---|---|---|
+| 2026-10-03 | (this commit) | Editorial interface revision: a quieter Arabic writing desk, stronger article/decision hierarchy, fewer competing cards and visible warnings, compact source attribution. A delayed phrase result now preserves the quotation the writer moved to. Windows browser checks normalise clipboard line endings. No detection rules, verse text or AI claims changed. |
 | 2026-09-28 | `e864a02` | Shorter AI failure wait: 12 s budget, 8 s per attempt, cooldown |
 | 2026-09-28 | `c2cf42b` | Labelled evaluation set, fallback results, clearer AI status banner |
 | 2026-09-28 | `07a777a`, `2860743`, `125343a` | Vercel upload hygiene, RTL banner fix, deploy notes |
