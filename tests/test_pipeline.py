@@ -42,7 +42,7 @@ def test_ai_suggestions_must_occur_in_article(use_source, monkeypatch):
     assert f["quote"] == "وتعاونوا على البر والتقوى"
     assert article[f["start"]:f["end"]] == f["quote"]
     assert "ai" in f["detected_by"]
-    assert any("استُبعد 1" in n["text"] for n in res["notices"])
+    assert any("استُبعد مقطع واحد اقترحه" in n["text"] for n in res["notices"])  # one discarded span, counted in words
 
 
 def test_ai_quote_located_despite_diacritics(use_source, monkeypatch):

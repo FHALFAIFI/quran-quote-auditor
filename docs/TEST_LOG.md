@@ -728,3 +728,29 @@ Two false alarms of my own script (a hidden first button on desktop; a tall card
 - **Offline gates (Windows checkout, no Groq call).** `pytest`: 395 passed. `node --test`: 24 passed. `git diff --check`: clean. The local writing-workspace and journey browser scripts passed their functional assertions, including no AI switch, article-only audit requests, and no horizontal overflow at desktop and phone widths. Their console-error assertions failed because this sandbox denied loading the existing Google Fonts resource (`net::ERR_NETWORK_ACCESS_DENIED`); this was not an application exception. The full browser suites have therefore not been recorded as clean passes in this environment.
 - **Live model behaviour.** Not established by these offline gates; record one audit response after deployment, including `ai.outcome`, and keep a failed or rate-limited response distinct from a model answer.
 
+### 3 Oct 2026 — editorial interface revision (review branch `ui-editorial-2026-10`, pre-challenge; not merged, not deployed)
+
+- **Base.** `main` at `47f224e` (automatic model attempt, no switch), which is live. Every server below had `AI_PROVIDER=none` and no key, so **no Groq call and no Render call** were made. States that need a configured model (failed, over the limit, answered) were produced by rewriting the audit answer in the browser, as `ui_long_e2e` already does.
+- **Screens.** `scripts/ui_screens.mjs` was run before and after the change at 1366×860, 390×844 and 320×640. It covers: empty page, suggestion, first correction, possible quotation, last decision, final review, a 14,654-character article over the model's limit (simulated), a failed model (simulated), and the three trust pages. Output is in `submission/assets/ui-editorial-2026-10-03/{before,after,compare}` (git-ignored).
+- **Measured entry screen** (Chromium, a fresh page, top of the `#article` box):
+
+  | Width | Before | After |
+  |---|---|---|
+  | 1366 | 374 px | 209 px |
+  | 390 | 561 px | 273 px |
+  | 320 | 636 px (bottom of a 640 px screen) | 347 px |
+
+  Words of text above the box: 83 before, 35 after. The demonstration button is still on the first screen at all three widths (`ui_journey_e2e`).
+- **Manual first-time-writer walkthrough** (390 px, touch, a new article not in any set). Steps: typed «قال تعالى: إن الله يأمركم أن تؤدوا الأمانات», tapped «أدرج», added a wrong reference [النساء: 85] and a marked Az-Zumar 10, audited, approved the reference, edited inside the second quotation, rechecked, went to the final review, copied. Findings:
+  - **(fixed)** after the edit, two filled «أعد التدقيق» buttons were visible; now only the one beside the stale note is filled.
+  - **(not fixed: suggestion logic, not layout)** «أدرج» inserted «إلى أهلها وإذا حكمتم», going on past where the writer would stop, so the writer has to delete «وإذا حكمتم».
+  - **(observed, correct)** the recheck kept the approved reference and asked again about the edited quotation. The copy note said one quotation was left undecided and copied as written.
+  - No page errors.
+- **Tests.** One Python assertion was updated: «استُبعد 1» became «استُبعد مقطع واحد اقترحه», because server notices now count in words. No browser assertion was changed.
+- **Gates.**
+  - `pytest` 395 passed; `node --test` 24 passed.
+  - Chromium suites, all with 0 failures: `ui_counts_e2e` 17, `ui_journey_e2e` 167, `ui_phrase_e2e` 38, `ui_uthmani_e2e` 32, `ui_workspace_e2e` 137, `ui_e2e` 27, `ui_final_qa` 144 (keyboard-only runs included), `ui_long_e2e` 91, `ui_boundary_e2e` 46, `ui_async_navigation_e2e` 4, `ui_suggest_e2e` 137, `ui_a11y_check` 42 (axe: 0 violations).
+  - `ui_crossbrowser` 60 (Chromium, WebKit, Firefox 151; Firefox was installed for this run after the first run skipped it).
+  - `live_smoke.mjs` against a local server: 21 (desktop) and 21 (`--phone`).
+  - `git diff --check` clean.
+- **Not tested.** Real phones, VoiceOver/TalkBack, Safari on iOS, and any session with a real writer. The walkthrough above was run by the coding assistant, not by a writer. Passing these gates does not make the interface production-ready (see `docs/PRODUCTION_ROADMAP.md`, Stage 4).

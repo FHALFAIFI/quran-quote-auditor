@@ -37,8 +37,7 @@
   <main class="wrap" id="main">
     <section class="intro" id="intro" aria-labelledby="intro-title">
       <h1 id="intro-title">اكتب مقالك، وراجع كل آية فيه على المصحف</h1>
-      <p class="intro-lead">ألصق مقالك أو اكتبه. أثناء الكتابة نقترح تكملة الآية من نص المصحف، وعند التدقيق تظهر بجوار نصّك الاقتباسات التي رصدناها ومصدرها وما يحتاج قرارك. لا يتغيّر حرف إلا بموافقتك.</p>
-      <p class="intro-source">نص المقارنة: مصحف حفص من قرآنبيديا، ولا يكتب نموذج لغوي أي آية. <a href="/sources">كيف نتحقق؟</a></p>
+      <p class="intro-lead">تُقارَن الآيات بنص مصحف حفص من قرآنبيديا، ولا يكتب نموذج لغوي أي آية، ولا يتغيّر حرف إلا بموافقتك. <a href="/sources">كيف نتحقق؟</a></p>
     </section>
 
     <div id="sr-live" class="sr-only" role="status" aria-live="polite"></div>
@@ -51,75 +50,78 @@
 
     <div id="workbench" class="workbench no-panel">
       <section id="article-col" class="article-col" aria-labelledby="article-title">
-        <div class="col-head">
-          <h2 id="article-title">مقالك</h2>
+        <div class="sheet">
+          <div class="sheet-head toolbar" role="group" aria-label="أدوات الكتابة والتدقيق">
+            <h2 id="article-title" class="sheet-title">مقالك</h2>
+            <button id="audit-btn" type="button" class="btn primary small">دقّق الاقتباسات</button>
+            <button id="complete-btn" type="button" class="btn small" aria-keyshortcuts="Alt+Q" title="اقتراح تكملة الآية من نص المصحف عند المؤشر (Alt+Q)">أكمل من المصحف</button>
+            <button id="clear-btn" type="button" class="btn ghost small">مسح</button>
+          </div>
+
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+
+          <div id="sel-bar" class="sel-bar" hidden>
+            <span id="sel-text" class="sel-text"></span>
+            <span class="sel-actions">
+              <button id="sel-complete" type="button" class="btn small">أكمل من المصحف</button>
+              <button id="phrase-btn" type="button" class="btn small primary">افحص المحدَّد</button>
+            </span>
+          </div>
+
+          <div class="editor" id="editor">
+            <div id="article-view" class="backdrop ed-text" dir="rtl" aria-hidden="true"></div>
+            <textarea id="article" class="ed-text" dir="rtl" rows="3" spellcheck="false" aria-label="نص المقال" aria-describedby="editor-hint" placeholder="ألصق مقالك العربي هنا، أو اكتبه…"></textarea>
+            <div id="suggest" class="suggest" role="group" aria-label="اقتراح من المصحف" hidden></div>
+          </div>
+
+          <div class="input-foot sheet-foot">
+            <span id="char-count" class="muted">0 حرف</span>
+            <span id="ai-limit-note" class="ai-limit-note" hidden></span>
+            <span id="stale-note" class="stale-note" hidden></span>
+            <button id="recheck-btn" type="button" class="btn small primary" hidden>أعد التدقيق</button>
+          </div>
         </div>
 
         <div id="demo-hero" class="demo-hero">
-          <button id="demo-btn" type="button" class="btn primary demo-btn">جرّب المقال التجريبي</button>
-          <p class="demo-copy">مقال قصير فيه خطآن مقصودان، في كلمة وفي إحالة، لتجرّب المراجعة حتى النسخ. أو ألصق مقالك في المربع.</p>
+          <button id="demo-btn" type="button" class="btn demo-btn">جرّب المقال التجريبي</button>
+          <p class="demo-copy">ليس لديك مقال الآن؟ مقال قصير فيه خطآن مقصودان، في كلمة وفي إحالة، لتجرّب المراجعة حتى النسخ.</p>
         </div>
 
-        <div class="toolbar" role="group" aria-label="أدوات الكتابة والتدقيق">
-          <button id="complete-btn" type="button" class="btn small" aria-keyshortcuts="Alt+Q" title="اقتراح تكملة الآية من نص المصحف عند المؤشر (Alt+Q)">أكمل من المصحف</button>
-          <button id="audit-btn" type="button" class="btn primary small">دقّق الاقتباسات</button>
-          <button id="clear-btn" type="button" class="btn ghost small">مسح</button>
-          <span class="toolbar-note muted small">حدّ المقال <span id="limit-note"></span> حرف</span>
-        </div>
+        <p id="editor-hint" class="paste-note muted small">بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> نقترح تكملة الآية من المصحف؛ <span class="hint-kbd">Tab لإدراجها، وEsc لتجاهلها.</span><span class="hint-touch">المس «أدرج» لإدراجها، أو أكمل الكتابة لتجاهلها.</span> <span id="send-note">عند التدقيق يُرسَل المقال إلى Groq إن كان النموذج متاحًا والمقال لا يتجاوز <span class="ai-limit">٦٬٠٠٠</span> حرف. لا يُحفظ مقالك على خادمنا؛</span> <a href="/privacy">تفاصيل الخصوصية</a>.</p>
 
-        <div id="status" class="status" role="status" aria-live="polite"></div>
-
-        <div id="sel-bar" class="sel-bar" hidden>
-          <span id="sel-text" class="sel-text"></span>
-          <span class="sel-actions">
-            <button id="sel-complete" type="button" class="btn small">أكمل من المصحف</button>
-            <button id="phrase-btn" type="button" class="btn small primary">افحص المحدَّد</button>
-          </span>
-        </div>
-
-        <div class="editor" id="editor">
-          <div id="article-view" class="backdrop ed-text" dir="rtl" aria-hidden="true"></div>
-          <textarea id="article" class="ed-text" dir="rtl" rows="3" spellcheck="false" aria-label="نص المقال" aria-describedby="editor-hint" placeholder="ألصق مقالك العربي هنا، أو اكتبه…"></textarea>
-          <div id="suggest" class="suggest" role="group" aria-label="اقتراح من المصحف" hidden></div>
-        </div>
-
-        <div class="input-foot">
-          <span id="char-count" class="muted">0 حرف</span>
-          <span id="stale-note" class="stale-note" hidden></span>
-          <button id="recheck-btn" type="button" class="btn small primary" hidden>أعد التدقيق</button>
-        </div>
-        <p id="editor-hint" class="paste-note muted small">بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> نقترح تكملة الآية من المصحف؛ <span class="hint-kbd">Tab لإدراجها، وEsc لتجاهلها.</span><span class="hint-touch">المس «أدرج» لإدراجها، أو أكمل الكتابة لتجاهلها.</span> عند التدقيق يُرسَل المقال إلى Groq إن كان النموذج متاحًا والمقال لا يتجاوز ٦٬٠٠٠ حرف. لا يُحفظ مقالك على خادمنا؛ <a href="/privacy">تفاصيل الخصوصية</a>.</p>
-
-        <div class="samples">
-          <label for="sample-select">أمثلة أخرى</label>
-          <select id="sample-select">
-            <option value="">— اختر —</option>
-            <option value="sample-demo">المقال التجريبي: الصبر</option>
-            <option value="sample-1">مثال: العلم</option>
-            <option value="sample-2">مثال: الصبر (أخطاء شائعة)</option>
-            <option value="sample-3">مثال: مقال بلا أقواس</option>
-          </select>
-        </div>
-
-        <details class="options" id="options">
-          <summary>الخيارات والمسودة</summary>
-          <div class="options-body">
-            <label class="opt"><input type="checkbox" id="opt-suggest" checked> اقتراح الآيات أثناء الكتابة (بعد إشارة قرآنية أو قوس مفتوح)</label>
-            <label class="opt"><input type="checkbox" id="opt-distinct"> اقتراح أيضًا عند كتابة عبارة مميزة من آية دون إشارة <span class="muted small">(تُرسَل الكلمات التي قبل المؤشر إلى الخادم كلما توقفتَ عن الكتابة)</span></label>
-            <div class="draft-tools">
-              <p class="small muted">لا يُحفظ شيء في هذا المتصفح بعد إغلاق التبويب إلا إذا اخترتَ ذلك:</p>
-              <div class="actions-row">
-                <button id="draft-save" type="button" class="btn small">احفظ المسودة في هذا المتصفح</button>
-                <button id="draft-delete" type="button" class="btn small ghost">احذف المسودة المحفوظة</button>
-                <button id="draft-export" type="button" class="btn small">نزّل المقال (نص)</button>
-                <button id="draft-export-json" type="button" class="btn small">نزّل المسودة مع القرارات</button>
-              </div>
-              <label class="opt" id="draft-auto-row" hidden><input type="checkbox" id="draft-auto"> حدّث المسودة المحفوظة تلقائيًا أثناء الكتابة</label>
-              <p id="draft-note" class="small muted" role="status" aria-live="polite"></p>
-            </div>
-            <div id="mode-banner" class="banner" hidden></div>
+        <div class="more-row">
+          <div class="samples">
+            <label for="sample-select">أمثلة أخرى</label>
+            <select id="sample-select">
+              <option value="">— اختر —</option>
+              <option value="sample-demo">المقال التجريبي: الصبر</option>
+              <option value="sample-1">مثال: العلم</option>
+              <option value="sample-2">مثال: الصبر (أخطاء شائعة)</option>
+              <option value="sample-3">مثال: مقال بلا أقواس</option>
+            </select>
           </div>
-        </details>
+
+          <details class="options" id="options">
+            <summary>الخيارات والمسودة</summary>
+            <div class="options-body">
+              <p class="small muted">حدّ المقال <span id="limit-note"></span> حرف. يُسأل النموذج اللغوي عن المقالات حتى <span class="ai-limit">٦٬٠٠٠</span> حرف فقط، ويُفحص الأطول بالعلامات والبحث في نص المصحف.</p>
+              <label class="opt"><input type="checkbox" id="opt-suggest" checked> اقتراح الآيات أثناء الكتابة (بعد إشارة قرآنية أو قوس مفتوح)</label>
+              <label class="opt"><input type="checkbox" id="opt-distinct"> اقتراح أيضًا عند كتابة عبارة مميزة من آية دون إشارة <span class="muted small">(تُرسَل الكلمات التي قبل المؤشر إلى الخادم كلما توقفتَ عن الكتابة)</span></label>
+              <div class="draft-tools">
+                <p class="small muted">لا يُحفظ شيء في هذا المتصفح بعد إغلاق التبويب إلا إذا اخترتَ ذلك:</p>
+                <div class="actions-row">
+                  <button id="draft-save" type="button" class="btn small">احفظ المسودة في هذا المتصفح</button>
+                  <button id="draft-delete" type="button" class="btn small ghost">احذف المسودة المحفوظة</button>
+                  <button id="draft-export" type="button" class="btn small">نزّل المقال (نص)</button>
+                  <button id="draft-export-json" type="button" class="btn small">نزّل المسودة مع القرارات</button>
+                </div>
+                <label class="opt" id="draft-auto-row" hidden><input type="checkbox" id="draft-auto"> حدّث المسودة المحفوظة تلقائيًا أثناء الكتابة</label>
+                <p id="draft-note" class="small muted" role="status" aria-live="polite"></p>
+              </div>
+              <div id="mode-banner" class="banner" hidden></div>
+            </div>
+          </details>
+        </div>
       </section>
 
       <section id="panel" class="panel" aria-labelledby="panel-title" hidden>
@@ -140,6 +142,7 @@
             <div><dt><span class="state done exact">مطابق للمصحف</span></dt><dd>ألفاظ الاقتباس هي ألفاظ نص المصحف في الموضع المذكور. هذا ما تحقّقت منه الأداة.</dd></div>
             <div><dt><span class="state need possible">يحتاج تأكيدك</span></dt><dd>عبارة تشبه آية، ولا نعرف أهي اقتباس مقصود أو أيّ آية تقصد. لا نقترح نصًّا بديلًا حتى تختار.</dd></div>
             <div><dt><span class="state need">غير محسوم</span></dt><dd>«تصحيح مقترح بانتظار قرارك»، أو «حدود الاقتباس غير محسومة»، أو «يحتاج مراجعتك»: الآية معروفة، والمسألة فيها تنتظر قرارك.</dd></div>
+            <div><dt><span class="state done approved">اعتمدتَ التصحيح</span></dt><dd>قرارك أن يُكتب نص المصحف هنا. يظهر التصحيح في المقال المعدّل الذي تنسخه، ولا يتغيّر النص في المربع.</dd></div>
             <div><dt><span class="state done own">أبقيتَه كما كتبتَ</span></dt><dd>قرارك أنت، لا مطابقة من الأداة. وكذلك «راجعتَه بنفسك».</dd></div>
             <div><dt><span class="state stale">عُدّل بعد التدقيق</span></dt><dd>غيّرتَ النص في هذا الموضع أو بجواره؛ سقط قرارك السابق فيه ويحتاج إلى إعادة التدقيق.</dd></div>
             <div><dt><span class="state off">استبعدتَه</span></dt><dd>قلتَ إنه ليس اقتباسًا قرآنيًا. يمكنك التراجع في أي وقت.</dd></div>

@@ -12,6 +12,7 @@ const R = window.Revision;
 const W = window.Workspace;
 let MAX_CHARS = 20000;
 let AI_MAX_CHARS = 6000;
+let aiConfigured = null;  // null until /api/health answers; only used to describe what an audit will do, never to switch the model
 let lastArticle = "";    // the CURRENT text of the editor (not the text of the last audit: see auditedText)
 let auditedText = "";    // the text the last audit was made on
 let baseText = "";       // the text as first audited: the writer's original
@@ -206,14 +207,15 @@ function pendingKind(f) {
 const pendingList = () => activeFindings().filter((f) => pendingKind(f));
 const PENDING_TEXT = { verse: "يحتاج تأكيدك", bounds: "حدود الاقتباس غير محسومة", fix: "تصحيح مقترح بانتظار قرارك", review: "يحتاج مراجعتك", stale: "عُدّل بعد التدقيق" };
 // [text, class] — one plain state per quotation, never a stack of badges. The second class tells apart what the tool matched («exact»),
-// a passage that may not be a quotation or may be another verse («possible»), and what rests on the writer's own word («own»).
+// a passage that may not be a quotation or may be another verse («possible»), what rests on the writer's own word («own»), and a correction
+// the writer approved («approved»): it is applied to the copy, not to the text in the box, so it is not drawn as a match either.
 function stateOf(f) {
   if (f.stale) return [PENDING_TEXT.stale, "stale"];
   if (dismissed[f.id]) return ["استبعدتَه: ليس اقتباسًا", "off"];
   const p = pendingKind(f);
   if (p) return [PENDING_TEXT[p], p === "verse" ? "need possible" : "need"];
   const req = requiredOf(f);
-  if (req.length) return req.some((c) => decisions[c.id] === "approved") ? ["اعتمدتَ التصحيح", "done"] : ["أبقيتَه كما كتبتَ", "done own"];
+  if (req.length) return req.some((c) => decisions[c.id] === "approved") ? ["اعتمدتَ التصحيح", "done approved"] : ["أبقيتَه كما كتبتَ", "done own"];
   if (f.needs_review) return ["راجعتَه بنفسك", "done own"];
   return ["مطابق للمصحف", "done exact"];
 }
@@ -254,7 +256,11 @@ async function loadHealth() {
     const h = await res.json();
     MAX_CHARS = h.max_chars || MAX_CHARS;
     AI_MAX_CHARS = h.ai_max_chars || AI_MAX_CHARS;
+    aiConfigured = !!h.ai_configured;
     $("limit-note").textContent = arabicCount(MAX_CHARS);
+    document.querySelectorAll(".ai-limit").forEach((n) => { n.textContent = arabicCount(AI_MAX_CHARS); });
+    // what leaves the page at the next audit, said for this server (the page's default text names the configured case)
+    if (!aiConfigured) $("send-note").textContent = "لا نموذج لغوي مهيّأ على هذا الخادم، فلا يُرسَل مقالك عند التدقيق إلى جهة خارجية، ولا يُحفظ على خادمنا؛";
     updateCount();
     banner.hidden = false;
     banner.replaceChildren();
@@ -299,6 +305,12 @@ function updateCount() {
       : "عدّلتَ المقال بعد آخر تدقيق. لم يمسّ تعديلك اقتباسًا مرصودًا، لكن لم يُفحص ما كتبتَه بعده.";
   }
   $("recheck-btn").hidden = !edited();
+  // a calm word before the audit: an article over the model's limit is still audited in full, without the model
+  const overAi = aiConfigured && n > AI_MAX_CHARS && n <= MAX_CHARS;
+  $("ai-limit-note").hidden = !overAi;
+  if (overAi) $("ai-limit-note").textContent = `أطول من ${arabicCount(AI_MAX_CHARS)} حرف: يُدقَّق كاملًا دون النموذج اللغوي`;
+  // one filled button per state: «دقّق» before the first audit; after it the decision panel leads, and an edit fills «أعد التدقيق» beside its note
+  $("audit-btn").classList.toggle("primary", !lastResult);
   // An empty page offers the demonstration as one visible action.
   const empty = !value.trim();
   $("demo-hero").hidden = !empty || !!lastResult;
@@ -526,14 +538,18 @@ const isModelNote = (n) => /الذكاء الاصطناعي|النموذج/.test
 
 function auditMeta(data) {
   const ai = data.ai || {};
-  const details = (data.notices || []).filter((n) => isModelNote(n) && n.level === "info").map((n) => el("p", { text: n.text }));
+  // information that asks nothing of the writer (what the model did, short common phrases left unlisted) is one click away
+  const details = (data.notices || []).filter((n) => n.level === "info").map((n) => el("p", { text: toArabicDigits(n.text) }));
   let line = null, tone = "plain";
-  if (data.mode === "reduced") {
+  if (data.mode === "reduced" && ai.outcome === "skipped_length") {
+    tone = "limited";
+    line = `المقال أطول من ${arabicCount(AI_MAX_CHARS)} حرف، فلم يُسأل النموذج اللغوي. فُحص كله بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.`;
+  } else if (data.mode === "reduced") {
     tone = "limited";
     line = "دون ذكاء اصطناعي: قد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.";
   } else if (data.mode === "ai_failed") {
     tone = "limited";
-    line = "تعذّر اقتراح الذكاء الاصطناعي هذه المرة. فُحص المقال بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.";
+    line = "تعذّر اقتراح الذكاء الاصطناعي هذه المرة. فُحص المقال بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها، أو أعد التدقيق لاحقًا.";
     if (ai.error) details.push(el("p", {}, "سبب التعذّر: ", el("bdi", { dir: "ltr", text: String(ai.error) })));
   } else if (data.mode === "ai" && ai.responded) {
     line = "اقترح نموذج ذكاء اصطناعي مواضع الاقتباس فقط، والحكم على كل اقتباس من نص قرآنبيديا وحده." + (ai.proposed ? "" : " ولم يقترح هذه المرة أي مقطع.");
@@ -564,7 +580,7 @@ function render(scroll) {
   $("legend").hidden = false;
   const data = lastResult;
   const notices = $("notices");
-  notices.replaceChildren(...(data.notices || []).filter((n) => !isModelNote(n)).map((n) => el("div", { class: `notice ${n.level}`, text: n.text })));
+  notices.replaceChildren(...(data.notices || []).filter((n) => n.level !== "info" && !isModelNote(n)).map((n) => el("div", { class: `notice ${n.level}`, text: toArabicDigits(n.text) })));
   const meta = auditMeta(data);
   if (meta) notices.append(meta);
   renderVerdict(data);

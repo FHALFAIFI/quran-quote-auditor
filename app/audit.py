@@ -395,6 +395,11 @@ def _clean_article(article: str) -> str:
     return article
 
 
+def _count_ar(n: int, one: str, two: str, few: str, many: str) -> str:
+    """A counted noun in Arabic: «عبارة واحدة», «عبارتان», «٣ عبارات», «١١ عبارة» (the browser shows the digits in Arabic)."""
+    return one if n == 1 else two if n == 2 else f"{n} {few if n <= 10 else many}"
+
+
 def run_audit(article: str) -> dict:
     """Audit an article, using the configured model when the article is within its size limit."""
     article = _clean_article(article)
@@ -465,7 +470,7 @@ def run_audit(article: str) -> dict:
         last = provider.tracker.status() if getattr(provider, "tracker", None) else {}
         ai["http_status"] = last.get("http_status")
     if discarded:
-        notices.append({"level": "info", "text": f"استُبعد {discarded} مقطعًا اقترحه نموذج الذكاء الاصطناعي لأنه غير موجود حرفيًا في المقال."})
+        notices.append({"level": "info", "text": f"استُبعد {_count_ar(discarded, 'مقطع واحد', 'مقطعان', 'مقاطع', 'مقطعًا')} اقترحه نموذج الذكاء الاصطناعي لأنه غير موجود حرفيًا في المقال."})
     scan = None
     if index is not None:
         scan = find_phrases(article, tokens, index)
@@ -498,7 +503,7 @@ def run_audit(article: str) -> dict:
                   if not any(tokens[h.first].start < c.end and c.start < tokens[h.last - 1].end for c in candidates)]
         phrase_info = {"hidden": len(hidden), "truncated": scan.truncated}
         if hidden:
-            notices.append({"level": "info", "text": f"لم تُعرض {len(hidden)} عبارة قصيرة أو شائعة تطابق نص المصحف، لأنها لا تتميّز عن الكلام العادي. إن كنت تقصد اقتباسًا قرآنيًا منها فحدّده بالماوس في مربع النص واختر موضعه."})
+            notices.append({"level": "info", "text": f"لم تُعرض {_count_ar(len(hidden), 'عبارة واحدة', 'عبارتان', 'عبارات', 'عبارة')} قصيرة أو شائعة تطابق نص المصحف، لأنها لا تتميّز عن الكلام العادي. إن كنت تقصد اقتباسًا قرآنيًا منها فحدّده بالماوس في مربع النص واختر موضعه."})
         if scan.truncated:
             notices.append({"level": "warning", "text": "بلغ البحث عن العبارات غير المعلَّمة حدّ العمل المسموح، فلم يُفحص ما بقي من النص بهذه الطريقة."})
 
