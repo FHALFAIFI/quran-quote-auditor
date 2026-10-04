@@ -2,7 +2,9 @@
 
 ## Challenge period (4–6 October 2026)
 
-_Record every change made during the challenge here, with its date. Nothing yet._
+| Date | Commit(s) | Change |
+|---|---|---|
+| 2026-10-04 | Branch `accounts-flag` (`8954dac`, `9b30041` and the docs commit) — **not merged, not live** | **Optional accounts and private cloud drafts (roadmap Stage 2) behind `ACCOUNTS_ENABLED`, off by default.** With the flag off nothing changes for anyone: no `/api/account/*` route (404), no account script, control or auth request, CSP unchanged; `/api/health` only gains `"accounts_enabled": false`. With the flag on: the server verifies every Supabase access token itself (JWKS, ES256/RS256 only, issuer, audience, expiry), takes the user id only from the token, scopes every draft lookup by it (another user's draft is 404), refuses a stale save with 409 and both versions' metadata, enforces 20,000 characters and 200 drafts with Arabic messages, rate-limits, and logs ids and status codes only. Drafts go to PostgREST with the writer's own token (RLS as a second guard); `MemoryStore` for tests. Browser: email magic link via Supabase Auth's REST endpoint, access token in memory only (a reload means signing in again), explicit «احفظ في حسابي», list / open / rename / delete, JSON export, sign out, delete account. SQL migration and owner's steps in `deploy/supabase/` (SQL reviewed, **not executed**; RLS untested). New pinned dependencies: PyJWT 2.15.1 (MIT), cryptography 50.0.2 (Apache-2.0 OR BSD-3-Clause), cffi 2.1.1 (MIT-0), pycparser 3.0 (BSD-3-Clause). Browser tests ran against a **local fake** of Supabase, not the real service. No Supabase project, region, sender domain, controller identity, retention decision or privacy review exists; `/privacy` and `/limitations` are unchanged (prepared text in `docs/PRODUCTION_ROADMAP.md`, «Stage 2 status»). |
 
 ## Pre-challenge work (not scored) — after the baseline tag
 

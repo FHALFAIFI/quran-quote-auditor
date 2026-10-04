@@ -163,6 +163,59 @@ managed Postgres (proposal: Supabase), Row-Level Security on every table as a se
 - The retention period for inactive accounts, and an age policy.
 - Terms of use for stored drafts.
 
+### Stage 2 status (4 Oct 2026, challenge period) — implemented behind a flag on branch `accounts-flag`; **not merged, not live**
+
+**Where it stands.** The code, tests and SQL exist on the branch `accounts-flag` only. The flag `ACCOUNTS_ENABLED` is **off by default** and was never turned on outside local tests. No Supabase project, region, sender domain, controller identity, retention decision or privacy review exists, so nothing has been tried against the real service. This is **not** production-ready, and it is not a claim that Stage 2 is done.
+
+**With the flag off (the default), nothing changes:** no `/api/account/*` route is registered (404), the page loads no account script or stylesheet and shows no control, no request goes to an auth service, the CSP is unchanged, the JWT/store modules are not imported, and `/api/health` only gains `"accounts_enabled": false`. A half-configured flag (no HTTPS `SUPABASE_URL` or no anon key) stays off.
+
+**What exists (flag on):**
+
+| Part | File(s) |
+|---|---|
+| Token verification: JWKS signature (ES256/RS256 only; `none` and `HS*` refused before any key is used; key type must match), `iss`, `aud`, `exp`/`nbf`/`iat` with 30 s leeway, `sub` must be a UUID, `role` (if present) must be `authenticated`; JWKS cached 10 min, refetched on an unknown `kid` at most once per 30 s | `app/accounts/tokens.py` |
+| `DraftStore`: `PostgrestStore` (Supabase REST over httpx with the **writer's own token** + anon key; every query also filtered by the verified id; never the service-role key) and `MemoryStore` (tests only; enforces isolation itself) | `app/accounts/store.py` |
+| API: `GET/POST /api/account/drafts`, `GET/PUT/DELETE /api/account/drafts/{id}` (PUT needs `version`; stale → 409 with both versions' metadata), `GET/PUT /api/account/preferences`, `GET /api/account/export`, `POST /api/account/signout`, `DELETE /api/account`, `GET /api/account/config` (URL + public anon key). User id only from the verified token; another user's draft is 404; limits 20,000 characters and 200 drafts with Arabic messages; 60 requests/min per address; logs: method, route template, draft id, status | `app/accounts/api.py`, `app/main.py` |
+| Schema and RLS (reviewed, **not executed**) and the owner's steps with the 11 live checks (all NOT RUN) | `deploy/supabase/001_drafts.sql`, `deploy/supabase/README.md` |
+| Browser: one quiet section «حسابك (اختياري)» inside «الخيارات والمسودة»; magic link; explicit «احفظ في حسابي»; list with open / rename / delete; JSON export; sign out; delete account; options follow the account; 409 choice; expiry keeps the text | `app/static/account.js`, `app/static/account.css` (loaded only when `/api/health` says the flag is on) |
+| A local fake of Supabase Auth + PostgREST for the browser test (imitated RLS, not Postgres) | `scripts/fake_supabase.py` |
+
+**Security decisions.**
+- *Token storage:* the access token is kept in a JavaScript variable only — never `localStorage`, `sessionStorage` or a cookie set by script (the browser test asserts it). The refresh token in the magic-link fragment is discarded, and the fragment is removed from the address bar at once. **Trade-off:** a page reload means signing in again, and a session ends when the access token expires (1 hour). The magic link usually opens a new tab; that tab hands the session to the tab that asked for the link over a `BroadcastChannel` (memory to memory, matched by a random nonce carried in the link), so the writer's text stays where it was.
+- *Future work (not built):* a server-side session endpoint that exchanges the refresh token for an `HttpOnly; Secure; SameSite=Strict` cookie scoped to that endpoint, rotates it on every use, and returns a fresh access token to memory; it needs CSRF protection (SameSite plus an Origin check) and a revocation path. Until then there is no "stay signed in".
+- *Verification:* the server checks every token itself; PostgREST checks it again; RLS is the second guard on every row.
+- *Isolation:* the user id comes only from the verified `sub`; ids in the body, query or path are ignored; every lookup is scoped by that id; a foreign, missing or malformed id gives the same 404.
+- *Sign-out and deletion:* a JWT stays valid at the provider until it expires, so the server keeps an in-memory denylist (per instance, best effort) for a token after sign-out and for every token of a deleted account; on another instance a replayed token finds no rows.
+- *Service-role key:* optional, server-only, used only to delete the auth identity and write a content-free `deletion_log` line; never sent to the browser or logged.
+
+**Not built (each would be its own change):** "sign out everywhere" as a separate control (with memory-only tokens and no refresh, every browser's session already ends within the access-token lifetime; account deletion calls the provider's global logout); per-draft opt-in autosave; per-draft TXT export from the list (the existing «نزّل المقال (نص)» works after opening a draft); **re-import** of an export (acceptance test 7 cannot pass yet); an email confirming deletion; deleting rows and the auth user in **one** transaction (today: rows through PostgREST, then the auth user through the admin API; the foreign keys cascade if only the second step runs). Opening a saved draft restores its text; its saved decisions are kept in its record but are not re-applied — the writer audits again, as with a local draft.
+
+**Acceptance tests (the Stage 2 list above):**
+
+| # | Ran locally (4 Oct) | Against what | Needs the owner's project |
+|---|---|---|---|
+| 1 Guest unchanged | `ui_journey_e2e`, `ui_final_qa`, `ui_a11y_check`, `ui_workspace_e2e` pass with the flag off **and** with the flag on (no sign-in); `ui_account_e2e` checks the guest network log (flag off and on) | local servers; fake | yes, on the deployed service |
+| 2 Isolation | through the API (ids guessed, `user_id` in body and query, replay after sign-out and deletion) | MemoryStore | **RLS directly against Postgres: not tested** (no database) |
+| 3 Tokens | expired, not-yet-valid, wrong audience/issuer, `alg:none`, HS256 with the public key, tampered, unknown kid, missing sub | local ES256/RS256 keys, fake JWKS | yes |
+| 4 Session | expiry mid-edit keeps the text and shows «لم يُحفظ: سجّل الدخول من جديد» | fake | yes; "sign out everywhere" not built |
+| 5 Explicit save | nothing uploaded before «احفظ في حسابي» (network log) | fake | yes |
+| 6 Deletion | no rows left, link refused, export 401 | MemoryStore; fake | yes |
+| 7 Export round trip | export only | fake | re-import not built |
+| 8 Conflict | 409 and a three-way choice with two pages | MemoryStore; fake | yes |
+| 9 Limits | 20,001 characters, 201st draft, title, decisions size | MemoryStore | yes |
+| 10 Accessibility | axe 0 on the account section and keyboard-only at 1366/390/320 | fake | yes; plus real screen readers (Stage 4) |
+| 11 Backup restore drill | — | — | yes |
+
+**Prepared page text for when the flag is ON** (the live `/privacy` and `/limitations` are **unchanged**, because the flag is off; publish these only together with turning it on, after the owner fills the bracketed parts and the legal review):
+
+*`/privacy`, replacing «لا حسابات…» and adding a section «إن أنشأتَ حسابًا (اختياري)»:*
+
+> الحساب اختياري، والكتابة والاقتراح والتدقيق تعمل كلها دونه. إن طلبتَ رابط دخول فإننا نحفظ لدى [مزوّد الخدمة: Supabase، في منطقة: …] عنوان بريدك، وما تختار حفظه بزر «احفظ في حسابي» فقط: نص المسودة وعنوانها وسجل قراراتها ونص آخر تدقيق، وخياري الاقتراح، وأوقات الحفظ. الدخول لا يرفع شيئًا من مقالك. رمز الدخول يبقى في ذاكرة الصفحة فقط، ولا يُكتب في متصفحك؛ إعادة تحميل الصفحة تعني الدخول من جديد. يمكنك تنزيل كل مسوداتك (JSON)، وحذف أي مسودة، وحذف الحساب كله من «الخيارات والمسودة»؛ يحذف ذلك مسوداتك وتفضيلاتك [وحساب الدخول نفسه]. النسخ الاحتياطية لدى المزوّد تبقى حتى تنتهي مدة احتفاظه بها ([٧ أيام في خطة Pro]). سجل الخادم يكتب معرّف المسودة ورمز الاستجابة فقط، لا نصها ولا رمز الدخول. المسؤول عن هذه البيانات: [الاسم القانوني]، للتواصل: [العنوان]. مدة الاحتفاظ بالحسابات غير النشطة: […].
+
+*`/limitations`, one added item:*
+
+> الحساب الاختياري يحفظ النص والقرارات كما هي، ولا يعيد تطبيق القرارات عند فتح المسودة: أعد التدقيق. لا يبقى الدخول بعد إعادة تحميل الصفحة. إن حُفظت المسودة نفسها من تبويبين، يُرفض الحفظ الثاني وتختار أنت النسخة التي تبقى.
+
 ---
 
 ## Stage 3 — Import, then OCR (separate PR from accounts and from the UI)
