@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FHALFAIFI/quran-quote-auditor/eval/ocr/manifest.schema.json",
+  "title": "Arabic OCR benchmark manifest (roadmap Stage 3.2)",
+  "description": "One record per page: where the image is (outside git unless rights-cleared), the typed ground truth, the rights record and the Quran-quotation spans in the ground truth. score_ocr.py also checks what a schema cannot: span bounds against the ground-truth length, ayah ranges against the Hafs verse counts, two different checkers, and that uncleared images or ground truth do not sit inside the repository.",
+  "type": "object",
+  "required": ["schema_version", "set_id", "pages"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "set_id": {"type": "string", "minLength": 1, "description": "A name for this frozen set, e.g. ocr-bench-v1."},
+    "frozen_on": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Date the set was frozen (no edits after the first engine run)."},
+    "notes": {"type": "string"},
+    "pages": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/page"}}
+  },
+  "$defs": {
+    "page": {
+      "type": "object",
+      "required": ["page_id", "category", "script", "diacritics", "ground_truth_checked_by", "rights", "quran_spans"],
+      "oneOf": [{"required": ["ground_truth"]}, {"required": ["ground_truth_path"]}],
+      "additionalProperties": false,
+      "properties": {
+        "page_id": {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,64}$"},
+        "image_path": {"type": "string", "description": "Relative to the pages folder given to the engine runner (outside the repository unless rights.may_commit_image is true)."},
+        "image_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Checksum of the image, so a run can be tied to the exact file without committing it."},
+        "category": {"enum": ["newspaper", "bulletin", "book", "phone_photo", "screenshot", "other"]},
+        "script": {"enum": ["naskh", "uthmani", "mixed", "other"], "description": "Script of the Quran quotations on the page."},
+        "diacritics": {"enum": ["none", "partial", "full"], "description": "Diacritics level of the page text as printed."},
+        "ground_truth": {"type": "string", "description": "Typed text of the page, inline (only in a manifest kept outside git, or when rights.may_commit_ground_truth is true)."},
+        "ground_truth_path": {"type": "string", "description": "UTF-8 text file with the ground truth, relative to --data-dir (default: the manifest's folder)."},
+        "ground_truth_checked_by": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}, "description": "The person who typed it and the person who checked it against the page (two different people). Names or role codes; real names need their agreement."},
+        "rights": {"$ref": "#/$defs/rights"},
+        "quran_spans": {"type": "array", "items": {"$ref": "#/$defs/span"}},
+        "notes": {"type": "string"}
+      }
+    },
+    "rights": {
+      "type": "object",
+      "required": ["source", "licence", "cleared_by", "cleared_on", "may_commit_image", "may_commit_ground_truth"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {"type": "string", "minLength": 1, "description": "Where the page comes from (publication, issue, page; or who photographed it)."},
+        "licence": {"type": "string", "minLength": 1, "description": "The licence or written permission (e.g. 'CC BY 4.0', 'written permission from the publisher, letter of …')."},
+        "cleared_by": {"type": "string", "minLength": 1, "description": "Who checked the rights (the owner, or a person the owner names)."},
+        "cleared_on": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "may_commit_image": {"type": "boolean", "description": "True only if the licence allows the image to be published in a public repository."},
+        "may_commit_ground_truth": {"type": "boolean", "description": "True only if the licence allows the transcribed text to be published in a public repository."},
+        "may_send_to_cloud_engines": {"type": "boolean", "description": "Whether the rights holder allows the page to be sent to a third-party OCR service. A page without true here is run only on self-hosted engines."},
+        "evidence": {"type": "string", "description": "Where the written permission is kept (not the permission itself if it is private)."}
+      }
+    },
+    "span": {
+      "type": "object",
+      "required": ["start", "end", "surah", "ayah_start"],
+      "additionalProperties": false,
+      "properties": {
+        "start": {"type": "integer", "minimum": 0, "description": "Character offset in the ground truth (Python string index, NFC as stored), inclusive."},
+        "end": {"type": "integer", "minimum": 1, "description": "Character offset, exclusive."},
+        "surah": {"type": "integer", "minimum": 1, "maximum": 114},
+        "ayah_start": {"type": "integer", "minimum": 1},
+        "ayah_end": {"type": "integer", "minimum": 1, "description": "Defaults to ayah_start."},
+        "script": {"enum": ["naskh", "uthmani", "other"]},
+        "printed_as_on_page": {"type": "boolean", "description": "Always true: the ground truth reproduces the page, including a misprint, not the mushaf. A misprint is noted in notes, never corrected."},
+        "notes": {"type": "string"}
+      }
+    }
+  }
+}

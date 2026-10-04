@@ -1,0 +1,2 @@
+participant,session_date,build,service,device,browser,viewport,task,material,article_chars_bucket,completion,task_seconds,first_useful_result_seconds,help_count,confusion_count,confusion_notes,missed_quotations,unwanted_possible,wrong_corrections,wrong_approvals,understanding,issue_refs
+EXAMPLE-delete-this-row,YYYY-MM-DD,<commit>,live,laptop,<browser and version>,1440x900,T3,own_published,6001-20000,done_with_help,0,0,0,0,"describe the control or sentence, never the article text",0,0,0,0,,
