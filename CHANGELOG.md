@@ -2,7 +2,9 @@
 
 ## Challenge period (4–6 October 2026)
 
-_Record every change made during the challenge here, with its date. Nothing yet._
+| Date | Commit(s) | Change |
+|---|---|---|
+| 4 Oct 2026 | (branch hard-cases-set) | New diagnostic eval set of hard quotations (assistant-authored, not human-reviewed, not independent): `eval/hard_quotes_dev_20261004.json` (dev/diagnostic split) and `eval/hard_quotes_heldout_20261004.json` (held-out split, to be run once after tuning), frozen by `.sha256`; built by `eval/build_hard_quotes_20261004.py` from hand-written prose (`eval/hard_quotes_src_20261004/`) and Quranpedia words cut by coordinates; checked by `eval/validate_hard_quotes_20261004.py` (own normalisation; prints `labels OK`). No app code changed; the detector was not run on it. |
 
 ## Pre-challenge work (not scored) — after the baseline tag
 
