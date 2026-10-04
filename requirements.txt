@@ -15,3 +15,9 @@ idna==3.20
 certifi==2026.7.22
 uvicorn==0.54.0
 click==8.5.0
+# Optional accounts (roadmap Stage 2, behind ACCOUNTS_ENABLED, off by default): JWT verification against the provider's JWKS.
+# Imported only when the flag is on. PyJWT MIT; cryptography Apache-2.0 OR BSD-3-Clause; cffi MIT-0; pycparser BSD-3-Clause.
+PyJWT==2.15.1
+cryptography==50.0.2
+cffi==2.1.1
+pycparser==3.0

@@ -87,6 +87,14 @@ Node.js built-in test runner for `tests/revision.test.mjs`.
 | typing_extensions | PSF-2.0 |
 | packaging | Apache-2.0 / BSD-2-Clause |
 | Pygments | BSD-2-Clause |
+| PyJWT 2.15.1 (optional accounts only: JWT verification) | MIT |
+| cryptography 50.0.2 (optional accounts only: ES256/RS256 signatures) | Apache-2.0 OR BSD-3-Clause |
+| cffi 2.1.1 (dependency of cryptography) | MIT-0 |
+| pycparser 3.0 (dependency of cffi) | BSD-3-Clause |
+
+The last four were added on 4 Oct 2026 (challenge period) on the unmerged branch `accounts-flag` for roadmap Stage 2. They are
+imported only when `ACCOUNTS_ENABLED=true`; with the flag off (the default) no code path loads them. Licences as declared in
+each package's `License-Expression` metadata (read from the installed wheels).
 
 ## 4b. Ordinary Arabic prose used only to measure false suggestions (local, not part of the repository)
 

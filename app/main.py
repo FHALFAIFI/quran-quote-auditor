@@ -20,6 +20,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
+from .accounts.config import AccountConfig
 from .audit import InputError, run_audit, run_phrase
 from .config import settings
 from .extraction import get_provider
@@ -29,9 +30,14 @@ from .suggest import MAX_AFTER, MAX_BEFORE, suggest as suggest_verses
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("auditor")
 logging.getLogger("httpx").setLevel(logging.WARNING)  # request URLs are noise; bodies are never logged
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 STATIC = Path(__file__).parent / "static"
 MAX_BODY_BYTES = settings.max_chars * 4 + 1024  # UTF-8 Arabic ≈ 2 bytes/char; generous margin
+# Optional accounts (roadmap Stage 2): OFF unless ACCOUNTS_ENABLED=true and Supabase is configured. Off = no route, no script.
+ACCOUNTS = AccountConfig.from_env()
+# A saved draft carries the text, the audited text and the decisions: a larger request than an audit, for /api/account/ only.
+ACCOUNT_MAX_BODY_BYTES = 600_000
 
 app = FastAPI(title="مدقق الاقتباسات القرآنية", docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -75,7 +81,7 @@ _hits_lock = threading.Lock()
 
 
 def _rate_limited(ip: str, bucket: str = "audit") -> bool:
-    limit = settings.rate_limit_per_minute if bucket == "audit" else settings.suggest_rate_limit_per_minute
+    limit = {"audit": settings.rate_limit_per_minute, "account": ACCOUNTS.rate_limit_per_minute}.get(bucket, settings.suggest_rate_limit_per_minute)
     now = time.monotonic()
     with _hits_lock:
         q = _hits[(bucket, ip)]
@@ -98,11 +104,16 @@ def _client_ip(request: Request) -> str:
     return fwd.split(",")[0].strip() or (request.client.host if request.client else "unknown")
 
 
+# The browser talks to Supabase Auth directly (magic link, sign-out) only when accounts are on.
+CONNECT_SRC = f"'self' {ACCOUNTS.origin}" if ACCOUNTS.enabled else "'self'"
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
-    if request.method == "POST":
+    if request.method in ("POST", "PUT"):
         length = request.headers.get("content-length")
-        if length and length.isdigit() and int(length) > MAX_BODY_BYTES:
+        cap = ACCOUNT_MAX_BODY_BYTES if ACCOUNTS.enabled and request.url.path.startswith("/api/account/") else MAX_BODY_BYTES
+        if length and length.isdigit() and int(length) > cap:
             return JSONResponse({"error": "حجم الطلب أكبر من المسموح."}, status_code=413)
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -110,7 +121,7 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
-        "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; "
+        f"font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src {CONNECT_SRC}; "
         "frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
     )
     if request.url.path.startswith("/api/"):
@@ -148,6 +159,8 @@ def health():
         # The commit the host built (Render sets RENDER_GIT_COMMIT; public information, null elsewhere).
         "build": (os.environ.get("RENDER_GIT_COMMIT") or "")[:40] or None,
         "source": source.status(),
+        # Optional accounts (roadmap Stage 2). False unless the server enables them; the page loads no account code when false.
+        "accounts_enabled": ACCOUNTS.enabled,
     }
 
 
@@ -217,5 +230,10 @@ def limitations_page():
 def index():
     return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
 
+
+if ACCOUNTS.enabled:
+    from .accounts.api import install as install_accounts   # imported only when on: a server with the flag off never loads it
+
+    install_accounts(app, ACCOUNTS, lambda ip: _rate_limited(ip, "account"), _client_ip)
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
