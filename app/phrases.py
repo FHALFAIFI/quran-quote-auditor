@@ -76,6 +76,7 @@ _QURAN_CUES = [
     "قوله سبحانه", "قال سبحانه", "في كتابه", "في القرآن", "القرآن الكريم", "القرآن", "الآية", "آية",
 ]
 _ALLOWED_GAP = " \t ،,؛;ۖۗۘۙۚۛۜ"  # Quranic pause signs (ۖ ۗ ۚ ...) between the words of a copied verse do not end a phrase
+_LEAD_IN_VERBS = {arabic.folded(w) for w in ("قال", "وقال", "فقال", "يقول", "ويقول", "قوله", "وقوله", "بقوله", "تقول", "قالت")}
 
 
 def _fold_phrase(text: str) -> tuple[str, ...]:
@@ -211,7 +212,8 @@ class _Searcher:
         def bad_edge(pr: tuple[int, int, str]) -> bool:
             ti, sp, kind = pr
             if kind == "S":
-                return exact_words < 3
+                # a verb that introduces a citation («قوله ربنا آتنا …») is the writer's lead-in, not a misspelt «يقول» of the verse
+                return exact_words < 3 or self.af[ti] in _LEAD_IN_VERBS
             src = source_word(self.index, s, sp)
             return arabic.letters(self.tokens[ti].raw) != arabic.letters(src) and script_diff_kind(self.tokens[ti].raw, src) not in ("benign", "uthmani")
 

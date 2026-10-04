@@ -657,6 +657,11 @@ def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, ch
     if not edits:
         out["reason"] = "تعذّر بناء تصحيح آمن."
         return out
+    if not bounded and any(not words and (i1 == 0 or i2 == len(quote_words)) for i1, i2, words in edits):
+        # A span whose edges the program chose, not the writer: a word to delete at its first or last place is more likely
+        # the writer's own prose next to the quotation than an extra word inside it. Nothing is offered; the writer settles it.
+        out["reason"] = "حدود الاقتباس غير محسومة: الكلمة الزائدة في طرفه قد تكون من كلامك لا من الاقتباس، فلا يُقترح حذفها."
+        return out
     out.update(status="proposed", edits=edits, reason="الاقتباس يختلف عن نص المصحف في الموضع المحدد؛ التصحيح المقترح مأخوذ من قرآنبيديا لهذا المقطع فقط.")
     return out
 
