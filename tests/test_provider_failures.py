@@ -186,7 +186,9 @@ def test_every_provider_answer_ends_in_the_complete_source_audit(harness, scenar
     exp = EXPECT[scenario]
     answer, body_strings = fg.GROQ_ANSWERS[scenario]
     base_res = harness.baseline()
-    assert len(base_res["findings"]) == 3 and base_res["stats"]["proposed_changes"] > 0  # a real audit with work in it
+    # a real audit with work in it (4 findings since 4 Oct: the short phrase after «وفي سورة الشرح:» is a quotation the writer
+    # announced by naming the surah, found by the cue retrieval in app/cues.py; it was hidden as a common phrase before)
+    assert len(base_res["findings"]) == 4 and base_res["stats"]["proposed_changes"] > 0
     fake = harness.fake(answer)
     private = private_strings(body_strings)
 
