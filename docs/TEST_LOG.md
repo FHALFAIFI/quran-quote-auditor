@@ -1171,3 +1171,13 @@ minute. For every release: `/api/health` `build` = the pushed commit, and every 
 | #10 | `groq-reservation` | `bee3e03` | 22:55 | 22:56:14 | (no static file changed) | `ai_max_completion_tokens` 800; one model probe: **HTTP 200**, 4 proposed, 4 located, 0 added |
 
 Not merged: draft PR #4 (`accounts-flag`, accounts behind an off flag; owner's project and decisions needed).
+
+## 2026-10-04 (23:2x Riyadh) — final verification of the code on `main` (`bee3e03`) (challenge period)
+
+On branch `docs-final` (= `bee3e03` + documentation only), local AI-off servers: pytest **531 passed**; node **70 pass**; every `eval/*.sha256`
+(8) verifies; the two suggestion sets rerun with results identical to the 4 Oct release runs apart from timings. Browser suites: ui_e2e 29,
+ui_journey_e2e 169, ui_final_qa 143, ui_phrase_e2e 38, ui_boundary_e2e 48, ui_long_e2e 93, ui_possible_order_e2e 55, ui_counts_e2e 19,
+ui_approved_e2e 148, ui_uthmani_e2e 34, ui_workspace_e2e 139, ui_suggest_e2e 202, ui_suggest_place_e2e 82, ui_dock_e2e 36,
+ui_async_navigation_e2e 7, ui_model_notices_e2e 80, ui_a11y_check 56 (axe 0 violations, trust pages included), ui_crossbrowser 89,
+ui_selfhost_e2e 45, ui_import_e2e 591 in Chromium, 591 in Firefox, 591 in WebKit — **3,285 checks, 0 failures, 0 skipped**. Every suite also
+fails on any CSP violation or any request to another host. Not covered: real phones, Safari itself, screen readers, real writers.

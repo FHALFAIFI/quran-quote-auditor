@@ -29,6 +29,8 @@ Every evaluation set so far was written by the same AI-assisted workflow as the 
 
 ### 1.2 Partial and wrong-word quotations, and prose shown as «possible»
 
+- **Status (4 Oct, challenge period; PRs #5 and #8):** quotations the writer announced (lead-in, adjacent reference incl. one written in words, quotation marks) are now found even with a wrong or missing word (`app/cues.py`). A new **assistant-written** diagnostic set (dev + held-out, frozen) stands in for set C until a blind human author writes one: held-out run once, detected 49 → 54 of 56, 0 misquotations matched, 0 wrong fixes; prose «possible» noise unchanged (3 in 13,678 characters). Set C itself (blind, human-written, 95% intervals) is still needed.
+
 Known gaps (`docs/EVALUATION.md`):
 
 - short repeated phrases are missed («وبالوالدين إحسانا», «فاستبقوا الخيرات»);
@@ -70,7 +72,7 @@ Work and tests:
 - **Interface (in the UI PR):** an article over the model limit says before the audit that it will be checked in full without the model; after the audit the status names the reason (length, failure, or no model on the server); «أعد التدقيق» stays available after a failure; technical detail (the HTTP status) sits behind «تفاصيل هذا التدقيق». The answered, failed, over-length and unconfigured states are checked in the browser with **simulated** audit answers only.
 - **Exit test:** the fake-provider suite passes in CI. A live probe on the deployed service makes **one** labelled call per release, never a loop, and logs `ai.outcome`, `http_status` and the elapsed time in `TEST_LOG`.
 - **Needed:** a decision on the Groq plan, and, if unpublished articles are expected, on zero data retention (Stage 4).
-- **Status (4 Oct, challenge period, branch `ai-provider-harness`, not merged):** the fake-provider suite exists (`tests/test_provider_failures.py`, 18 Groq scenarios plus Gemini, all simulated) and passes locally; it found and fixed a cooldown skip reported as a failure, a traceback log that could quote the article, and `failed_generation` in the audit answer (`docs/TEST_LOG.md`). Still open: simultaneous first calls are not single-flighted; the live probe per release.
+- **Status (4 Oct, challenge period; released in PR #3, `d65befa`):** the fake-provider suite exists (`tests/test_provider_failures.py`, 18 Groq scenarios plus Gemini, all simulated) and passes locally; it found and fixed a cooldown skip reported as a failure, a traceback log that could quote the article, and `failed_generation` in the audit answer (`docs/TEST_LOG.md`). Still open: simultaneous first calls are not single-flighted. Live probes: two got HTTP 429 because the service reserved 4,096 output tokens (no override on Render); PR #10 made 800 the default and the next probe answered HTTP 200 (`docs/EVALUATION.md`).
 
 ### 1.5 Measured incremental value of the model
 
@@ -176,6 +178,8 @@ The order is fixed: **3.1 text files (no OCR) → 3.2 an Arabic OCR benchmark �
 
 ### 3.1 TXT, DOCX and PDF with embedded text (no OCR, no upload)
 
+- **Status (4 Oct, challenge period; released in PR #7, `91568af`):** TXT and DOCX work, read in the browser by a worker with no library; PDF is recognised and refused (pdf.js not vetted). Every control and test listed below exists except the PDF ones; live check: 0 requests during import. Not tested with files from Microsoft Word itself or real writers.
+
 - **Architecture: in the browser.** TXT is read with `FileReader`; DOCX with a vetted parser (for example mammoth.js) and a text-layer PDF with pdf.js, both pinned, self-hosted and run in a Web Worker. The extracted text is put into the editor as an ordinary paste. The server sees nothing until the writer audits, which keeps today's privacy statement true.
 - **Controls on the file (proposal):**
   - accepted types `.txt`, `.docx`, `.pdf`, checked by their first bytes (not the extension or the browser's MIME type);
@@ -190,6 +194,8 @@ The order is fixed: **3.1 text files (no OCR) → 3.2 an Arabic OCR benchmark �
 - **Cost:** development only; check each parser's licence before adding it.
 
 ### 3.2 Arabic OCR benchmark (before any OCR reaches the interface)
+
+- **Status (4 Oct, challenge period; PR #9):** harness and decision document only (`eval/ocr/`, `docs/OCR_DECISION.md`). No rights-cleared pages, no ground truth, no engine measured; OCR absent from the UI and off in production.
 
 - **Set:** at least 60 pages with the rights cleared to use them: newspaper columns, mosque bulletins, printed books, phone photos of print and screenshots of social posts; Quran quotations in Naskh and Uthmani fonts, with and without diacritics; ground truth typed and checked by two people.
 - **Candidates:** Tesseract `ara` (self-hosted, open source); Google Document AI (Enterprise OCR); Azure AI Document Intelligence (Read); any other engine the team wants. Prices: Azure's page lists **500 free pages per month** on the free tier (read 4 Oct 2026); its paid per-page price and Google's did not render when read, so **no paid price is given here**.
@@ -216,6 +222,8 @@ writer edits ─► «دقّق الاقتباسات» (unchanged audit)
 ---
 
 ## Stage 4 — Hosting, monitoring, backups, privacy, rights and accessibility (release gates)
+
+**Status (4 Oct, challenge period; PR #6):** code-level parts done — fonts self-hosted (no request to Google), CSP without `unsafe-inline`, HSTS/COOP/CORP/Permissions-Policy, body cap counted as it arrives, article text scrubbed from logs, `/api/health` fields for an external monitor (`source_ok`, `ai_recent`, `ai_max_completion_tokens`), local load test (10 concurrent 6,000-character audits: p95 3.6 s on a laptop; audits serialise under the GIL), pip-audit clean. **No gate below is met**: they all need the owner (paid host, domain, monitor account and a fired alert, provider retention setting, legal and rights answers, real-device accessibility review, real writers).
 
 Each item below is a gate. A public "production" label needs all of them.
 
