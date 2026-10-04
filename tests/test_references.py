@@ -38,3 +38,20 @@ def test_out_of_range_is_flagged():
 def test_bare_common_word_is_not_a_reference():
     # "النور" and "محمد" are ordinary words; without a number they are not references
     assert find_references("اهتدى بالنور وجاء محمد إلى البيت") == []
+
+
+def test_ayah_number_written_as_an_ordinal_word():
+    """Found in the internal walkthrough of 4 Oct 2026: «وهي الآية الخامسة عشرة من سورة النور» was not read as a reference."""
+    from app.references import find_references
+
+    cases = {"وهي الآية الخامسة عشرة من سورة النور.": (24, 15), "في الآية الأولى من سورة الفاتحة": (1, 1),
+             "الآية الحادية والعشرون من سورة الأحزاب": (33, 21), "كما في الآية الثانية عشرة من سورة لقمان": (31, 12)}
+    for text, (s, a) in cases.items():
+        (r,) = find_references(text)
+        assert (r.surah, r.ayah_start, r.valid) == (s, a, True), text
+    # an ordinal outside the named surah is a reference with a problem, not silently accepted
+    (r,) = find_references("الآية التاسعة والتسعون من سورة الفاتحة")
+    assert not r.valid
+    # ordinary prose with an ordinal is not a reference
+    assert find_references("وهذه هي الحالة الخامسة عشرة من سورة حياته") == []
+    assert find_references("في الآية الخامسة من كتاب الأدب") == []

@@ -1080,3 +1080,17 @@ The two office files are 6 KB and 4 KB, made by us from our own text with `tests
 ### Not done
 
 PDF (any kind); OCR; drag and drop; files from Microsoft Word itself, from real writers, or encrypted by Word; real phones, Safari, screen readers.
+
+## 2026-10-04 (21:5x Riyadh) — an ayah number written as a word is read as a reference (challenge period)
+
+Branch `reference-ordinals`. Found in the internal inspection of the pilot tasks (see the section of that name): in `LA03` the writer
+cites «وهي الآية الخامسة عشرة من سورة النور», and `app/references.py` read only digits. New pattern: «الآية/آية» + a feminine ordinal
+1–99 written in words (الأولى … العاشرة، الحادية عشرة … التاسعة عشرة، العشرون … التاسعة والتسعون) + «من/في سورة» + a surah name. Required
+context keeps prose out («الحالة الخامسة عشرة من سورة حياته», «الآية الخامسة من كتاب الأدب» give nothing; tested). An ordinal beyond the
+surah's length is a reference with a problem (tested). No AI call.
+
+- pytest 511 (one new test in `tests/test_references.py`).
+- Seven frozen sets, compared with the release runs `…-cue-final-*` (`eval/results/fallback-*-ordinals-*`): six identical; `articles_long_20261003`
+  **one row**: `LA03` «وتحسبونه هينا وهو عند الله عظيم» reference «missing» → «matched» (the label's expectation), tier «candidate» → «stated»
+  (the writer's ayah reference names the verse). This change was made after seeing that article in a walkthrough, so the row is not independent
+  evidence. Hard dev split: rows identical. The held-out split was not rerun.

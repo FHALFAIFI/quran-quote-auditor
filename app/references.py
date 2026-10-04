@@ -87,6 +87,26 @@ _P_BARE = re.compile(
 _P_AYAH_FIRST = re.compile(
     rf"(?<![{_L}]){_AYAH_WORD}\s*(?:رقم\s*)?[:(]?\s*{_RANGE}\s*\)?\s*(?:من|في)\s+سوره\s+(?P<name>{_NAME_ALT})(?![{_L}])"
 )
+# الآية الخامسة عشرة من سورة X — an ayah number written as a (feminine) ordinal word, 1–99, only before «من/في سورة …»
+def _ordinal_table() -> dict[str, int]:
+    first = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة", "التاسعة", "العاشرة"]
+    unit = ["الحادية", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة", "التاسعة"]
+    tens = {20: ("العشرون", "العشرين"), 30: ("الثلاثون", "الثلاثين"), 40: ("الأربعون", "الأربعين"), 50: ("الخمسون", "الخمسين"),
+            60: ("الستون", "الستين"), 70: ("السبعون", "السبعين"), 80: ("الثمانون", "الثمانين"), 90: ("التسعون", "التسعين")}
+    words: dict[str, int] = {w: n for n, w in enumerate(first, 1)}
+    words.update({f"{w} عشرة": 10 + n for n, w in enumerate(unit, 1)})
+    for t, forms in tens.items():
+        for f in forms:
+            words[f] = t
+            words.update({f"{u} و{f}": t + n for n, u in enumerate(unit, 1)})
+    return {" ".join(folded(x) for x in k.split()): v for k, v in words.items()}
+
+
+_ORDINALS = _ordinal_table()
+_ORD_ALT = "|".join(re.escape(w) for w in sorted(_ORDINALS, key=len, reverse=True))
+_P_AYAH_ORDINAL = re.compile(
+    rf"(?<![{_L}]){_AYAH_WORD}\s+(?P<ord>{_ORD_ALT})(?![{_L}])\s*(?:من|في)\s+سوره\s+(?P<name>{_NAME_ALT})(?![{_L}])"
+)
 # 2:255 or 2:255-257
 _P_NUMERIC = re.compile(rf"(?<![\d:.])(\d{{1,3}})\s*:\s*{_RANGE}(?![\d:])")
 
@@ -132,6 +152,8 @@ def find_references(text: str) -> list[Reference]:
 
     for m in _P_AYAH_FIRST.finditer(ftext):
         add(m, _NAMES_FOLDED[m.group("name")], m.group(1), m.group(2))
+    for m in _P_AYAH_ORDINAL.finditer(ftext):
+        add(m, _NAMES_FOLDED[m.group("name")], str(_ORDINALS[m.group("ord")]), None)
     for m in _P_SURAH_WORD.finditer(ftext):
         add(m, _NAMES_FOLDED[m.group("name")], m.group(2), m.group(3))
     for m in _P_BARE.finditer(ftext):
