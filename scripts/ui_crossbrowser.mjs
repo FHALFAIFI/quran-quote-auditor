@@ -5,7 +5,7 @@
 //
 //   NODE_PATH=<scratch>/node_modules node scripts/ui_crossbrowser.mjs [--server URL] [--only firefox|webkit|chromium]
 import { createRequire } from "module";
-import { check, norm, readSample, testServer, opt, finish } from "./_ui_common.mjs";
+import { check, norm, readSample, testServer, opt, finish, watchPage } from "./_ui_common.mjs";
 
 const require = createRequire(import.meta.url);
 const pw = require("playwright");
@@ -27,6 +27,7 @@ for (const name of ["chromium", "firefox", "webkit"]) {
     const page = await ctx.newPage();
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e)));
+    await watchPage(ctx, page, server.base, errors);
     await page.goto(server.base);
     await page.evaluate(() => { sessionStorage.clear(); localStorage.clear(); });
     await page.reload();

@@ -1,6 +1,27 @@
 /* Quran quotation auditor — an Arabic writing desk in the challenge's navy and mint.
    Navy frames the page and marks the one place where the writer decides; the article sits on paper;
    mint is a signal on navy only (never text on a light ground); green means "matches the source", never "a button". */
+/* Self-hosted fonts (SIL Open Font License 1.1; licence beside each file in /static/fonts/). The files are the Arabic and Latin
+   subsets Google Fonts serves, copied once on 4 Oct 2026, so a visit sends no request to Google. Sources: SOURCES.md. */
+@font-face { font-family: "Amiri Quran"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("/static/fonts/amiri-quran/amiri-quran-arabic.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: "Amiri Quran"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("/static/fonts/amiri-quran/amiri-quran-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Noto Naskh Arabic"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("/static/fonts/noto-naskh-arabic/noto-naskh-arabic-arabic.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: "Noto Naskh Arabic"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("/static/fonts/noto-naskh-arabic/noto-naskh-arabic-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Readex Pro"; font-style: normal; font-weight: 160 700; font-display: swap;
+  src: url("/static/fonts/readex-pro/readex-pro-arabic.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: "Readex Pro"; font-style: normal; font-weight: 160 700; font-display: swap;
+  src: url("/static/fonts/readex-pro/readex-pro-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
 :root {
   --navy: #111845;
   --navy-2: #1d2862;     /* primary actions */

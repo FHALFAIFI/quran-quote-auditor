@@ -75,7 +75,7 @@ Before any of these: always-on hosting, a model setting that does not retain con
 2. **Teach the cue vocabulary, and measure it on a fresh set C.** Set B showed silence for «في التنزيل العزيز», «في كتاب الله» and a lead-in followed by extra words before the colon. Any change must be measured on a new frozen set, not on A or B.
 3. **Decide the surah-only policy with an editor.** A surah named in the prose («في سورة الإسراء: …») currently confirms an unambiguous quotation's reference ("matched"); the long-set labeller expected "missing". Four references in the long set fall on this.
 4. **A pilot with real editors** (permission first): do they accept suggestions, how many «possible» items per article annoy them, how long a review takes. No time saving is claimed today.
-5. **Self-host the three fonts** (SIL OFL) so a visit sends nothing to Google, then tighten the CSP; the privacy page currently states the Google Fonts request.
+5. **Self-host the three fonts** (SIL OFL) so a visit sends nothing to Google, then tighten the CSP. *Done on the `hardening` branch on 4 Oct 2026 (challenge period; not yet reviewed or released): fonts in `app/static/fonts/`, CSP without any external host, `/privacy` and `/sources` updated (`docs/TEST_LOG.md`).*
 6. **Accuracy between 14,700 and 20,000 characters, and Render under load.** Time and memory were measured to 20,000 characters, accuracy only to 14,700; the host is the free tier.
 7. **Real devices and assistive technology:** Safari, Firefox, a phone keyboard, VoiceOver/TalkBack. Only Chromium, axe and keyboard were tested.
 8. **Smarter stale handling:** restore a decision if an edit is undone, invalidate only the changed boundary word, an outline of paragraphs with open items for very long articles.

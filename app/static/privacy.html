@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>الخصوصية — مدقق الاقتباسات القرآنية</title>
   <meta name="description" content="ما الذي يُرسَل من مقالك، ولمن، وما الذي يبقى في متصفحك، وما الذي لا يُحفظ على الخادم.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="/static/styles.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111845'/%3E%3Cpath d='M16 26c-3-2-7-3-12-2V7c5-1 9 0 12 2m0 17c3-2 7-3 12-2V7c-5-1-9 0-12 2v17' stroke='%235fe0bd' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
@@ -47,7 +44,7 @@
           <tr><th scope="row">كل تدقيق لمقال لا يزيد عن ٦٬٠٠٠ حرف عندما يكون النموذج مهيّأً على الخادم</th><td data-label="ما يُرسَل">نص المقال كاملًا مع تعليمات للنموذج</td><td data-label="إلى من">Groq (api.groq.com)، بمفتاح الخدمة لا بمفتاحك</td><td data-label="هل يُحفظ؟">تقول Groq في <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noopener">صفحة بياناتها</a> إنها لا تحتفظ بطلبات الاستدلال افتراضيًا، وإنها قد تحتفظ ببيانات مؤقتًا لأغراض الموثوقية ومراقبة إساءة الاستخدام (حتى ٣٠ يومًا) ما لم يُفعَّل «عدم الاحتفاظ». لا نملك التحكم في ذلك، ولا نعرف إعداد حساب الخدمة عندها.</td></tr>
           <tr><th scope="row">كل مرة يبدأ الخادم أو بعد ٢٤ ساعة</th><td data-label="ما يُرسَل">طلب جلب المصحف (لا شيء من مقالك ولا من زائر)</td><td data-label="إلى من">قرآنبيديا (api.quranpedia.net)</td><td data-label="هل يُحفظ؟">يرى عنوان الخادم لا عنوانك.</td></tr>
           <tr><th scope="row">حين تضغط رابط «قرآنبيديا» في بطاقة</th><td data-label="ما يُرسَل">يفتح متصفحك صفحة الآية عندهم، دون إحالة (Referrer)</td><td data-label="إلى من">قرآنبيديا</td><td data-label="هل يُحفظ؟">تنطبق سياستهم عليك كزائر لموقعهم.</td></tr>
-          <tr><th scope="row">كل تحميل للصفحة</th><td data-label="ما يُرسَل">طلب الخطوط (عنوان IP ومعلومات المتصفح)، لا نص المقال</td><td data-label="إلى من">خطوط جوجل (fonts.googleapis.com وfonts.gstatic.com)</td><td data-label="هل يُحفظ؟">تنطبق سياسة جوجل على هذا الطلب.</td></tr>
+          <tr><th scope="row">كل تحميل للصفحة</th><td data-label="ما يُرسَل">طلب الصفحة وملفاتها: الأنماط والبرامج والخطوط (عنوان IP ومعلومات المتصفح)، لا نص المقال</td><td data-label="إلى من">خادم الأداة وحده. الخطوط الثلاثة مستضافة عليه، فلا تتصل الصفحة بخطوط جوجل ولا بأي جهة أخرى</td><td data-label="هل يُحفظ؟">سطر في سجل الخادم (انظر «على الخادم» أدناه).</td></tr>
         </tbody>
       </table>
     </div>

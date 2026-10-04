@@ -18,6 +18,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.datastructures import MutableHeaders
 from pydantic import BaseModel, ConfigDict, Field
 
 from .audit import InputError, run_audit, run_phrase
@@ -99,34 +100,112 @@ def _client_ip(request: Request) -> str:
 
 
 @app.middleware("http")
-async def security_headers(request: Request, call_next):
-    if request.method == "POST":
-        length = request.headers.get("content-length")
-        if length and length.isdigit() and int(length) > MAX_BODY_BYTES:
-            return JSONResponse({"error": "حجم الطلب أكبر من المسموح."}, status_code=413)
+async def answer_unexpected_errors(request: Request, call_next):
     try:
-        response = await call_next(request)
+        return await call_next(request)
     except Exception as exc:  # noqa: BLE001
         # Answered here rather than by the Exception handler below: Starlette re-raises after that handler so the server can log
         # it, and uvicorn then writes the full traceback, whose message can quote the article. Here only the type is logged.
-        response = _unexpected(request, exc)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
-        "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; "
-        "frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
-    )
-    if request.url.path.startswith("/api/"):
-        response.headers["Cache-Control"] = "no-store"
-    return response
+        return _unexpected(request, exc)
+
+
+# --- security headers and a hard cap on the request body (pure ASGI, so it covers the API, the pages and /static) --------
+CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; "
+    "connect-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+)
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": CSP,
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Resource-Policy": "same-origin",
+}
+HSTS = "max-age=31536000"
+TOO_LARGE = {"error": "حجم الطلب أكبر من المسموح."}
+
+
+def _is_https(scope) -> bool:
+    if scope.get("scheme") == "https":
+        return True
+    for k, v in scope.get("headers") or ():
+        if k == b"x-forwarded-proto":  # set by Render's proxy; HSTS is ignored by browsers over plain http anyway
+            return v.split(b",")[0].strip().lower() == b"https"
+    return False
+
+
+class SecurityMiddleware:
+    """Adds the security headers to every response and refuses a request body over ``max_body`` bytes with 413.
+
+    The body is counted as it arrives, so a chunked request without Content-Length cannot get past the cap. Requests with
+    a body are buffered here (at most ``max_body`` bytes) and replayed to the app."""
+
+    def __init__(self, app, max_body: int) -> None:
+        self.app = app
+        self.max_body = max_body
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        https = _is_https(scope)
+        api = scope.get("path", "").startswith("/api/")
+
+        async def send_with_headers(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                for k, v in SECURITY_HEADERS.items():
+                    headers[k] = v
+                if https:
+                    headers["Strict-Transport-Security"] = HSTS
+                if api:
+                    headers["Cache-Control"] = "no-store"
+            await send(message)
+
+        if scope.get("method") in ("POST", "PUT", "PATCH", "DELETE"):
+            length = None
+            for k, v in scope.get("headers") or ():
+                if k == b"content-length":
+                    length = v
+            if length is not None and length.isdigit() and int(length) > self.max_body:
+                return await JSONResponse(TOO_LARGE, status_code=413)(scope, receive, send_with_headers)
+            chunks, size = [], 0
+            while True:
+                message = await receive()
+                if message["type"] == "http.disconnect":
+                    return
+                body = message.get("body", b"")
+                size += len(body)
+                if size > self.max_body:
+                    return await JSONResponse(TOO_LARGE, status_code=413)(scope, receive, send_with_headers)
+                chunks.append(body)
+                if not message.get("more_body", False):
+                    break
+            buffered = {"type": "http.request", "body": b"".join(chunks), "more_body": False}
+            replayed = False
+
+            async def replay():
+                nonlocal replayed
+                if not replayed:
+                    replayed = True
+                    return buffered
+                return await receive()
+
+            return await self.app(scope, replay, send_with_headers)
+        return await self.app(scope, receive, send_with_headers)
+
+
+# added last, so it is the outermost layer: its headers also reach the 500 answer of the guard above
+app.add_middleware(SecurityMiddleware, max_body=MAX_BODY_BYTES)
 
 
 def _unexpected(request: Request, exc: Exception) -> JSONResponse:
     # Log only the exception type — never the request body, the exception message or a traceback (either may quote the article).
     log.error("unhandled error on %s: %s", request.url.path, type(exc).__name__)
-    return JSONResponse({"error": "حدث خطأ غير متوقع أثناء التدقيق."}, status_code=500)
+    # This answer is sent by the outermost error middleware, outside SecurityMiddleware: add the headers here.
+    return JSONResponse({"error": "حدث خطأ غير متوقع أثناء التدقيق."}, status_code=500,
+                        headers={**SECURITY_HEADERS, "Cache-Control": "no-store"})
 
 
 @app.exception_handler(Exception)

@@ -65,12 +65,24 @@ The pages `/sources`, `/privacy`, `/limitations` (verified against the code on 3
 
 | Asset | Licence | Use |
 |---|---|---|
-| Readex Pro (Google Fonts) | SIL Open Font License 1.1 | UI text; also the font of the organizer's template |
-| Amiri Quran (Google Fonts) | SIL Open Font License 1.1 | Displaying source verses |
+| Readex Pro | SIL Open Font License 1.1 (Reserved Font Name «RevReading Lexend», not used here) | UI text; also the font of the organizer's template |
+| Noto Naskh Arabic | SIL Open Font License 1.1 | The article and quoted words |
+| Amiri Quran | SIL Open Font License 1.1 | Displaying source verses |
 | Colours: navy `#12183F`, violet `#6150EA`, blue `#3F6FE6`, turquoise `#2EF2C2` and tints | Taken from the challenge template's palette | Challenge branding. The web interface used them until the editorial revision of 3 Oct 2026 and no longer does (it now uses its own paper/ink/green palette); they remain only in the submission slides |
 
-Fonts are loaded from `fonts.googleapis.com`/`fonts.gstatic.com`, so visitors' browsers
-contact Google Fonts. The organizer's PDFs and PPTX are **not** included in this repository (they are git-ignored).
+**The fonts are self-hosted** in `app/static/fonts/<font>/` (since 4 Oct 2026, challenge period), so a visit contacts no other host.
+Each folder holds the Arabic and the Latin subset as WOFF2, exactly as Google Fonts served them on 4 Oct 2026
+(`fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700`;
+Amiri Quran v19, Noto Naskh Arabic v44 (variable, weight 400–700), Readex Pro v27 (variable, weight 160–700)), and the font's `OFL.txt`
+copied from Google Fonts' repository. Six files, 225,800 bytes in all; the browser fetches all six on a full journey (measured by
+`scripts/ui_selfhost_e2e.mjs`). Before, it fetched these same six files from `fonts.gstatic.com` (the URLs Google's stylesheet gives a
+Chrome browser) plus that 26,705-byte stylesheet from `fonts.googleapis.com`; now `styles.css` grows by 2,488 bytes of `@font-face` rules. Licence checked on 4 Oct 2026 (19:52 Riyadh) in three places for each font: the `license: "OFL"` field of
+`github.com/google/fonts/blob/main/ofl/{amiriquran,notonaskharabic,readexpro}/METADATA.pb`, the `OFL.txt` beside it, and the upstream
+repository's licence as reported by GitHub (`OFL-1.1` for `github.com/aliftype/amiri`, `github.com/notofonts/arabic` and
+`github.com/ThomasJockin/readexpro`). The name table of each file points to `https://openfontlicense.org`. The OFL allows
+redistribution with the software provided the licence travels with the font and the font is not sold by itself.
+
+The organizer's PDFs and PPTX are **not** included in this repository (they are git-ignored).
 
 ## 4. Software dependencies (pinned in `requirements*.txt`)
 

@@ -55,6 +55,22 @@ export async function testServer() {
   return { ...server, health: h };
 }
 
+// Every page these checks open is watched for Content-Security-Policy violations (the securitypolicyviolation event, reported as a console
+// error) and for any request to a host other than the app's own origin (fonts are self-hosted: a visit must contact nobody else).
+// Both are pushed to the page's error list and counted; finish() fails the suite if either count is not 0.
+export const watched = { csp: [], thirdParty: [] };
+export async function watchPage(ctx, page, base, errors) {
+  const origin = new URL(base).origin;
+  await ctx.addInitScript(() => {
+    document.addEventListener("securitypolicyviolation", (e) => console.error(`CSP violation: ${e.violatedDirective} blocked ${e.blockedURI || "(inline)"} at ${e.sourceFile || ""}:${e.lineNumber || ""}`));
+  });
+  page.on("console", (m) => { if (m.type() === "error" && /^CSP violation:/.test(m.text())) watched.csp.push(m.text()); });
+  page.on("request", (r) => {
+    const u = r.url();
+    if (/^https?:/.test(u) && new URL(u).origin !== origin) { watched.thirdParty.push(u); errors?.push(`third-party request: ${u}`); }
+  });
+}
+
 // A page with error collection, the clipboard allowed and a screenshot helper.
 export async function openPage(browser, base, vp, mobile, tag) {
   const ctx = await browser.newContext({ viewport: vp, locale: "ar", isMobile: mobile, hasTouch: mobile });
@@ -63,6 +79,7 @@ export async function openPage(browser, base, vp, mobile, tag) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+  await watchPage(ctx, page, base, errors);
   const shot = async (n, full = false) => { if (shots) await page.screenshot({ path: path.join(shots, `${tag}-${n}.png`), fullPage: full }); };
   const inView = (sel, frac = 1) => page.evaluate(([s, f]) => { const r = document.querySelector(s)?.getBoundingClientRect(); return !!r && r.top >= 0 && r.bottom <= innerHeight * f + 1 && r.width > 0; }, [sel, frac]);
   const overflowX = () => page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
@@ -81,4 +98,7 @@ export const openRow = async (page, id) => {
   await page.locator(`#row-${id}`).click();
   await page.waitForSelector(`#finding-${id}`);
 };
-export const finish = (server, browser) => { browser?.close(); server?.stop(); console.log(failures ? `\nfailures: ${failures}` : "\nall checks passed"); process.exit(failures ? 1 : 0); };
+export const finish = (server, browser) => {
+  check(watched.csp.length === 0, `no Content-Security-Policy violation on any page of this run (${watched.csp.length}) ${watched.csp.slice(0, 3).join(" | ")}`);
+  check(watched.thirdParty.length === 0, `no request to another host on any page of this run (${watched.thirdParty.length}) ${watched.thirdParty.slice(0, 3).join(" | ")}`);
+  browser?.close(); server?.stop(); console.log(failures ? `\nfailures: ${failures}` : "\nall checks passed"); process.exit(failures ? 1 : 0); };
