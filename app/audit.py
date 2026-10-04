@@ -202,8 +202,11 @@ def attach_references(article: str, cands: list[Candidate], refs: list[Reference
     return out
 
 
-def _source_candidates(article: str, tokens: list[arabic.Token], refs: list[Reference], index: QuranIndex, scan) -> list[Candidate]:
-    """What the source search found: phrase-search hits and spans the writer's cues announced, reconciled (no model)."""
+def _source_candidates(article: str, tokens: list[arabic.Token], refs: list[Reference], index: QuranIndex, scan,
+                       marked: list[tuple[int, int]] = ()) -> list[Candidate]:
+    """What the source search found: phrase-search hits and spans the writer's cues announced, reconciled (no model).
+
+    A cue span that overlaps a bracketed quotation is dropped: the brackets already state that quotation."""
     phrase_cands = []
     for h in scan.hits:
         c = _span_candidate(article, tokens, h.first, h.last, "phrase")
@@ -212,6 +215,8 @@ def _source_candidates(article: str, tokens: list[arabic.Token], refs: list[Refe
     cue_cands = []
     for h in find_cue_hits(article, tokens, refs, index):
         c = _span_candidate(article, tokens, h.first, h.last, "cue")
+        if any(c.start < e and s < c.end for s, e in marked):
+            continue
         h.window = (tokens[h.cue.first].start, tokens[h.cue.last - 1].end)
         c.cue = h
         cue_cands.append(c)
@@ -358,6 +363,13 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
     finding["continuation"] = {"quran": end_b["quran"], "article": end_b["article"]} if end_unc else None
     boundary_msg = BOTH_UNCERTAIN_MESSAGE if start_unc and end_unc else START_UNCERTAIN_MESSAGE if start_unc else END_UNCERTAIN_MESSAGE
     boundary_unc = start_unc or end_unc
+    det0 = finding["detection"]
+    if boundary_unc and det0.get("basis") == "reference" and det0["kind"] in ("phrase", "cue") and finding["wording"].get("level") == "fuzzy":
+        # A near match is the writer's stated quotation only when the evidence settles both the verse (the adjacent ayah
+        # reference) and the span (both edges settled); with an edge in doubt it stays a possibility for the writer to confirm.
+        reasons = ["approximate", "cue"] if det0["kind"] == "cue" else ["approximate"]
+        finding["detection"] = {**det0, "tier": "possible", "label": TIER_LABEL["possible"], "codes": reasons, "unconfirmed": True,
+                                "reasons": [TIER_REASON[k] for k in reasons], "basis": None}
     if boundary_unc:
         # Keep wording and reference verdicts apart: only the wording verdict is held back, and only for "matched".
         if finding["wording"]["status"] == "matched":
@@ -590,7 +602,8 @@ def run_audit(article: str) -> dict:
     scan = None
     if index is not None:
         scan = find_phrases(article, tokens, index)
-        candidates += _source_candidates(article, tokens, refs, index, scan)
+        marked = [(c.start, c.end) for c in candidates if "marked" in c.sources]
+        candidates += _source_candidates(article, tokens, refs, index, scan, marked)
 
     merged_candidates = list(merge(candidates))
     candidates = merged_candidates[: settings.max_candidates]
