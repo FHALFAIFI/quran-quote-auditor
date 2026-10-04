@@ -561,12 +561,18 @@ const isModelNote = (n) => /الذكاء الاصطناعي|النموذج/.test
 function auditMeta(data) {
   const ai = data.ai || {};
   // information that asks nothing of the writer (what the model did, short common phrases left unlisted) is one click away
-  const details = (data.notices || []).filter((n) => n.level === "info" && !(ai.outcome === "skipped_length" && /أطول من \d+ حرف/.test(n.text)))   // said by the line itself
+  const details = (data.notices || []).filter((n) => n.level === "info" && !(ai.outcome === "skipped_length" && /أطول من \d+ حرف/.test(n.text))
+      && !(ai.outcome === "skipped_cooldown" && /لم يُسأل الذكاء الاصطناعي/.test(n.text)))   // said by the line itself
     .map((n) => el("p", { text: noticeText(n.text) }));
   let line = null, tone = "plain";
   if (data.mode === "reduced" && ai.outcome === "skipped_length") {
     tone = "limited";
     line = `المقال أطول من ${arabicCount(AI_MAX_CHARS)} حرف، فلم يُسأل النموذج اللغوي. فُحص كله بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.`;
+  } else if (ai.outcome === "skipped_cooldown") {
+    // no request was made in this audit: an earlier call failed moments ago and the server is waiting before it asks again
+    tone = "limited";
+    line = "لم يُسأل النموذج اللغوي هذه المرة لأنه تعذّر قبل قليل. فُحص المقال بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.";
+    if (ai.cooldown_seconds) details.push(el("p", { text: `يُسأل النموذج من جديد بعد نحو ${toArabicDigits(ai.cooldown_seconds)} ث؛ أعد التدقيق بعدها إن شئت.` }));
   } else if (data.mode === "reduced") {
     tone = "limited";
     line = "دون ذكاء اصطناعي: قد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.";
@@ -1713,6 +1719,7 @@ function aiRecordText(data) {
   const ai = data.ai || {};
   if (!ai.configured) return "لم يُستخدم الذكاء الاصطناعي (وضع مخفّض): فُحصت الاقتباسات المعلَّمة والعبارات المطابقة لنص المصحف دون علامات، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.";
   if (ai.outcome === "skipped_length") return `لم يُستدعَ النموذج لأن المقال أطول من ${arabicCount(AI_MAX_CHARS)} حرف؛ فُحص كامل المقال بالعلامات والبحث في المصحف، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
+  if (ai.outcome === "skipped_cooldown") return `لا — لم يُسأل ${ai.provider} في هذا التدقيق لأن استدعاءً سابقًا له تعذّر قبل قليل، فاستُخدم الوضع الاحتياطي الحتمي، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
   if (ai.responded) return `نعم — استجاب النموذج ${ai.model} (${ai.provider}) في هذا التدقيق خلال ${((ai.elapsed_ms || 0) / 1000).toFixed(1)} ث؛ اقترح ${ai.proposed} مقطعًا، وُجد منها في المقال ${ai.located}، واستُبعد ${ai.discarded}.${aiShare(ai)} دوره اقتراح المواضع فقط.`;
   return `لا — كان ${ai.provider} مُعَدًّا لكنه لم يستجب في هذا التدقيق (${ai.error || ai.outcome})، فاستُخدم الوضع الاحتياطي الحتمي، وقد تفوت الاقتباسات القصيرة غير المعلَّمة.`;
 }

@@ -111,7 +111,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
 }
 await browser.close();
 console.log("\nINFO  audit responses:", JSON.stringify(audits));
-check(audits.length > 0 && audits.every((a) => a.status === 200 && ["ok", "failed", "not_configured", "skipped_length"].includes(a.ai)), "audits report whether the model answered, failed, or was unavailable for this article");
+check(audits.length > 0 && audits.every((a) => a.status === 200 && ["ok", "failed", "not_configured", "skipped_length", "skipped_cooldown"].includes(a.ai)), "audits report whether the model answered, failed, or was unavailable for this article");
 const h2 = await (await fetch(base + "/api/health")).json();
 check(!health.ai_configured || ["ok", "failed"].includes(h2.ai_last_call?.outcome), `the configured model was attempted (${JSON.stringify(h2.ai_last_call?.outcome)})`);
 console.log(failures ? `\nfailures: ${failures}` : "\nall checks passed");

@@ -15,12 +15,13 @@ cooldown after a failure. There is no model-fallback chain.
 
 from __future__ import annotations
 
+import re
 import time
 
 import httpx
 
 from ..config import groq_api_key, settings
-from .base import ExtractionError, ExtractionProvider, RawSuggestion
+from .base import ExtractionError, ExtractionProvider, ProviderCoolingDown, RawSuggestion
 from .gemini import parse_model_json
 from .prompts import system_prompt
 from .status import CallTracker
@@ -62,18 +63,42 @@ def last_call_status() -> dict:
 _GENERATION_FAILURE_MARKERS = ("does not match the expected schema", "json_validate_failed")
 
 
+# Identifiers of the service account that Groq writes into its messages (e.g. "in organization `org_01…`"), and anything
+# shaped like a key: neither belongs in an answer sent to a public visitor.
+_ACCOUNT_IDS = re.compile(r"\b(org|proj|user|gsk|sk)_[A-Za-z0-9_-]{6,}")
+
+
+def _redact(text: str) -> str:
+    return _ACCOUNT_IDS.sub(lambda m: m.group(1) + "_…", text)[:300]
+
+
 def error_body(resp: httpx.Response) -> dict:
-    """The provider's error object, shortened. Never contains the API key; ``failed_generation`` is the model's own output."""
+    """The provider's error object (type, code, param, message), shortened, with account ids redacted. Never contains the API key.
+
+    ``failed_generation`` (Groq's copy of the model's rejected output under strict JSON) is NOT kept, only its length: it is
+    model-generated text, so besides passages of the writer's article it may hold text that is not in the article at all
+    (an invented or paraphrased verse, prompt fragments). It is never shown, logged, or put in the audit answer.
+    """
     try:
         err = resp.json().get("error") or {}
-    except ValueError:
+    except (ValueError, AttributeError):
         err = {}
     if not isinstance(err, dict):
         err = {"message": str(err)}
-    body = {k: (str(err[k])[:300] if err.get(k) is not None else None) for k in ("type", "code", "param", "message", "failed_generation")}
+    body: dict = {k: (_redact(str(err[k])) if err.get(k) is not None else None) for k in ("type", "code", "param", "message")}
+    if err.get("failed_generation") is not None:
+        body["failed_generation_chars"] = len(str(err["failed_generation"]))
     if not any(body.values()):
-        body["raw"] = resp.text[:300]
+        body["raw"] = _redact(resp.text)
     return {k: v for k, v in body.items() if v is not None}
+
+
+def _retry_after(resp: httpx.Response) -> float:
+    """Seconds from a numeric ``retry-after`` header (0 when absent or not a number), capped at one hour."""
+    try:
+        return min(3600.0, max(0.0, float(resp.headers.get("retry-after", "0"))))
+    except ValueError:
+        return 0.0
 
 
 def is_generation_failure(status: int, body: dict) -> bool:
@@ -127,7 +152,7 @@ class GroqProvider(ExtractionProvider):
             raise ExtractionError("مفتاح GROQ_API_KEY غير مضبوط")
         wait = _tracker.cooldown_remaining()
         if wait > 0:
-            raise ExtractionError(f"خدمة الذكاء الاصطناعي غير متاحة مؤقتًا بعد فشل حديث؛ ستُعاد المحاولة بعد {wait} ث")
+            raise ProviderCoolingDown(wait)  # not a call: the audit says the model was not asked, not that it failed
         budget = max(2.0, settings.ai_timeout)
         started = time.monotonic()
 
@@ -151,10 +176,13 @@ class GroqProvider(ExtractionProvider):
             fail("timeout", "انتهت مهلة خدمة الذكاء الاصطناعي")
         except httpx.HTTPError:
             fail("connection", "تعذّر الاتصال بخدمة الذكاء الاصطناعي")
+        except Exception:  # an unexpected client-library error: still one attempt, a cooldown, and a source-based audit
+            fail("error", "تعذّر الاتصال بخدمة الذكاء الاصطناعي")
 
         code = resp.status_code
         if code == 429:
-            fail("429", "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا", 429, max(settings.ai_cooldown, 120), error_body(resp))
+            # never sooner than Groq's own retry-after (e.g. a daily limit), and never sooner than two minutes
+            fail("429", "تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا", 429, max(settings.ai_cooldown, 120, _retry_after(resp)), error_body(resp))
         if code in (401, 403):
             fail(str(code), "مفتاح خدمة الذكاء الاصطناعي مرفوض (تحقق من GROQ_API_KEY)", code, max(settings.ai_cooldown, 300), error_body(resp))
         if code in (498, 503) or code >= 500:

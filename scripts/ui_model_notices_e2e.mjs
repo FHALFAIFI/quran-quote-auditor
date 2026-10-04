@@ -11,11 +11,18 @@ const long = (demo + "\n\n").repeat(Math.ceil(6400 / demo.length)).trim();   // 
 
 const HEALTH = { mode: "ai", ai_configured: true, provider: "Groq (qwen/qwen3.8-27b)", ai_last_call: { outcome: "never_called", cooldown_seconds: 0 } };
 const AI = { configured: true, provider: "groq", model: "qwen/qwen3.8-27b" };
+const FAILED_NOTE = "تعذّر الاستخراج بالذكاء الاصطناعي في هذا التدقيق. عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة.";
+// app/audit.py's own wording for an audit inside the cooldown that follows a failure (4 Oct): no request, mode "reduced"
+const COOLDOWN_NOTE = (n) => `لم يُسأل الذكاء الاصطناعي في هذا التدقيق لأن استدعاءً سابقًا له تعذّر قبل قليل، ويُسأل من جديد بعد نحو ${n} ث؛ فُحص المقال كاملًا بالعلامات وبالبحث في نص المصحف.`;
 const SIM = {
+  timeout: (j) => { j.mode = "ai_failed"; j.provider = HEALTH.provider; j.ai = { ...j.ai, ...AI, responded: false, outcome: "failed", error: "انتهت مهلة خدمة الذكاء الاصطناعي", http_status: null, elapsed_ms: 12004 };
+    j.notices = [{ level: "warning", text: FAILED_NOTE }, ...j.notices]; },
+  cooldown: (j) => { j.mode = "reduced"; j.provider = null; j.provider_model = null; j.ai = { ...j.ai, ...AI, responded: false, outcome: "skipped_cooldown", http_status: null, elapsed_ms: null, error: null, cooldown_seconds: 117 };
+    j.notices = [{ level: "info", text: COOLDOWN_NOTE(117) }, ...j.notices]; },
   over: (j) => { j.ai = { ...j.ai, ...AI, outcome: "skipped_length", responded: false };
     j.notices = [{ level: "info", text: "لم يُستخدم الذكاء الاصطناعي لأن المقال أطول من 6000 حرف؛ فُحص المقال كاملًا بالعلامات وبالبحث في نص المصحف." }, ...j.notices]; },   // the server's own wording (app/audit.py)
   failed: (j) => { j.mode = "ai_failed"; j.provider = HEALTH.provider; j.ai = { ...j.ai, ...AI, responded: false, outcome: "failed", error: "HTTP 429", http_status: 429, elapsed_ms: 230 };
-    j.notices = [{ level: "warning", text: "تعذّر الاستخراج بالذكاء الاصطناعي في هذا التدقيق. عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة." }, ...j.notices]; },
+    j.notices = [{ level: "warning", text: FAILED_NOTE }, ...j.notices]; },
   answered: (j) => { j.mode = "ai"; j.provider = HEALTH.provider; j.provider_model = AI.model; j.ai = { ...j.ai, ...AI, responded: true, outcome: "ok", elapsed_ms: 900, proposed: 2, located: 2, discarded: 0, added_only: 0, also_found: 2, overlapped: 0 }; },
   nothing: (j) => { j.mode = "ai"; j.provider = HEALTH.provider; j.provider_model = AI.model; j.ai = { ...j.ai, ...AI, responded: true, outcome: "ok", elapsed_ms: 700, proposed: 0, located: 0, discarded: 0, added_only: 0, also_found: 0, overlapped: 0 }; },
 };
@@ -89,6 +96,33 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   check(/لا — كان .* مُعَدًّا لكنه لم يستجب في هذا التدقيق \(HTTP 429\)/.test(await record(page)), "SIMULATED: the record says «no», with the reason");
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
   await shot("failed");
+  await page.context().close();
+
+  console.log(`\n== ${name}: SIMULATED configured model that timed out`);
+  ({ page, errors, audit, shot } = await open(vp, mobile, "timeout"));
+  await audit(demo);
+  m = await meta(page);
+  check(m && m.lineVisible && /^تعذّر اقتراح الذكاء الاصطناعي هذه المرة\. فُحص المقال بالعلامات وبالبحث في المصحف/.test(m.line), `SIMULATED: a timeout gets the same calm failure line («${m?.line.slice(0, 40)}…»)`);
+  check(m && !m.detailsOpen && /سبب التعذّر: انتهت مهلة خدمة الذكاء الاصطناعي/.test(m.detailsText) && m.errors === 0, "SIMULATED: the reason (timeout) is behind the details; no red error");
+  check((await page.locator("#queue li").count()) === 4, "SIMULATED: the source-based review is complete");
+  check(/لا — كان .* مُعَدًّا لكنه لم يستجب في هذا التدقيق \(انتهت مهلة/.test(await record(page)), "SIMULATED: the record says «no», with the timeout");
+  check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
+  await page.context().close();
+
+  console.log(`\n== ${name}: SIMULATED model skipped during the cooldown after a failure (no request in this audit)`);
+  ({ page, errors, audit, shot } = await open(vp, mobile, "cooldown"));
+  await audit(demo);
+  m = await meta(page);
+  check(m && /limited/.test(m.cls) && m.lineVisible && m.line === "لم يُسأل النموذج اللغوي هذه المرة لأنه تعذّر قبل قليل. فُحص المقال بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.", `SIMULATED: one calm line says the model was not asked, and why («${m?.line.slice(0, 45)}…»)`);
+  check(m && !/^تعذّر اقتراح/.test(m.line) && !/سبب التعذّر|HTTP|429/.test(m.detailsText + m.visible), "SIMULATED: it does not claim this audit failed, and shows no status code of the earlier call");
+  check(m && !m.detailsOpen && /يُسأل النموذج من جديد بعد نحو ١١٧ ث/.test(m.detailsText) && (m.detailsText.match(/لم يُسأل الذكاء الاصطناعي/g) || []).length === 0, "SIMULATED: the wait is behind the details, and the server's notice is not repeated there");
+  check(m && m.errors === 0 && (await page.locator("#notices .notice").count()) === 0 && !/استجاب|اقترح نموذج/.test(m.visible + m.detailsText), "SIMULATED: no red error, no second banner, nothing says a model answered");
+  check((await page.locator("#queue li").count()) === 4 && (await page.locator("#current article").count()) === 1, "SIMULATED: the source-based review is complete and usable");
+  check(/لا — لم يُسأل groq في هذا التدقيق لأن استدعاءً سابقًا له تعذّر قبل قليل/.test(await record(page)), "SIMULATED: the printed record says the model was not asked, and why");
+  const visibleLen = norm(await page.evaluate(() => document.getElementById("notices").innerText)).length;   // what is rendered, as live_smoke.mjs counts it
+  check(visibleLen <= 200, `SIMULATED: the notice region stays bounded like the failure line (${visibleLen} characters)`);
+  check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
+  await shot("cooldown");
   await page.context().close();
 
   console.log(`\n== ${name}: SIMULATED configured model that answered`);

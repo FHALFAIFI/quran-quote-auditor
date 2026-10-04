@@ -104,7 +104,12 @@ async def security_headers(request: Request, call_next):
         length = request.headers.get("content-length")
         if length and length.isdigit() and int(length) > MAX_BODY_BYTES:
             return JSONResponse({"error": "حجم الطلب أكبر من المسموح."}, status_code=413)
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception as exc:  # noqa: BLE001
+        # Answered here rather than by the Exception handler below: Starlette re-raises after that handler so the server can log
+        # it, and uvicorn then writes the full traceback, whose message can quote the article. Here only the type is logged.
+        response = _unexpected(request, exc)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["X-Frame-Options"] = "DENY"
@@ -118,11 +123,15 @@ async def security_headers(request: Request, call_next):
     return response
 
 
-@app.exception_handler(Exception)
-async def unhandled(request: Request, exc: Exception):
-    # Log only the exception type — never the request body.
+def _unexpected(request: Request, exc: Exception) -> JSONResponse:
+    # Log only the exception type — never the request body, the exception message or a traceback (either may quote the article).
     log.error("unhandled error on %s: %s", request.url.path, type(exc).__name__)
     return JSONResponse({"error": "حدث خطأ غير متوقع أثناء التدقيق."}, status_code=500)
+
+
+@app.exception_handler(Exception)
+async def unhandled(request: Request, exc: Exception):
+    return _unexpected(request, exc)  # reached only by an error outside the middleware above
 
 
 @app.exception_handler(RequestValidationError)

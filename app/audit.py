@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import time
 
 from . import arabic
 from .corrections import build_changes
 from .config import settings
-from .extraction import Candidate, ExtractionError, get_provider
+from .extraction import Candidate, ExtractionError, ProviderCoolingDown, get_provider
 from .extraction.marked import extract_marked
 from .phrases import ends_with_quran_cue, find_phrases, grade_approximate, grade_exact, quran_cue, span_mass
 from .quran_source import MUSHAF_URL, QuranIndex, SourceUnavailable, source
@@ -21,6 +22,9 @@ PRIORITY = {"manual": 0, "marked": 0, "ai": 1, "phrase": 2}  # order in which a 
 # literal phrase match) always outranks the model's proposal, which is only a place to look.
 MERGE_PRIORITY = {"manual": 0, "marked": 0, "phrase": 1, "ai": 2}
 MANUAL_MAX_WORDS = 60
+log = logging.getLogger("auditor")
+MODEL_FAILED_NOTICE = ("تعذّر الاستخراج بالذكاء الاصطناعي في هذا التدقيق. عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ "
+                       "وقد تفوت الاقتباسات القصيرة غير المعلَّمة.")
 
 # Detection (is this a Quran quotation?) is reported separately from verification (does it match the text?).
 TIER_LABEL = {
@@ -439,6 +443,7 @@ def run_audit(article: str) -> dict:
         "error": None,
         "error_body": None,
         "generation_failure": False,
+        "cooldown_seconds": None,  # set only when the model was not asked because a recent failure started a cooldown
         "added_only": 0,
         "also_found": 0,
         "overlapped": 0,
@@ -448,6 +453,7 @@ def run_audit(article: str) -> dict:
         notices.append({"level": "info", "text": f"لم يُستخدم الذكاء الاصطناعي لأن المقال أطول من {settings.ai_max_chars} حرف؛ فُحص المقال كاملًا بالعلامات وبالبحث في نص المصحف."})
     if provider:
         t_ai = time.monotonic()
+        n_before = len(candidates)
         try:
             suggestions = provider.extract(article)
             ai.update(responded=True, outcome="ok", proposed=len(suggestions), model=provider.used_model)
@@ -461,14 +467,32 @@ def run_audit(article: str) -> dict:
                     c = _span_candidate(article, tokens, i, j, "ai")
                     c.reference_hint = sug.reference_text
                     candidates.append(c)
+        except ProviderCoolingDown as exc:
+            # No request was made in this audit. Saying "failed" here (with the status of an EARLIER call) would be wrong: the
+            # model was not asked, as for an over-length article, and the reason is the earlier failure on this server.
+            provider, mode = None, "reduced"
+            ai.update(outcome="skipped_cooldown", cooldown_seconds=exc.seconds)
+            notices.append({"level": "info", "text": f"لم يُسأل الذكاء الاصطناعي في هذا التدقيق لأن استدعاءً سابقًا له تعذّر قبل قليل، "
+                                                     f"ويُسأل من جديد بعد نحو {exc.seconds} ث؛ فُحص المقال كاملًا بالعلامات وبالبحث في نص المصحف."})
         except ExtractionError as exc:
             mode = "ai_failed"
             ai.update(outcome="failed", error=str(exc), error_body=exc.body, generation_failure=exc.generation_failure)
-            notices.append({"level": "warning", "text": "تعذّر الاستخراج بالذكاء الاصطناعي في هذا التدقيق. عُرضت الاقتباسات المعلَّمة صراحةً والعبارات المطابقة لنص المصحف فقط؛ وقد تفوت الاقتباسات القصيرة غير المعلَّمة."})
-        ai["elapsed_ms"] = int((time.monotonic() - t_ai) * 1000)
-        ai["discarded"] = discarded
-        last = provider.tracker.status() if getattr(provider, "tracker", None) else {}
-        ai["http_status"] = last.get("http_status")
+            notices.append({"level": "warning", "text": MODEL_FAILED_NOTICE})
+        except Exception as exc:  # noqa: BLE001 — a defect in a provider adapter must not cost the writer the source-based audit
+            log.error("model provider raised %s", type(exc).__name__)  # the type only: a message may quote the article
+            tracker = getattr(provider, "tracker", None)
+            if tracker is not None:
+                tracker.start_cooldown(settings.ai_cooldown)
+                tracker.record("failed", getattr(provider, "model", None), "unexpected")
+            del candidates[n_before:]  # nothing half-added from the model's answer
+            discarded, mode = 0, "ai_failed"
+            ai.update(outcome="failed", responded=False, proposed=0, located=0, error="خطأ غير متوقع في خدمة الذكاء الاصطناعي")
+            notices.append({"level": "warning", "text": MODEL_FAILED_NOTICE})
+        if provider:
+            ai["elapsed_ms"] = int((time.monotonic() - t_ai) * 1000)
+            ai["discarded"] = discarded
+            last = provider.tracker.status() if getattr(provider, "tracker", None) else {}
+            ai["http_status"] = last.get("http_status")
     if discarded:
         notices.append({"level": "info", "text": f"استُبعد {_count_ar(discarded, 'مقطع واحد', 'مقطعان', 'مقاطع', 'مقطعًا')} اقترحه نموذج الذكاء الاصطناعي لأنه غير موجود حرفيًا في المقال."})
     scan = None

@@ -80,6 +80,8 @@ check(n.open === 0, "the audit-method notice is folded");
 //   reduced     no model configured: the one-line caveat stays in view                       <= 140
 //   ai_failed   a model is configured but did not answer (e.g. Groq 429): the visible model-failure warning, which must say so
 //               plainly and say what was still done; it is longer by design, so its length is bounded (<= 200), not waived.
+//   reduced + ai.outcome skipped_cooldown   the model was NOT asked because a call failed moments before (4 Oct): its own line,
+//               bounded like the failure line (<= 200)
 const mode = auditData?.mode;
 console.log(`INFO  audit mode: ${mode}${mode === "ai_failed" ? ` (ai.http_status ${auditData.ai?.http_status}, outcome ${auditData.ai?.outcome})` : ""}`);
 const ai = auditData?.ai || {};
@@ -90,6 +92,10 @@ if (mode === "ai_failed") {
   check(warn.startsWith("تعذّر اقتراح الذكاء الاصطناعي هذه المرة") && warn.includes("فُحص المقال بالعلامات وبالبحث في المصحف"), "the model-failure warning is visible and says the model gave no proposals and the audit used the markers and the Quran search");
   check(n.text.length <= 200, `the model-failure notice stays bounded (${n.text.length} characters)`);
   check(auditData.ai?.responded === false && auditData.ai?.proposed === 0 && auditData.ai?.added_only === 0, "the response agrees: model did not respond, no proposal, none added");
+} else if (ai.outcome === "skipped_cooldown") {
+  const line = norm(await page.textContent("#notices .audit-meta.limited .am-line").catch(() => ""));
+  check(line.startsWith("لم يُسأل النموذج اللغوي هذه المرة لأنه تعذّر قبل قليل"), "the line says the model was not asked because it failed moments ago");
+  check(n.text.length <= 200 && ai.http_status == null && ai.responded === false, `the cooldown notice stays bounded (${n.text.length} characters) and reports no HTTP status for a call it did not make`);
 } else {
   check(mode === "ai" ? n.text.length <= 70 : n.text.length <= 140, "what is visible of it is one short line");
 }

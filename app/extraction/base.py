@@ -49,6 +49,17 @@ class ExtractionError(Exception):
         self.generation_failure = generation_failure
 
 
+class ProviderCoolingDown(ExtractionError):
+    """The provider was NOT asked: a recent failure on this instance started a cooldown that has ``seconds`` left.
+
+    Kept apart from a real failure so an audit never reports a skipped call as a failed one (with an earlier call's status).
+    """
+
+    def __init__(self, seconds: int):
+        super().__init__(f"خدمة الذكاء الاصطناعي غير متاحة مؤقتًا بعد فشل حديث؛ ستُعاد المحاولة بعد {seconds} ث")
+        self.seconds = seconds
+
+
 class ExtractionProvider(ABC):
     name: str = "base"
     label: str = "base"

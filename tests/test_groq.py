@@ -250,12 +250,14 @@ def test_rate_limit_is_a_visible_fallback_never_an_ai_result(use_source, monkeyp
     patch_client(monkeypatch, handler)
     monkeypatch.setattr(audit, "get_provider", lambda: groq.GroqProvider())
     article = "قال تعالى: ﴿اقرأ باسم ربك الذي خلق﴾ [العلق: 1]"
-    for _ in range(2):  # the second audit falls in the cooldown and makes no call
-        res = audit.run_audit(article)
-        assert res["mode"] == "ai_failed"
-        assert res["ai"]["responded"] is False and res["ai"]["outcome"] == "failed" and res["ai"]["proposed"] == 0
+    first, second = audit.run_audit(article), audit.run_audit(article)  # the second audit falls in the cooldown and makes no call
+    for res in (first, second):
+        assert res["ai"]["responded"] is False and res["ai"]["proposed"] == 0
         assert all("ai" not in f["detected_by"] for f in res["findings"])
-        assert any(n["level"] == "warning" and "تفوت" in n["text"] for n in res["notices"])
         assert res["findings"][0]["wording"]["status"] == "matched"  # deterministic path still verifies
+    assert first["mode"] == "ai_failed" and first["ai"]["outcome"] == "failed" and first["ai"]["http_status"] == 429
+    assert any(n["level"] == "warning" and "تفوت" in n["text"] for n in first["notices"])
+    # Not "failed with 429": this audit asked nothing, so it says the model was skipped after the earlier failure (4 Oct fix).
+    assert second["mode"] == "reduced" and second["ai"]["outcome"] == "skipped_cooldown" and second["ai"]["http_status"] is None
+    assert second["ai"]["cooldown_seconds"] > 0 and not any("تعذّر الاستخراج" in n["text"] for n in second["notices"])
     assert len(calls) == 1
-    assert res["ai"]["http_status"] == 429

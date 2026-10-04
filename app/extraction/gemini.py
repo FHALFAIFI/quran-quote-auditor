@@ -14,7 +14,7 @@ import time
 import httpx
 
 from ..config import gemini_api_key, settings
-from .base import ExtractionError, ExtractionProvider, RawSuggestion
+from .base import ExtractionError, ExtractionProvider, ProviderCoolingDown, RawSuggestion
 from .prompts import PROMPTS, system_prompt
 from .status import CallTracker
 
@@ -120,7 +120,7 @@ class GeminiProvider(ExtractionProvider):
         # Fail fast after a recent failure so a live demo is not stuck waiting (per instance).
         wait = _cooldown_remaining()
         if wait > 0:
-            raise ExtractionError(f"خدمة الذكاء الاصطناعي غير متاحة مؤقتًا بعد فشل حديث؛ ستُعاد المحاولة بعد {wait} ث")
+            raise ProviderCoolingDown(wait)
         # Attempt plan within one overall budget (AI_TIMEOUT_SECONDS), each call capped at
         # AI_ATTEMPT_TIMEOUT_SECONDS: primary model; one retry of it only after a *fast* 503;
         # then configured fallback models. 429 (quota) is never retried.
@@ -169,6 +169,8 @@ class GeminiProvider(ExtractionProvider):
             _record("failed", self.used_model, "429", 429)
             raise ExtractionError("تجاوزت خدمة الذكاء الاصطناعي حد الاستخدام (الحصة) مؤقتًا")
         if resp.status_code >= 400:
+            # every failure starts the cooldown (as for Groq), so a refused key or a broken model is not asked again on each audit
+            _start_cooldown(max(settings.ai_cooldown, 300) if resp.status_code in (401, 403) else settings.ai_cooldown)
             _record("failed", self.used_model, str(resp.status_code), resp.status_code)
             raise ExtractionError(f"خدمة الذكاء الاصطناعي أعادت الخطأ {resp.status_code}")
         try:
@@ -176,11 +178,13 @@ class GeminiProvider(ExtractionProvider):
             parts = payload["candidates"][0]["content"]["parts"]
             text = "".join(p.get("text", "") for p in parts if isinstance(p, dict) and not p.get("thought"))
         except (ValueError, KeyError, IndexError, TypeError) as exc:
+            _start_cooldown(settings.ai_cooldown)
             _record("failed", self.used_model, "empty_or_blocked")
             raise ExtractionError("استجابة خدمة الذكاء الاصطناعي غير مكتملة أو محجوبة") from exc
         try:
             suggestions = parse_model_json(text, settings.max_candidates)
         except ExtractionError:
+            _start_cooldown(settings.ai_cooldown)
             _record("failed", self.used_model, "malformed_json")
             raise
         _cooldown_until[0] = 0.0
