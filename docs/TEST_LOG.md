@@ -935,7 +935,7 @@ Commands and counts (all local, `AI_PROVIDER=none` servers for the browser):
 Not done / open: **concurrent first calls are not single-flighted.** In a local probe (not committed), 8 audits sent at the same moment, before the first 429 arrived, made 8 requests; the cooldown only stops audits that start after a failure has been recorded. Bounded by the per-address limit (10/min) and the number of simultaneous writers; a one-in-flight guard was not added because it would leave a second simultaneous writer without the model. The cooldown is per process (per instance), not shared. No live probe was made.
 ## 2026-10-04 (evening, Riyadh) — hard quotations: retrieval anchored on the writer's cues (challenge period)
 
-Branch `hard-quotations` (from `main` @ `05e34d5`; code `365b78d`, `b8d866b`). Fallback only: **no Groq call** was made for this work.
+Branch `hard-quotations` (from `main` @ `05e34d5`; code `365b78d`, `b8d866b`). **Commit ids:** the branch was later rebased onto `d65befa` (the provider-harness release): `365b78d` → `b473e22`, `e296825` → `c2dc304`, `b8d866b` → `9c4acf3`, `08401bc` → `c217422`. The detection files and the evaluation files are byte-identical across the rebase (`git diff 08401bc c217422 -- app/cues.py app/phrases.py app/verifier.py app/extraction/marked.py eval/` is empty); the pre-rebase commits are kept on the pushed branch `hard-quotations-pre-rebase`. Fallback only: **no Groq call** was made for this work.
 Write-up, tables and disclosure of what was tuned on what: `docs/EVALUATION.md`, section «Hard quotations».
 
 - **Baseline first.** The seven frozen detection sets rerun on the unchanged `05e34d5` (`eval/results/fallback-20261004-1951*-challenge-baseline-05e34d5-*`):
