@@ -1143,3 +1143,11 @@ Both live probes: the page showed the complete source-based audit and the calm f
 service's cooldown (≥ 120 s after a 429) applied. **Live probes were then stopped** (no retry after repeated 429s). The difference between the
 local calls (all 200 at 800 reserved) and the two live calls suggests the service's own reservation setting; it cannot be read from here,
 so `/api/health` now reports `ai_max_completion_tokens`.
+
+## 2026-10-04 (22:5x Riyadh) — the live 429s explained: the service reserved 4,096 output tokens (challenge period)
+
+After PR #9, `/api/health` on the live service reported **`ai_max_completion_tokens: 4096`**: the `GROQ_MAX_COMPLETION_TOKENS=800` recorded on
+3 Oct is not in effect on Render (the variable is not set there now; how it was lost is not known from here). Against the account's 1,000
+output-tokens/minute limit for `qwen/qwen3.8-27b`, that fits both live 429s of tonight; locally, 75 of 76 calls at 800 answered. The largest
+answer measured tonight used **341** output tokens (median 7). Change (branch `groq-reservation`): the code default is now **800** (README,
+`.env.example`, `docs/RENDER_DEPLOY.md` updated; one test). No other behaviour changed. pytest 531.

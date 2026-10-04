@@ -34,7 +34,7 @@ such as `3.12.13`. In the build log, check that the line with the Python version
 | `GROQ_API_KEY` | *your key: type it into Render only, never into chat, a file or a screenshot* |
 | `GROQ_MODEL` | `qwen/qwen3.8-27b` |
 | `EXTRACTION_PROMPT` | `v2` |
-| `GROQ_MAX_COMPLETION_TOKENS` | `800` (see below: needed on a Groq account limited to 1,000 output tokens/minute; the code default is 4096) |
+| `GROQ_MAX_COMPLETION_TOKENS` | optional since 4 Oct 2026: the code default is now `800` (it was 4096, and the live service, with no value set here, was refused on every call that evening). `/api/health` → `ai_max_completion_tokens` shows the value in use |
 | `QURANPEDIA_CONTACT` | *(optional)* a contact e-mail for Quranpedia's User-Agent |
 
 Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; do not add it.

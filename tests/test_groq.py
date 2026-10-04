@@ -261,3 +261,17 @@ def test_rate_limit_is_a_visible_fallback_never_an_ai_result(use_source, monkeyp
     assert second["mode"] == "reduced" and second["ai"]["outcome"] == "skipped_cooldown" and second["ai"]["http_status"] is None
     assert second["ai"]["cooldown_seconds"] > 0 and not any("تعذّر الاستخراج" in n["text"] for n in second["notices"])
     assert len(calls) == 1
+
+
+def test_default_output_reservation_fits_the_accounts_output_limit(monkeypatch):
+    """4 Oct 2026: with the old default (4096) every live call was refused (HTTP 429 OTPM, limit 1000); the default is now 800."""
+    monkeypatch.delenv("GROQ_MAX_COMPLETION_TOKENS", raising=False)
+    import importlib
+
+    import app.config as config
+
+    fresh = importlib.reload(config)
+    try:
+        assert fresh.Settings().groq_max_completion_tokens == 800
+    finally:
+        importlib.reload(config)

@@ -255,7 +255,7 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 | `GROQ_API_KEY` | Groq key (secret). Without it Groq is not used | unset |
 | `GROQ_MODEL` | Groq model; the live demo uses `qwen/qwen3.8-27b` (a Groq *preview* model) | `qwen/qwen3.8-27b` |
 | `EXTRACTION_PROMPT` | prompt version in `app/extraction/prompts.py` | `v2` |
-| `GROQ_MAX_COMPLETION_TOKENS` | output tokens the app asks Groq to reserve per request. **If your Groq account limits this model to 1,000 output tokens/minute (the free tier did for us), set `800`**; see the note below. 512 was tried earlier and may truncate longer answers | 4096 |
+| `GROQ_MAX_COMPLETION_TOKENS` | output tokens the app asks Groq to reserve per request, counted against the account's output-tokens-per-minute limit (1,000 for this model on our account). The default became `800` on 4 Oct 2026 after the live service, which had no override, was refused on every call with the old default; the largest answer measured used 341 tokens. 512 was tried earlier and may truncate longer answers. `/api/health` shows the value in use (`ai_max_completion_tokens`) | 800 |
 | `GROQ_REASONING_EFFORT` | advanced Groq tuning; leave unset | unset |
 | `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS` | optional alternative provider; never succeeded in our tests (503/429) | unset |
 | `AI_TIMEOUT_SECONDS`, `AI_ATTEMPT_TIMEOUT_SECONDS`, `AI_COOLDOWN_SECONDS` | AI time budget and pause after a failure | 12, 8, 60 |
