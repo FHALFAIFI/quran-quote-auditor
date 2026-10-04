@@ -1019,3 +1019,64 @@ Observed: the routes are synchronous and run in the threadpool, and the audit is
 ### Not done / still open
 
 Own domain and TLS (HSTS is only sent over HTTPS, so it takes effect on Render's HTTPS today, not on a domain of our own); a paid always-on host and the load test on it; signing up an external monitor and firing one alert; an error-reporting service; zero data retention at the model provider; real-device accessibility review. The live service still runs `main` with Google Fonts until this branch is reviewed and released.
+## 2026-10-04 (evening, Riyadh) — importing an article from a file (challenge period)
+
+Commit `8106cd0` on branch `import-text` (from `main` @ `05e34d5`); not merged, not deployed. Roadmap §3.1, first part: **TXT and DOCX only. PDF is left out**: pdf.js (Apache-2.0) is large, and it could not be vendored, pinned, reviewed, run in a worker under the page's CSP and tested properly tonight. A PDF is recognised by its first bytes and refused with «ملفات PDF غير مدعومة بعد…».
+
+### What was built
+
+- `app/static/import.js` (no third-party code): magic-byte sniffing; TXT by `TextDecoder` with `fatal: true` (UTF-8, or UTF-16 with a BOM; anything else is refused, Windows-1256 included, with a binary/encoding distinction by the share of control bytes); DOCX by reading the ZIP central directory by hand, inflating only `[Content_Types].xml`, `word/document.xml`, `word/footnotes.xml`, `word/endnotes.xml` with `DecompressionStream('deflate-raw')` fed in 2 KB pieces and stopped as soon as a part gives more than it declared, then a CRC-32 and size check; WordprocessingML read by a small scanner (DOMParser does not exist in workers; a DOCTYPE is refused, only the five XML entities and character references are expanded). The same file is the Web Worker (`new Worker("/static/import.js")`, allowed by the existing `script-src 'self'`; no CSP change, no blob: worker) and the module loaded by the Node tests.
+- `app/static/app.js` / `index.html` / `styles.css`: one outlined button «استورد نصًّا من ملف» with a one-line hint in the row under the editor (beside «أمثلة أخرى»); its messages and the replace / cancel question appear under it; the worker is created when the button is first pressed (before the chooser opens) and terminated after 10 s; on success the text goes in through the same `setEditorText` as a sample, the notice goes in the sheet's status line and the editor gets the focus (caret at the start). No audit, no suggestion request (the editor's `input` event is not fired).
+- Decisions: **long text** — refused whole with the count («في الملف ٢٠٬٠٠١ حرف، وحدّ المقال ٢٠٬٠٠٠ حرف. لم يُدرَج شيء…»), never cut (a cut could fall inside a verse); **footnotes / endnotes** — listed after a `__________` line as «(1) …» in the order the text refers to them, reference marks removed from the body (so no digit is glued to a word), a note whose reference was deleted (tracked) not listed; **tracked changes** — accepted (w:del, w:moveFrom, deleted paragraph marks out; w:ins, w:moveTo in) and said in the notice; **presentation forms** — U+FB50–FDFF and U+FE70–FEFE replaced by their NFKC letters only when those are Arabic letters or marks (the space NFKC puts before an isolated mark is dropped); ﴾ ﴿ (U+FD3E/F) and U+FDF0–FDFF (ﷲ ﷺ ﷻ ﷽ …) kept; counted and said in the notice; **kept as written**: diacritics, tatweel, «», bidi marks, ZWNJ/ZWJ, tabs in TXT (a DOCX tab becomes a space); every U+FEFF removed; blank lines before the first line and white space after the last dropped. Hidden text (w:vanish) is read like any other; headers, footers, comments are not read.
+
+### Fixtures (`tests/fixtures/import/fixtures.mjs`; every one through `node --test` and through the page)
+
+| Fixture | Expected |
+|---|---|
+| `txt-arabic` (diacritics, ﴿﴾, «», tatweel, RLM) | text, unchanged |
+| `txt-bom-crlf` | text; BOM 1, CRLF 4 counted |
+| `txt-controls` (BEL, ESC, NEL) | text; 3 controls removed and counted |
+| `txt-utf16` (UTF-16LE with BOM) | text |
+| `txt-presentation`, `docx-presentation` | «قال تعالى: ﴿إن الله مع الصابرين﴾ لا ﷺ»; 25 forms replaced, ﴿﴾ and ﷺ kept |
+| `txt-1256` | refused `not_utf8` |
+| `txt-nul`, `gzip-renamed` | refused `binary` |
+| `png-renamed` (.txt) | refused `image` |
+| `zip-renamed` (.txt), `zip-no-document` | refused `zip_not_docx` |
+| `pdf` | refused `pdf` |
+| `txt-20000` / `txt-20001` | text / refused `too_long` |
+| `txt-empty` / `txt-blank` | refused `empty` / `no_text` |
+| `docx-quran` (runs split inside a word, tab, line break, tab stops, table, hyperlink, PAGE field, text box written twice in mc:Choice/mc:Fallback, w:sym, entities) | text; field code and fallback copy not read |
+| `docx-tracked` (w:del/w:ins, deleted paragraph mark, moveFrom/moveTo, pPrChange) | the accepted text; tracked = true |
+| `docx-footnotes` (two footnotes, one endnote, one deleted reference, separators) | body without digits + 3 notes after the rule |
+| `docx-selfclosing` (self-closing children inside skipped elements: VML shapetype in the fallback, run properties in moveFrom/del, a deleted footnote reference, an empty `<w:pPr/>`, a moved paragraph mark) | text with nothing leaked back (added after the review below) |
+| `docx-stored` (method 0) | text |
+| `docx-corrupt`, `docx-truncated`, `docx-bad-crc`, `docx-doctype` (entity expansion attempt) | refused `corrupt` |
+| `docx-encrypted-entry` (flag bit 0), `ole-encrypted` (CFB with `EncryptedPackage`) | refused `encrypted` |
+| `ole-doc` (CFB without it) | refused `doc_old` |
+| `docm` (vbaProject.bin), `docm-type` (macroEnabled content type) | refused `macro` |
+| `zip-bomb` (50 MB of zeros deflated to ~50 KB, honest sizes) | refused `unzipped_too_big` before inflating |
+| `zip-bomb-lying` (same data, declares 900 KB) | stopped after 900 KB of output → `corrupt` |
+| `lo-article.docx` (LibreOffice 26.x from `office/lo-article.fodt`: tracked deletion + insertion, footnote, tab, line break, empty paragraph) | the accepted text + 1 note |
+| `textutil-article.docx` (macOS `textutil` from `office/textutil-article.html`) | text |
+
+The two office files are 6 KB and 4 KB, made by us from our own text with `tests/fixtures/import/office/make.sh`. **Simulated, not real:** the encrypted Office file is a synthetic Compound File header with the stream name, not a file encrypted by Word (LibreOffice's command line wrote an unencrypted file when asked for a password); no DOCX written by Microsoft Word itself and no writer's real file was tested.
+
+### Results (4 Oct, 19:50–20:41 +03; final gate 20:28–20:41; macOS, Node 24.16, Python 3.14.7, Playwright 1.63; every server `AI_PROVIDER=none`, no key; no model call)
+
+- `node --test tests/*.test.mjs` **70 passed** (import 46: one per fixture + 11 others — zip bomb time and memory, no Quran correction, kept characters, presentation forms, line ends, the page's limit, 5 MB, declared ratio, the notice, no digit in the body, linear trim). The zip bomb is refused in under 120 ms; the lying one in about 3 ms with array buffers growing by under 20 MB.
+- `pytest -q` **415 passed**.
+- `scripts/ui_import_e2e.mjs`: **589 PASS, 0 FAIL in each of Chromium, Firefox and WebKit** (run one after another). Per width (1366, 390, 320): Tab (Option+Tab in WebKit on macOS) reaches the button, Enter and Space open the chooser; every fixture through the real file input (`setInputFiles`), the editor's text equal to the expected text code point for code point, the notice and its parts, or the refusal message with «لم يتغيّر شيء في المحرر.» and an unchanged editor; no audit; axe 0 violations after an import, with a refusal shown and with the replace question open; the question (focus on it, Escape cancels and returns focus, Tab → «استبدل النص» → Enter replaces, wording when an audit exists, the audit result cleared, no new audit); no sideways scroll; no console error. Time limit: a worker that never answers (served by a test route) is stopped after 10.05–10.93 s (limit 10 s) and the next import works.
+- **Network during import:** every request from `setInputFiles` until the text is in the editor, and for 1.5 s after (1.2 s for each fixture), is recorded: **no network request in any browser**. The worker's script is fetched once when the button is first pressed, before a file is chosen, and is checked separately. WebKit reports the worker's own read of the File as a `blob:` "request"; it is listed apart (it is the browser's memory, not the network). axe itself fetches the page's Google Fonts stylesheet (blocked by `connect-src`), so its runs are excluded from those windows.
+- Existing suites after the change, one after another, 0 failures, 0 skipped: `ui_journey_e2e` 167, `ui_final_qa` 141, `ui_a11y_check` 54, `ui_workspace_e2e` 137, `ui_crossbrowser` 87.
+- One flaky run: with the three browsers' import runs started **at the same time**, Chromium once timed out waiting for the file chooser (5 s); it passed alone twice and in the sequential run above (the wait is now 10 s).
+
+### Independent review of the diff (a separate reviewer agent, read-only)
+
+- **High, fixed:** inside a skipped element a self-closing child closed the skip one level early, so ordinary Word XML (`<w:rPr><w:rFonts/>…`, the VML `<v:shapetype>` of a text box's fallback copy) leaked moved-away text, deleted tabs and line breaks, a second copy of a text box and a deleted footnote back into the text. Every opened element now counts one level; fixture `docx-selfclosing` fails on the old code and passes now.
+- **Low, fixed:** a quadratic `/\s+$/` trim (a file of ~160 KB of spaces reached the time limit) → `trimEnd()`; a late answer of an audit started before an import cleared the import notice → it is restored; a paragraph mark moved away (`w:moveFrom` in its properties) now runs on like a deleted one; «مسح» closes an open replace question.
+- **Low, not changed:** hidden text is read (said on `/limitations`); the question stays open if the writer edits the editor meanwhile (its wording stays true).
+- No finding on memory (a 4.9 MB DOCX with ~12 MB of text: refused as too long in 390 ms, ~32 MB peak), regex backtracking (linear), entities, or any path to `innerHTML` or the network.
+
+### Not done
+
+PDF (any kind); OCR; drag and drop; files from Microsoft Word itself, from real writers, or encrypted by Word; real phones, Safari, screen readers.
