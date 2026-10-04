@@ -22,6 +22,7 @@ from starlette.datastructures import MutableHeaders
 from pydantic import BaseModel, ConfigDict, Field
 
 from .audit import InputError, run_audit, run_phrase
+from . import logging_safety
 from .config import settings
 from .extraction import get_provider
 from .quran_source import SourceUnavailable, source
@@ -30,6 +31,7 @@ from .suggest import MAX_AFTER, MAX_BEFORE, suggest as suggest_verses
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("auditor")
 logging.getLogger("httpx").setLevel(logging.WARNING)  # request URLs are noise; bodies are never logged
+logging_safety.install()  # defence in depth: a long run of Arabic text never reaches a log line (app/logging_safety.py)
 
 STATIC = Path(__file__).parent / "static"
 MAX_BODY_BYTES = settings.max_chars * 4 + 1024  # UTF-8 Arabic ≈ 2 bytes/char; generous margin
