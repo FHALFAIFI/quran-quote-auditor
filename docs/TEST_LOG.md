@@ -1153,3 +1153,21 @@ After PR #9, `/api/health` on the live service reported **`ai_max_completion_tok
 output-tokens/minute limit for `qwen/qwen3.8-27b`, that fits both live 429s of tonight; locally, 75 of 76 calls at 800 answered. The largest
 answer measured tonight used **341** output tokens (median 7). Change (branch `groq-reservation`): the code default is now **800** (README,
 `.env.example`, `docs/RENDER_DEPLOY.md` updated; one test). No other behaviour changed. pytest 531.
+
+## 2026-10-04 (evening, Riyadh) — releases of the challenge period: what was verified live (challenge period)
+
+Each release was a fast-forward push of the PR's head to `main` (no merge commits; as for PRs #1–#2). Render deployed each within about a
+minute. For every release: `/api/health` `build` = the pushed commit, and every file under `app/static` served by the live service
+(pages via `/`, `/privacy`, `/sources`, `/limitations`) was compared byte for byte (SHA-256) with that commit.
+
+| PR | Branch | `main` → | Pushed | Live build seen | Served files identical | Live journey (no model call unless stated) |
+|---|---|---|---|---|---|---|
+| #3 | `ai-provider-harness` | `d65befa` | 20:24 | 20:25 | 14 / 14 | — (its probe was folded into the next release's) |
+| #5 | `hard-quotations` | `070263b` | 20:51 | 20:52:45 | 14 / 14 | `LA03` (14,700 characters, over the model limit, `skipped_length`): 21 findings, 25.7 s; «ما يلفظ … رقيب شهيد (ق: 18)» stated, fix «شهيد → عتيد» |
+| #6 | `hardening` | `aee587c` | 21:09 | 21:10:57 | 23 / 23 (fonts included) | headers: the strict CSP, HSTS, COOP, CORP, Permissions-Policy present; one model probe: **429** (ledger above) |
+| #7 | `import-text` | `91568af` | 21:32 | 21:33:07 | 24 / 24 | a TXT and a DOCX (tracked change, footnote) imported through the real file input: exact text in the editor, the notice, **0 requests during import**, 0 audits; one model probe: **429** |
+| #8 | `reference-ordinals` | `4cd0746` | 22:06 | 22:07:24 | 24 / 24 | `LA03` again: «وتحسبونه هينا وهو عند الله عظيم» reference «الآية الخامسة عشرة من سورة النور» matched; 21.8 s |
+| #9 | `pilot-ocr-docs` | `317228d` | 22:51 | 22:52:22 | 24 / 24 | `/api/health`: `ai_max_completion_tokens` **4096** — the cause of the live 429s |
+| #10 | `groq-reservation` | `bee3e03` | 22:55 | 22:56:14 | (no static file changed) | `ai_max_completion_tokens` 800; one model probe: **HTTP 200**, 4 proposed, 4 located, 0 added |
+
+Not merged: draft PR #4 (`accounts-flag`, accounts behind an off flag; owner's project and decisions needed).
