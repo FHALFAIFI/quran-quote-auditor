@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.datastructures import MutableHeaders
 from pydantic import BaseModel, ConfigDict, Field
 
+from .accounts.config import AccountConfig
 from .audit import InputError, run_audit, run_phrase
 from . import logging_safety
 from .config import settings
@@ -32,9 +33,14 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(messag
 log = logging.getLogger("auditor")
 logging.getLogger("httpx").setLevel(logging.WARNING)  # request URLs are noise; bodies are never logged
 logging_safety.install()  # defence in depth: a long run of Arabic text never reaches a log line (app/logging_safety.py)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 STATIC = Path(__file__).parent / "static"
 MAX_BODY_BYTES = settings.max_chars * 4 + 1024  # UTF-8 Arabic ≈ 2 bytes/char; generous margin
+# Optional accounts (roadmap Stage 2): OFF unless ACCOUNTS_ENABLED=true and Supabase is configured. Off = no route, no script.
+ACCOUNTS = AccountConfig.from_env()
+# A saved draft carries the text, the audited text and the decisions: a larger request than an audit, for /api/account/ only.
+ACCOUNT_MAX_BODY_BYTES = 600_000
 
 app = FastAPI(title="مدقق الاقتباسات القرآنية", docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -78,7 +84,7 @@ _hits_lock = threading.Lock()
 
 
 def _rate_limited(ip: str, bucket: str = "audit") -> bool:
-    limit = settings.rate_limit_per_minute if bucket == "audit" else settings.suggest_rate_limit_per_minute
+    limit = {"audit": settings.rate_limit_per_minute, "account": ACCOUNTS.rate_limit_per_minute}.get(bucket, settings.suggest_rate_limit_per_minute)
     now = time.monotonic()
     with _hits_lock:
         q = _hits[(bucket, ip)]
@@ -101,6 +107,10 @@ def _client_ip(request: Request) -> str:
     return fwd.split(",")[0].strip() or (request.client.host if request.client else "unknown")
 
 
+# The browser talks to Supabase Auth directly (magic link, sign-out) only when accounts are on.
+CONNECT_SRC = f"'self' {ACCOUNTS.origin}" if ACCOUNTS.enabled else "'self'"
+
+
 @app.middleware("http")
 async def answer_unexpected_errors(request: Request, call_next):
     try:
@@ -114,7 +124,7 @@ async def answer_unexpected_errors(request: Request, call_next):
 # --- security headers and a hard cap on the request body (pure ASGI, so it covers the API, the pages and /static) --------
 CSP = (
     "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; "
-    "connect-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+    f"connect-src {CONNECT_SRC}; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
 )
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -142,17 +152,20 @@ class SecurityMiddleware:
     """Adds the security headers to every response and refuses a request body over ``max_body`` bytes with 413.
 
     The body is counted as it arrives, so a chunked request without Content-Length cannot get past the cap. Requests with
-    a body are buffered here (at most ``max_body`` bytes) and replayed to the app."""
+    a body are buffered here (at most ``max_body`` bytes) and replayed to the app. With accounts on, ``/api/account/`` has
+    its own larger cap ``account_max_body`` (a saved draft carries the text, the audited text and the decisions)."""
 
-    def __init__(self, app, max_body: int) -> None:
+    def __init__(self, app, max_body: int, account_max_body: int | None = None) -> None:
         self.app = app
         self.max_body = max_body
+        self.account_max_body = account_max_body
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
         https = _is_https(scope)
         api = scope.get("path", "").startswith("/api/")
+        cap = self.account_max_body if self.account_max_body and scope.get("path", "").startswith("/api/account/") else self.max_body
 
         async def send_with_headers(message):
             if message["type"] == "http.response.start":
@@ -170,7 +183,7 @@ class SecurityMiddleware:
             for k, v in scope.get("headers") or ():
                 if k == b"content-length":
                     length = v
-            if length is not None and length.isdigit() and int(length) > self.max_body:
+            if length is not None and length.isdigit() and int(length) > cap:
                 return await JSONResponse(TOO_LARGE, status_code=413)(scope, receive, send_with_headers)
             chunks, size = [], 0
             while True:
@@ -179,7 +192,7 @@ class SecurityMiddleware:
                     return
                 body = message.get("body", b"")
                 size += len(body)
-                if size > self.max_body:
+                if size > cap:
                     return await JSONResponse(TOO_LARGE, status_code=413)(scope, receive, send_with_headers)
                 chunks.append(body)
                 if not message.get("more_body", False):
@@ -199,7 +212,7 @@ class SecurityMiddleware:
 
 
 # added last, so it is the outermost layer: its headers also reach the 500 answer of the guard above
-app.add_middleware(SecurityMiddleware, max_body=MAX_BODY_BYTES)
+app.add_middleware(SecurityMiddleware, max_body=MAX_BODY_BYTES, account_max_body=ACCOUNT_MAX_BODY_BYTES if ACCOUNTS.enabled else None)
 
 
 def _unexpected(request: Request, exc: Exception) -> JSONResponse:
@@ -253,6 +266,8 @@ def health(deep: bool = False):
         "source_ok": bool(src.get("loaded") and not src.get("stale")),
         # Model calls since this process started (counts only; null when no model is configured).
         "ai_recent": provider.tracker.recent() if provider and provider.tracker else None,
+        # Optional accounts (roadmap Stage 2). False unless the server enables them; the page loads no account code when false.
+        "accounts_enabled": ACCOUNTS.enabled,
     }
 
 
@@ -322,5 +337,10 @@ def limitations_page():
 def index():
     return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
 
+
+if ACCOUNTS.enabled:
+    from .accounts.api import install as install_accounts   # imported only when on: a server with the flag off never loads it
+
+    install_accounts(app, ACCOUNTS, lambda ip: _rate_limited(ip, "account"), _client_ip)
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")

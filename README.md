@@ -425,6 +425,6 @@ Each contains some deliberately wrong quotations or references so every status c
 ## Dependencies and licences
 
 Code: MIT (see [LICENSE](LICENSE)). The Quran text is **not** included in this repository; it is fetched from Quranpedia under its usage policy (free, no authentication, one documented request per instance, attribution in the page footer).
-Runtime dependencies are pinned in `requirements.txt` (FastAPI, Starlette, Pydantic, httpx, uvicorn and their dependencies: MIT or BSD-3-Clause; `certifi` is MPL-2.0; `typing_extensions` is PSF-2.0); test dependencies in `requirements-dev.txt` (pytest and plugins: MIT, BSD-2-Clause, Apache-2.0/BSD-2-Clause).
+Runtime dependencies are pinned in `requirements.txt` (FastAPI, Starlette, Pydantic, httpx, uvicorn and their dependencies: MIT or BSD-3-Clause; `certifi` is MPL-2.0; `typing_extensions` is PSF-2.0; for the optional accounts behind `ACCOUNTS_ENABLED`, off by default: PyJWT MIT, cryptography Apache-2.0 OR BSD-3-Clause, cffi MIT-0, pycparser BSD-3-Clause); test dependencies in `requirements-dev.txt` (pytest and plugins: MIT, BSD-2-Clause, Apache-2.0/BSD-2-Clause).
 Fonts (Readex Pro, Amiri Quran, Noto Naskh Arabic) are SIL Open Font License 1.1, self-hosted in `app/static/fonts/` (the Arabic and Latin subsets Google Fonts serves, copied on 4 Oct 2026, each with its `OFL.txt`). The organizer's PDFs and PowerPoint template are not included. Groq and Quranpedia are third-party services governed by their own terms.
 Every source, licence and attribution is listed in [SOURCES.md](SOURCES.md).
