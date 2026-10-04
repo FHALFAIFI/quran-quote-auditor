@@ -70,6 +70,7 @@ Work and tests:
 - **Interface (in the UI PR):** an article over the model limit says before the audit that it will be checked in full without the model; after the audit the status names the reason (length, failure, or no model on the server); «أعد التدقيق» stays available after a failure; technical detail (the HTTP status) sits behind «تفاصيل هذا التدقيق». The answered, failed, over-length and unconfigured states are checked in the browser with **simulated** audit answers only.
 - **Exit test:** the fake-provider suite passes in CI. A live probe on the deployed service makes **one** labelled call per release, never a loop, and logs `ai.outcome`, `http_status` and the elapsed time in `TEST_LOG`.
 - **Needed:** a decision on the Groq plan, and, if unpublished articles are expected, on zero data retention (Stage 4).
+- **Status (4 Oct, challenge period, branch `ai-provider-harness`, not merged):** the fake-provider suite exists (`tests/test_provider_failures.py`, 18 Groq scenarios plus Gemini, all simulated) and passes locally; it found and fixed a cooldown skip reported as a failure, a traceback log that could quote the article, and `failed_generation` in the audit answer (`docs/TEST_LOG.md`). Still open: simultaneous first calls are not single-flighted; the live probe per release.
 
 ### 1.5 Measured incremental value of the model
 

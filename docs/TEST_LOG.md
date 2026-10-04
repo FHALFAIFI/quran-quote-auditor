@@ -887,3 +887,49 @@ No High finding. Medium, all fixed: the undo message of an optional addition sai
 - **Phone-width live journey** (390×844, touch, `--phone --replay` with the answer saved above): the page, scripts and `/api/health` from the live service; the audit request was answered from the saved file and **not sent to the server**. All checks passed; `ai_last_call` afterwards was still the 08:11:44 call, so no second Groq call was made.
 - **No other live audit was made.** `scripts/live_workspace.mjs` was not run live: since `47f224e` every audit of a short article attempts the model, so it would have made more Groq calls.
 - **Media (git-ignored `submission/`).** Stills (`submission/build/stills_release.mjs`) and the captions-only video (`submission/build/record_release.mjs`) were taken on the live service with the demonstration audit **replayed** from the 08:11 answer (0 audits sent; said on slide 7 and the video's end card). Take 1 was rejected: the recorder enlarged the page with CSS `zoom`, and inside a CSS-zoomed element the drawn correction (placed from `getBoundingClientRect`) landed a line too low; the app is not affected by browser zoom, and the take was re-recorded at 1024×576 scaled to 1280×720 without CSS zoom. Take 2 was rejected: the caption covered decision 1's buttons for a few seconds before that decision was described, and the end card's last line read ambiguously in RTL. Take 3: 105.0 s, 1280×720, no audio, decoded without error, frames inspected.
+
+## 2026-10-04 (evening, Riyadh) — provider failure harness against a fake Groq (challenge period)
+
+Branch `ai-provider-harness`, code commit `ae32992` (from `main` @ `05e34d5`). Roadmap §1.4. Not merged, not deployed.
+
+**Every result in this section is from a SIMULATED provider.** `tests/fake_groq.py` replaces `httpx` inside the provider module with an `httpx.MockTransport` that answers like Groq (bodies copied from Groq's documented shapes and this project's earlier logs; account id and limits invented) and records every request. **No Groq or Gemini call was made**, no real key was set (the key is the sentinel `gsk_TEST_SENTINEL_…`), and nothing here says how well a real model finds quotations.
+
+Article (in `tests/fake_groq.py`): a bracketed quotation with its reference, a bracketed quotation with a wrong reference, an unmarked distinctive misquotation, a short common phrase (hidden), plus the writer's own prose. With `AI_PROVIDER=none` it gives 3 findings with proposed changes; every scenario must give exactly the same `findings`, `stats`, `phrases`, `candidates_capped` and `source` (36-verse offline fixture, audits through the FastAPI app with `TestClient`).
+
+| Scenario (fake answer) | `mode` / `ai.outcome` (audit 1) | `ai.http_status` | Requests: audit 1 / audit 2 / after cooldown | Notice shown | Cooldown |
+|---|---|---|---|---|---|
+| 429 RPM, `retry-after: 2` | ai_failed / failed | 429 | 1 / 0 / 1 | failure warning; page line «تعذّر اقتراح الذكاء الاصطناعي هذه المرة…» | 120 s |
+| 429 RPD, `retry-after: 864` | ai_failed / failed | 429 | 1 / 0 / 1 | same | 864 s (retry-after honoured; was 120) |
+| 429 request too large (TPM 1000) | ai_failed / failed | 429 | 1 / 0 / 1 | same | 120 s |
+| ReadTimeout | ai_failed / failed | null | 1 / 0 / 1 | same | 60 s |
+| ConnectError | ai_failed / failed | null | 1 / 0 / 1 | same | 60 s |
+| 500 / 502 (HTML body) / 503 | ai_failed / failed | 500 / 502 / 503 | 1 / 0 / 1 | same | 60 s |
+| 401 invalid key | ai_failed / failed | 401 | 1 / 0 / 1 | same | 300 s |
+| 200, malformed JSON | ai_failed / failed | 200 | 1 / 0 / 1 | same | 60 s |
+| 200, `finish_reason: length` | ai_failed / failed | 200 | 1 / 0 / 1 | same | 60 s |
+| 200, `choices: []` / content null / content "" | ai_failed / failed | 200 | 1 / 0 / 1 | same | 60 s |
+| 400 `json_validate_failed`, `failed_generation` echoing the article and an invented verse | ai_failed / failed (`generation_failure` true) | 400 | 1 / 0 / 1 | same | 60 s |
+| unexpected client error (RuntimeError quoting article and key) | ai_failed / failed | null | 1 / 0 / 1 | same | 60 s |
+| 200 `{"candidates": []}` (answered with nothing) | ai / ok, proposed 0 | 200 | 1 / 1 / – | none (details: «لم يقترح أي مقطع…») | none |
+| 200, two spans not in the article | ai / ok, proposed 2, discarded 2, located 0 | 200 | 1 / 1 / – | info «استُبعد مقطعان…» | none |
+
+Audit 2 in every failure row: `mode` reduced, `ai.outcome` **skipped_cooldown**, `http_status` null, `cooldown_seconds` the seconds left, info notice «لم يُسأل الذكاء الاصطناعي في هذا التدقيق لأن استدعاءً سابقًا له تعذّر قبل قليل، ويُسأل من جديد بعد نحو N ث؛ …», no failure warning; `/api/health` still reports the failed call with its status. "After cooldown": the cooldown clock (`app.extraction.status.time`) moved past the cooldown, then one request. 25 sequential plus 12 concurrent audits after a 429: 1 request in total. `/api/health`, the answer and the log records at DEBUG (root, auditor, httpx, httpcore, uvicorn.*, starlette, fastapi) were searched for the key, the article lines, the error-body sentinels, `failed_generation`'s text and the organisation id: none in health or logs; the answer holds the article's own quotations (findings) and the provider's `type/code/message` only. Gemini (not deployed): 429, 401, 500, 400, malformed, blocked, connect error — 1 request, the identical source audit, then 0 requests and `skipped_cooldown`; its 503/timeout retry plan (more than one request by design) is covered only by `tests/test_gemini.py`.
+
+Defects found (the new tests fail on `05e34d5`; checked by running them in a detached worktree of `05e34d5`, 36 of 36 failed there, partly because of the new `cooldown_seconds` field):
+
+1. **A cooldown skip was reported as a failure.** The audit after a 429 said `outcome: failed`, `http_status: 429` (the earlier call's) and the failure warning, though it sent nothing. Fixed: `ProviderCoolingDown` → `skipped_cooldown` as above; the page's line «لم يُسأل النموذج اللغوي هذه المرة لأنه تعذّر قبل قليل. فُحص المقال بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.», the wait behind «تفاصيل هذا التدقيق», and the printed record «لا — لم يُسأل groq في هذا التدقيق…». `tests/test_groq.py::test_rate_limit_is_a_visible_fallback_never_an_ai_result` had asserted the old behaviour and was updated.
+2. **A traceback in the server log could quote the article.** Starlette re-raises after the app's `Exception` handler; uvicorn then logged «Exception in ASGI application» with the traceback. On `05e34d5`, with a real uvicorn on 127.0.0.1, the log contained `KeyError: 'وهذا أصل في العمل الجماعي المشترك gsk_TEST_SENTINEL_…'`. Fixed: the HTTP middleware answers the error and logs only `unhandled error on <path>: <type>`, which is what `/privacy` already said (its wording was not changed; it was not true before this fix).
+3. **An unexpected (non-httpx) error in the provider call gave HTTP 500 and no audit.** Fixed in `groq.py` (one attempt, cooldown) and in `run_audit` (any provider exception: the source audit, a cooldown, the type logged).
+4. **`ai.error_body` returned Groq's `failed_generation`** (model text: on `05e34d5` it carried the invented verse) **and the organisation id.** Decision: only `failed_generation_chars` is kept; `org_…`/`gsk_…`-shaped ids are redacted. Rationale in the docstring of `tests/test_provider_failures.py`. The provider's message (e.g. «Rate limit reached … RPM …») still goes back to the requester only.
+5. **429 `retry-after` ignored** (a daily limit was retried every 120 s); now `max(cooldown, 120, retry-after)`, capped at 3,600 s.
+6. **Gemini** started no cooldown after 4xx/5xx, malformed or blocked answers (every audit asked again); now it does.
+
+Commands and counts (all local, `AI_PROVIDER=none` servers for the browser):
+
+- `.venv/bin/python -m pytest -q` → **451 passed** (415 before; 36 new in `tests/test_provider_failures.py`).
+- `node --test tests/*.test.mjs` → 24 pass, 0 fail.
+- `node scripts/ui_model_notices_e2e.mjs` → all checks passed, **78 PASS** (new: SIMULATED timeout and SIMULATED cooldown states, desktop and phone; the cooldown line is 173 rendered characters with its summary).
+- `node scripts/ui_journey_e2e.mjs` → 167 PASS, 0 FAIL. `node scripts/ui_a11y_check.mjs` → 54 PASS, 0 FAIL.
+- `scripts/live_smoke.mjs` and `scripts/live_workspace.mjs` learned the `skipped_cooldown` state; **neither was run** (they would call the live model).
+
+Not done / open: **concurrent first calls are not single-flighted.** In a local probe (not committed), 8 audits sent at the same moment, before the first 429 arrived, made 8 requests; the cooldown only stops audits that start after a failure has been recorded. Bounded by the per-address limit (10/min) and the number of simultaneous writers; a one-in-flight guard was not added because it would leave a second simultaneous writer without the model. The cooldown is per process (per instance), not shared. No live probe was made.

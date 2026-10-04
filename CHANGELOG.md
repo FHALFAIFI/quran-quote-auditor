@@ -2,7 +2,9 @@
 
 ## Challenge period (4–6 October 2026)
 
-_Record every change made during the challenge here, with its date. Nothing yet._
+| Date | Commit(s) | Change |
+|---|---|---|
+| 2026-10-04 | Branch `ai-provider-harness`, `ae32992` (not merged, not deployed) | **Provider failure harness against a fake Groq** (roadmap §1.4; details and scenario table in `docs/TEST_LOG.md`; all simulated, no provider call). New `tests/fake_groq.py` and `tests/test_provider_failures.py` (36 tests). Fixed: an audit inside the cooldown after a failure is reported as `skipped_cooldown` (model not asked) instead of «failed» with the earlier call's HTTP status, with its own calm line on the page and in the printed record; an unhandled error no longer reaches uvicorn's traceback log (which could quote the article), only its type is logged; an unexpected error in the provider call still gives the source-based audit; `ai.error_body` no longer returns Groq's `failed_generation` or the organisation id; a 429's `retry-after` is honoured; Gemini cools down after every failure. `ui_model_notices_e2e` covers timeout and cooldown (simulated). Open: simultaneous first calls are not single-flighted. |
 
 ## Pre-challenge work (not scored) — after the baseline tag
 
