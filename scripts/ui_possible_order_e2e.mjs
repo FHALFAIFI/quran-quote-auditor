@@ -11,6 +11,9 @@ import { chromium, check, norm, root, testServer, openPage, finish } from "./_ui
 
 const server = await testServer();
 const browser = await chromium.launch();
+// Counts updated on 4 Oct 2026 (challenge period): the writer-cue retrieval (app/cues.py) now reads «أفلا يتدبرون القرآن» and
+// «واتقوا الله ويعلمكم الله» in LA01 as quotations the writer announced (a lead-in or an ayah-level reference names them), so LA01 has
+// 22 quotations and 5 optional phrases instead of 20 and 7. «في كل عام», the case this script was written for, is still item 1 and optional.
 const LA01 = JSON.parse(fs.readFileSync(path.join(root, "eval/articles_long_20261003.json"), "utf8")).cases[0].article;
 
 for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, false], ["phone", { width: 390, height: 844 }, true]]) {
@@ -23,10 +26,10 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   await page.waitForTimeout(600);
 
   const verdict = norm(await page.textContent("#verdict"));
-  check(/وجدنا ٢٠ اقتباسًا؛ تحتاج ١٠ منها إلى قرارك/.test(verdict), `the headline counts the 20 quotations, not the 7 phrases («${verdict.slice(0, 60)}»)`);
-  check(/و٧ عبارات تشبه آيات ولم نتأكد أنها اقتباسات؛ تأكيدها اختياري/.test(verdict), "and says the 7 phrases apart, unconfirmed, their confirmation optional");
+  check(/وجدنا ٢٢ اقتباسًا؛ تحتاج ١٠ منها إلى قرارك/.test(verdict), `the headline counts the 22 quotations, not the 5 phrases («${verdict.slice(0, 60)}»)`);
+  check(/و٥ عبارات تشبه آيات ولم نتأكد أنها اقتباسات؛ تأكيدها اختياري/.test(verdict), "and says the 5 phrases apart, unconfirmed, their confirmation optional");
   const progress = norm(await page.textContent("#panel-progress"));
-  check(progress.startsWith("١٠ اقتباسات تنتظر قرارك، و٧ عبارات للتأكيد"), `the panel says the same («${progress}»)`);
+  check(progress.startsWith("١٠ اقتباسات تنتظر قرارك، و٥ عبارات للتأكيد"), `the panel says the same («${progress}»)`);
   check(/ — [٠-٩]+ من [٠-٩]+$/.test(progress) && !/·/.test(progress), "the position is set off by a dash, not a middle dot (which reads as an Arabic zero beside a digit)");
 
   const first = await page.evaluate(() => { const c = document.querySelector("#current article"); return { id: c.id, quote: c.querySelector(".q-hit")?.textContent, state: c.querySelector(".f-head .state")?.textContent }; });
@@ -40,7 +43,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
     return { weak: g('#article-view mark[data-id="1"]'), decision: g("#article-view mark.need:not(.possible)") }; });
   check(looks.weak === "rgba(0, 0, 0, 0)" && looks.decision && looks.decision !== "rgba(0, 0, 0, 0)", `the phrase has no shading, a decision has (${JSON.stringify(looks)})`);
   const groups = await page.$$eval("#queue summary", (n) => n.map((x) => x.textContent.trim()));
-  check(groups.includes("عبارات للتأكيد (اختياري): قد تكون اقتباسات (٧)"), `it is listed in its own group, said to be optional (${groups.join(" | ")})`);
+  check(groups.includes("عبارات للتأكيد (اختياري): قد تكون اقتباسات (٥)"), `it is listed in its own group, said to be optional (${groups.join(" | ")})`);
   check(await page.evaluate(() => !document.querySelector("#queue .q-group.maybe").open), "that group is closed while decisions wait (the decisions' group is open)");
   check(norm(await page.textContent(".q-group.maybe #row-1")).includes("تأكيد اختياري"), "its row says «تأكيد اختياري», not the decisions' «يحتاج تأكيدك»");
   check((await page.locator("#queue li").count()) === 27, "all 27 findings are still listed");
@@ -71,15 +74,15 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   const card = await page.evaluate(() => { const c = document.querySelector("#current article"); return { h: c.querySelector("h3").textContent, note: c.querySelector(".weak-note")?.textContent || "" }; });
   check(/^العبارة [٠-٩]+$/.test(card.h) && /وقد تكون كلامًا عاديًا.*وإن تركتها نُسخت كما كتبتَها/.test(card.note), `its card is titled «العبارة», not «الاقتباس», and says it may be ordinary prose (${card.h})`);
   check(await page.evaluate(() => document.querySelector("#queue .q-group.maybe").open), "with no decision left, the phrases' group is open");
-  check(norm(await page.textContent("#panel-progress")).startsWith("٧ عبارات للتأكيد"), "the panel now names only the phrases");
-  if (mobile) check(norm(await page.textContent("#dock-text")) === "٧ عبارات للتأكيد", "and so does the bottom bar");
+  check(norm(await page.textContent("#panel-progress")).startsWith("٥ عبارات للتأكيد"), "the panel now names only the phrases");
+  if (mobile) check(norm(await page.textContent("#dock-text")) === "٥ عبارات للتأكيد", "and so does the bottom bar");
   const head = norm(await page.textContent("#final-pending h3"));
-  check(head.startsWith("٧ عبارات للتأكيد — وسيبقى كما كتبتَه"), `the final review lists them as unconfirmed, copied as written («${head}»)`);
+  check(head.startsWith("٥ عبارات للتأكيد — وسيبقى كما كتبتَه"), `the final review lists them as unconfirmed, copied as written («${head}»)`);
   check(await page.evaluate(() => document.getElementById("copy-btn").classList.contains("ready")), "copying is ready: nothing in the phrases changes the text unless the writer confirms one");
-  // settling a phrase updates the headline too (it counted 7)
+  // settling a phrase updates the headline too (it counted 5)
   await page.locator("#current .not-quote").first().click();
   await page.waitForTimeout(500);
-  check(/و٦ عبارات تشبه آيات/.test(norm(await page.textContent("#verdict"))), `after dismissing one phrase the headline says 6 («${norm(await page.textContent("#verdict")).slice(0, 90)}»)`);
+  check(/و٤ عبارات تشبه آيات/.test(norm(await page.textContent("#verdict"))), `after dismissing one phrase the headline says 4 («${norm(await page.textContent("#verdict")).slice(0, 90)}»)`);
   // with one phrase left «التالي» would only reopen it: it is not offered
   await page.evaluate(() => { const w = weakPendingList(); for (const f of w.slice(0, w.length - 2)) dismissed[f.id] = true; renderAll(); goTo(weakPendingList()[0].id, { scroll: null }); });
   check(!(await page.isHidden("#panel-nav")), "with two phrases left «التالي» is offered");

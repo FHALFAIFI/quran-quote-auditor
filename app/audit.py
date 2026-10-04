@@ -7,19 +7,21 @@ import time
 from . import arabic
 from .corrections import build_changes
 from .config import settings
+from .cues import announced_before, find_cue_hits
 from .extraction import Candidate, ExtractionError, get_provider
 from .extraction.marked import extract_marked
-from .phrases import ends_with_quran_cue, find_phrases, grade_approximate, grade_exact, quran_cue, span_mass
+from .phrases import find_phrases, grade_approximate, grade_exact, quran_cue, span_mass
 from .quran_source import MUSHAF_URL, QuranIndex, SourceUnavailable, source
 from .references import Reference, find_references
 from .verifier import MIN_WORDS, unavailable_result, verify
 
 REF_AFTER_CHARS, REF_AFTER_WORDS = 40, 3
 REF_BEFORE_CHARS, REF_BEFORE_WORDS = 60, 6
-PRIORITY = {"manual": 0, "marked": 0, "ai": 1, "phrase": 2}  # order in which a finding's methods are listed
+PRIORITY = {"manual": 0, "marked": 0, "ai": 1, "phrase": 2, "cue": 3}  # order in which a finding's methods are listed
 # Who keeps an overlapping span: what the program established from the text (a marker, the writer's own selection, a
 # literal phrase match) always outranks the model's proposal, which is only a place to look.
-MERGE_PRIORITY = {"manual": 0, "marked": 0, "phrase": 1, "ai": 2}
+# A span announced by the writer's cue (``cues.py``) ranks with the phrase search; the two are reconciled first (``_reconcile``).
+MERGE_PRIORITY = {"manual": 0, "marked": 0, "phrase": 1, "cue": 1, "ai": 2}
 MANUAL_MAX_WORDS = 60
 
 # Detection (is this a Quran quotation?) is reported separately from verification (does it match the text?).
@@ -35,6 +37,7 @@ TIER_REASON = {
     "non_quran_cue": "سبقتها إشارة إلى حديث أو دعاء أو مثل، فقد تكون من غير القرآن.",
     "ai_only": "اقترحه نموذج الذكاء الاصطناعي وحده ولم يجده البحث الآلي، واقتراح النموذج ليس دليلًا على أنه اقتباس قرآني؛ فقد يكون من كلام الكاتب.",
     "no_match": "لا تدعم مقارنتُه بنص المصحف أنه اقتباس قرآني.",
+    "cue": "قدّمتَ لهذه الكلمات بما يدل على آية (عبارة تمهيد أو إحالة أو علامتا تنصيص)، وألفاظها قريبة من الآية المقترحة لكنها لا تطابقها حرفيًا.",
 }
 END_UNCERTAIN_MESSAGE = ("نهاية المقطع غير محسومة: ما قبل هذه الكلمة مطابق للمصحف، لكن الكلمة التالية في المقال تختلف عن كلمة الآية التالية "
                          "ولا يغلق المقطعَ علامةٌ ولا إحالة، فلا يُعرف أهي كلام الكاتب بعد الاقتباس أم خطأ في آخر الاقتباس.")
@@ -102,6 +105,54 @@ def merge(cands: list[Candidate]) -> list[Candidate]:
     return sorted(kept, key=lambda c: c.start)
 
 
+def _widen(sp, left: int, right: int, index: QuranIndex):
+    from .verifier import Span
+
+    return Span(sp.surah, max(0, sp.p0 - left), min(len(index.streams[sp.surah]), sp.p1 + right))
+
+
+def _reconcile(article: str, index: QuranIndex, phrase_cands: list[Candidate], cue_cands: list[Candidate]) -> list[Candidate]:
+    """Phrase-search hits and cue-announced spans for the same words: one candidate per place.
+
+    A cue span that strictly contains a phrase hit replaces it (the writer's cue shows where the quotation really begins or
+    ends, so a wrong first or last word is inside the span instead of next to it); the hit's places stay as hints. A hit that
+    equals or contains the cue span keeps its own span and tier and records the cue (the writer announced it). A cue span
+    that only partly overlaps a hit is dropped: the hit stands.
+    """
+    out = list(phrase_cands)
+    for c in cue_cands:
+        over = [p for p in out if c.start < p.end and p.start < c.end]
+        if not over:
+            out.append(c)
+            continue
+        same = next((p for p in over if (p.start, p.end) == (c.start, c.end)), None)
+        if same is not None:  # the search found exactly these words: its hit stands, announced by the cue
+            same.cue = same.cue or c.cue
+            continue
+        w0, w1 = c.cue.window  # the announced window, as character offsets
+        lo, hi = min([c.start, *(p.start for p in over)]), max([c.end, *(p.end for p in over)])
+        if (lo, hi) != (c.start, c.end) and w0 <= lo and hi <= w1 and any((p.start, p.end) == (lo, hi) for p in over):
+            for p in over:  # the hit already covers the cue span and more: the hit stands, announced by the cue
+                if p.cue is None and p.start <= c.start and c.end <= p.end:
+                    p.cue = c.cue
+            continue
+        if w0 <= lo and hi <= w1 and all(p.cue is None and p.phrase is not None for p in over):
+            # the cue span and the hits it overlaps lie inside the announced window: one span over all of them, every place a hint
+            for p in over:
+                out.remove(p)
+            # each hit's places, widened by the words the span adds on either side, so that an alignment against them can
+            # reach the verse word where the writer's edge word stands instead of stopping short of it
+            c.phrase_spans = [_widen(sp, _words_between(article, lo, p.start), _words_between(article, p.end, hi), index)
+                              for p in over for sp in p.phrase.spans]
+            c.start, c.end, c.text = lo, hi, c.text if (lo, hi) == (c.start, c.end) else None
+            out.append(c)
+        else:
+            for p in over:
+                if c.start >= p.start and c.end <= p.end and p.cue is None:
+                    p.cue = c.cue
+    return out
+
+
 def _words_between(article: str, a: int, b: int) -> int:
     return len(arabic.tokenize(article[a:b])) if b > a else 0
 
@@ -147,6 +198,26 @@ def attach_references(article: str, cands: list[Candidate], refs: list[Reference
     return out
 
 
+def _source_candidates(article: str, tokens: list[arabic.Token], refs: list[Reference], index: QuranIndex, scan) -> list[Candidate]:
+    """What the source search found: phrase-search hits and spans the writer's cues announced, reconciled (no model)."""
+    phrase_cands = []
+    for h in scan.hits:
+        c = _span_candidate(article, tokens, h.first, h.last, "phrase")
+        c.phrase = h
+        phrase_cands.append(c)
+    cue_cands = []
+    for h in find_cue_hits(article, tokens, refs, index):
+        c = _span_candidate(article, tokens, h.first, h.last, "cue")
+        h.window = (tokens[h.cue.first].start, tokens[h.cue.last - 1].end)
+        c.cue = h
+        cue_cands.append(c)
+    out = _reconcile(article, index, phrase_cands, cue_cands)
+    for c in out:
+        if c.text is None:
+            c.text = article[c.start:c.end]
+    return out
+
+
 def _line_col(article: str, pos: int) -> tuple[int, int]:
     line = article.count("\n", 0, pos) + 1
     col = pos - (article.rfind("\n", 0, pos) + 1) + 1
@@ -185,7 +256,7 @@ def _corroboration(article: str, c: Candidate, result: dict, ref: Reference | No
     if ref is not None and ref.valid and ref.ayah_start is not None and src is not None and ref.surah == src["surah"]:
         if ref.ayah_start <= src["ayah_end"] and src["ayah_start"] <= (ref.ayah_end or ref.ayah_start):
             return "reference"
-    return "lead_in" if ends_with_quran_cue(article[max(0, c.start - 80):c.start]) else None
+    return "lead_in" if announced_before(article[max(0, c.start - 80):c.start]) else None
 
 
 def _detection(article: str, index: QuranIndex | None, c: Candidate, result: dict, ref: Reference | None) -> dict:
@@ -198,10 +269,13 @@ def _detection(article: str, index: QuranIndex | None, c: Candidate, result: dic
     """
     ai_role = "overlap" if c.ai_spans and "ai" not in c.sources else None if "ai" not in c.sources else "only" if c.sources == {"ai"} else "also"
     spans = {"ai_spans": [dict(s) for s in c.ai_spans]} if c.ai_spans else {}
+    if c.cue is not None:
+        spans["cue"] = {"kind": c.cue.cue.kind, "edges": list(c.cue.edge_words)}
     if "manual" in c.sources:
         return {"kind": "manual", "tier": "manual", "label": "حدّدتَ هذا المقطع بنفسك", "codes": ["manual"], "reasons": [], "unconfirmed": False, "ai_role": ai_role, **spans}
     if "marked" in c.sources:
         return {"kind": "marked", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role, **spans}
+    kind = "phrase" if c.phrase is not None else "cue" if "cue" in c.sources else "ai"
     if c.phrase is not None:
         # Found by the phrase search: its tier is the search's own, whatever the model did or did not propose.
         tier, codes = c.phrase.tier, list(c.phrase.reasons)
@@ -212,10 +286,24 @@ def _detection(article: str, index: QuranIndex | None, c: Candidate, result: dic
         if basis:
             return {"kind": "ai", "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role, "basis": basis, **info}
         tier, codes = _grade_span(article, index, c, result)
+        if kind == "cue" and "approximate" in codes:
+            codes = [*codes, "cue"]
         if ai_role == "only":
             codes = ["ai_only", *codes]
+    if kind in ("phrase", "cue") and tier in ("possible", "candidate") and "non_quran_cue" not in codes:
+        # The writer's own words vouch for the span (the same evidence that makes a span only the model proposed "stated"):
+        #  * an exact phrase (distinctive, or only short or common), announced by a lead-in («قال تعالى») or by an ayah-level reference
+        #    to that very verse;
+        #  * a near match only when an ayah-level reference written next to it names the verse it was matched to (the writer
+        #    named the verse; a lead-in alone says "a verse" but not which, so the choice stays the writer's).
+        # Never after a hadith/du'a cue.
+        basis = _corroboration(article, c, result, ref)
+        exact_common = set(codes) <= {"common", "formula", "candidate"} and bool(result["occurrences"])
+        if basis and (exact_common or (basis == "reference" and set(codes) <= {"approximate", "cue"})):
+            return {"kind": kind, "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role,
+                    "basis": basis, **info, **spans}
     codes = codes or ["candidate"]
-    return {"kind": "phrase" if c.phrase is not None else "ai", "tier": tier, "label": TIER_LABEL.get(tier), "codes": codes,
+    return {"kind": kind, "tier": tier, "label": TIER_LABEL.get(tier), "codes": codes,
             "reasons": [TIER_REASON[k] for k in codes if k in TIER_REASON], "unconfirmed": tier == "possible", "ai_role": ai_role, **info, **spans}
 
 
@@ -235,12 +323,16 @@ def _choices(index: QuranIndex, finding: dict) -> list[dict]:
 def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: Reference | None, pin: Reference | None = None) -> dict:
     """Verify one candidate and assemble the finding (with its proposed changes) the interface shows."""
     words = [t.raw for t in arabic.tokenize(c.text)]
-    phrase_found = c.phrase is not None and not ({"marked", "manual"} & c.sources)
+    stated = bool({"marked", "manual"} & c.sources)
+    hints = None
+    if not stated and (c.phrase is not None or c.cue is not None):
+        hints = list(c.phrase.spans) if c.phrase is not None else []
+        if c.cue is not None and c.phrase is None:
+            hints = [c.cue.span, *c.phrase_spans]
     if index is None:
         result = unavailable_result(ref)
     else:
-        result = verify(index, words, ref, pin=pin, hints=list(c.phrase.spans) if phrase_found else None,
-                        bounded=bool({"marked", "manual"} & c.sources))
+        result = verify(index, words, ref, pin=pin, hints=hints, bounded=stated)
     line, col = _line_col(article, c.start)
     finding = {
         "id": n,
@@ -288,7 +380,7 @@ def _finding(article: str, index: QuranIndex | None, n: int, c: Candidate, ref: 
             finding["changes"] = [ch for ch in finding["changes"] if ch["kind"] != "reference_add"]
         if boundary_unc and finding["correction"]["status"] == "none_needed":
             finding["correction"] = {"status": "review_only", "reason": boundary_msg}
-    finding["choices"] = _choices(index, finding) if index is not None and (det["kind"] in ("phrase", "manual") or det["unconfirmed"]) else []
+    finding["choices"] = _choices(index, finding) if index is not None and (det["kind"] in ("phrase", "cue", "manual") or det["unconfirmed"]) else []
     return finding
 
 
@@ -319,7 +411,7 @@ def _start_boundary(article: str, c: Candidate, finding: dict, ref: Reference | 
     gap = window[prev[-1].end:]
     if "\n" in gap or gap.strip(" \t\u00a0،,؛;") != "":
         return {"status": "settled", "basis": "punctuation"}
-    if ends_with_quran_cue(window):
+    if announced_before(window):
         return {"status": "settled", "basis": "lead_in"}
     return {"status": "uncertain", "basis": "adjacent_word", "quran": arabic.letters(first["words"][first["from"] - 1]), "article": prev[-1].raw}
 
@@ -474,10 +566,7 @@ def run_audit(article: str) -> dict:
     scan = None
     if index is not None:
         scan = find_phrases(article, tokens, index)
-        for h in scan.hits:
-            c = _span_candidate(article, tokens, h.first, h.last, "phrase")
-            c.phrase = h
-            candidates.append(c)
+        candidates += _source_candidates(article, tokens, refs, index, scan)
 
     merged_candidates = list(merge(candidates))
     candidates = merged_candidates[: settings.max_candidates]

@@ -98,7 +98,7 @@ const SCRIPT_FEATURE = {
 };
 const wordingLabel = (w) => (w.status === "uncertain" ? "غير محسوم" : (WORDING[w.status] || {})[w.level] || (w.status === "matched" ? "مطابق" : "اختلاف"));
 const REF_LABEL = { matched: "مطابقة", missing: "غير مكتوبة", incorrect: "خاطئة", uncertain: "غير محسومة" };
-const DETECTED = { marked: "معلَّم بأقواس أو علامات", phrase: "بحث آلي عن عبارة مطابقة للمصحف", manual: "حدّدته بنفسك" };
+const DETECTED = { marked: "معلَّم بأقواس أو علامات", phrase: "بحث آلي عن عبارة مطابقة للمصحف", cue: "بحث في المصحف عمّا قدّمتَ له بعبارة تمهيد أو إحالة أو علامتي تنصيص", manual: "حدّدته بنفسك" };
 // The model only proposes places. "Only" is reserved for a finding that would be absent without it; when a marker or the
 // phrase search found the span too, the model merely proposed the same one (it added nothing for this finding).
 const AI_ROLE = { only: "اقترحه الذكاء الاصطناعي وحده (لم يجده البحث الآلي)", also: "اقترح الذكاء الاصطناعي المقطع نفسه أيضًا" };

@@ -20,11 +20,13 @@ class Candidate:
     start: int
     end: int
     text: str
-    sources: set[str] = field(default_factory=set)  # "ai", "marked", "phrase", "manual"
+    sources: set[str] = field(default_factory=set)  # "ai", "marked", "phrase", "cue", "manual"
     marker: str | None = None  # e.g. "﴿﴾", "{}", "«»"
     reference_hint: str | None = None  # reference text proposed by the AI
     phrase: object | None = None  # the app.phrases.PhraseHit that found this span, if any
     ai_spans: list = field(default_factory=list)  # model proposals that overlap this (non-AI) span without being the same span
+    phrase_spans: list = field(default_factory=list)  # places of phrase-search hits this cue span replaced (hints only)
+    cue: object | None = None  # the app.cues.CueHit (a lead-in, reference or quotation marks announced this span), if any
 
 
 @dataclass

@@ -179,4 +179,5 @@ def test_marked_still_outranks_the_phrase_search():
 def test_detected_by_order_is_unchanged(use_source, monkeypatch):
     article = article_of(GOOD)
     assert audit_with(monkeypatch, article, GOOD)["findings"][0]["detected_by"] == ["ai", "phrase"]
-    assert audit.PRIORITY == {"manual": 0, "marked": 0, "ai": 1, "phrase": 2}
+    # the listing order of the earlier methods is unchanged; the writer-cue retrieval (4 Oct 2026) is listed last
+    assert audit.PRIORITY == {"manual": 0, "marked": 0, "ai": 1, "phrase": 2, "cue": 3}

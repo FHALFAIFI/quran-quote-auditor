@@ -186,8 +186,12 @@ def test_full_text_prose_the_search_itself_reports_is_the_searchs_finding_not_th
 
 @full
 def test_full_text_exact_phrase_the_search_missed_is_graded_like_the_search_grades(use_full, monkeypatch):
-    """Simulate a phrase search that found nothing: the span only the model proposed gets the search's own tier."""
+    """Simulate a source search that found nothing: the span only the model proposed gets the search's own tier.
+
+    (Since 4 Oct 2026 the source search also includes the retrieval anchored on the writer's cues, which would find the
+    announced quotation below by itself; it is switched off here too so that the model-only grading is what is tested.)"""
     monkeypatch.setattr(audit, "find_phrases", lambda article, tokens, index: PhraseScan([]))
+    monkeypatch.setattr(audit, "find_cue_hits", lambda article, tokens, refs, index: [])
     distinct = audit_with(monkeypatch, "ثم ذكر الكاتب ادعوا ربكم تضرعا وخفية ثم أكمل.", "ادعوا ربكم تضرعا وخفية")["findings"][0]
     assert distinct["detection"]["tier"] == "candidate" and not distinct["detection"]["unconfirmed"]
     assert distinct["detected_by"] == ["ai"] and distinct["detection"]["ai_role"] == "only"
