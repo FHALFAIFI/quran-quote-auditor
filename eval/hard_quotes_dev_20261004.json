@@ -1,0 +1,4385 @@
+{
+ "_about": "Diagnostic evaluation set of HARD Quran quotations in Arabic prose, dev split, v1 (4 Oct 2026, challenge period). ASSISTANT-AUTHORED DEVELOPMENT DATA: every article and every label was written on 4 Oct 2026 by an AI subagent (Claude) working in a fresh context; it is NOT human-reviewed and NOT independent (the same assistant wrote the texts and the labels, so the cases favour wordings it finds natural and the scores measure agreement with this author, not accuracy on real writers). PURPOSE: the dev split (hard_quotes_dev_20261004.json) will be used to diagnose and tune the detector; the held-out split (hard_quotes_heldout_20261004.json) is meant to be run ONCE, after tuning, and any later rerun after a further change must say that it is no longer held out. Both files are frozen by SHA-256 (eval/hard_quotes_<split>_20261004.sha256). WHAT THE AUTHOR READ: the existing eval/*.json sets (only to copy the schema and to avoid their gold ayahs, quotations and negatives), eval/validate_articles_long_20261003.py, eval/long_src_20261003/engine.py, eval/build_articles_long_20261003.py, the label functions expected_reference / expected_wording at the top of eval/run_eval.py, app/surahs.py (names and verse counts) and the cached Quranpedia Hafs JSON. WHAT THE AUTHOR DID NOT READ OR RUN: app/audit.py, app/phrases.py, app/verifier.py, app/suggest.py, app/corrections.py, app/uthmani.py, app/extraction/*, app/static/*.js, tests/, docs/EVALUATION.md, docs/TEST_LOG.md; the server was not started and no app detection or verification function was called. HOW IT IS MADE: eval/build_hard_quotes_20261004.py composes each case from hand-written prose (eval/hard_quotes_src_20261004/dev.py) and Quran words cut from the cached Quranpedia Hafs text by coordinates (surah, ayah, word range), then applies explicit recorded edits; eval/validate_hard_quotes_20261004.py re-checks every label against the same source with its own normalisation and prints 'labels OK'. Prose passages were reworded where the validator listed an unlabelled run of three or more words that occurs in the Quran (such runs are either removed or labelled as hard negatives); this is not tuning to any detector. SCHEMA: same fields as eval/articles_long_20261003.json, so eval/run_eval.py can score it (id, category, article, gold, negatives = plain strings, formulas), plus: negatives_detail = [{text, start, end, kind = prose_lookalike | hadith | dua | proverb | common_phrase | hard_negative, shares_quran_run = the longest folded run of 3+ words it shares with the Quran or null, expect = no_finding_or_possible_only}]; each gold item additionally has start/end (code-point offsets of quote in article), word_start/word_end (0-based, word_end exclusive, counted in the Quranpedia words of ayah_start / ayah_end), error = none | substitution | omission | wrong_first | wrong_last | extra_word | two_errors, error_detail (one edit {op = substitute | omit | insert, position (0-based in the correct words, before any edit), written (as in the quote; null for an omission), source (plain Quranpedia word; null for an insertion)}, a list of two such edits for two_errors, null for none), context (none | lead_in | reference_ayah | reference_surah | quotation_marks | brackets | uthmani | footnote_ref), lead_in_text, partial (less than the whole verse or verse range), and expect = {detect: required (marked, lead-in, any reference, or 4+ words and not ambiguous) | desirable (2-3 words unmarked, or an ambiguous unmarked phrase without lead-in or reference); max_wording: difference for every misquotation (never matched) | matched for a correct quotation; auto_replacement: allowed_if_span_and_verse_established only when the quotation is marked (brackets or quotation marks) AND either the written reference names the right ayah or a lead-in introduces a quotation of 6+ words that is not ambiguous, otherwise forbidden (no replacement text may be proposed before the writer confirms); gold_verse_listed: true}. wording uses the existing values correct | wording_error. Uthmani-script quotations (context uthmani) are an Uthmani-style rendering of the Quranpedia words (hamzat al-wasl as ٱ, sukun as ۡ), not a full Uthmani rasm; no new Quran text file was added. Gold ayahs of the two splits are disjoint from each other and from the gold ayahs of eval/cases.json, heldout.json, phrases_frozen.json, articles_frozen.json and articles_long_20261003.json, and no correct_text equals one of theirs. Every gold quote occurs exactly once in its article (run_eval.py locates quotations by text), so a quotation that a long article uses twice is written once vocalized or marked and once plain. Hadith, du'a and proverb negatives were written from the author's memory and were NOT checked against hadith collections; they are labelled only as not being Quran text (a negative of kind hard_negative shares a Quran run, recorded in shares_quran_run, and is expected to give no finding or a 'possible' finding only). Wording errors are the author's guesses at realistic slips, not a sample of real writers' errors. Contents: 71 cases (68 short articles, 3 long articles), 81 gold quotations (58 in short articles), errors {'extra_word': 2, 'none': 39, 'omission': 9, 'substitution': 13, 'two_errors': 3, 'wrong_first': 6, 'wrong_last': 9}, 38 negatives {'common_phrase': 2, 'dua': 3, 'hadith': 11, 'hard_negative': 8, 'prose_lookalike': 5, 'proverb': 9}, 2 formulas.",
+ "version": "hard-quotes-dev-20261004",
+ "cases": [
+  {
+   "id": "HD-001-sub",
+   "category": "substitution",
+   "article": "كثيرًا ما نخسر فرصة عمل أو نُرفض في مقابلة فنظن أن الأبواب أُغلقت في وجوهنا، ثم تمضي الأيام فنكتشف أن ما حدث كان بداية طريق أفضل. وعسى أن تكرهوا أمرا وهو خير لكم، فلا تحكم على الحدث من لحظته الأولى، وامنح الأيام فرصة لتكشف لك وجهها الآخر، فرب ضارة نافعة.",
+   "gold": [
+    {
+     "quote": "وعسى أن تكرهوا أمرا وهو خير لكم",
+     "surah": 2,
+     "ayah_start": 216,
+     "ayah_end": 216,
+     "word_start": 6,
+     "word_end": 13,
+     "correct_text": "وعسى أن تكرهوا شيئا وهو خير لكم",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "أمرا",
+      "source": "شيئا"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 130,
+     "end": 161,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [
+    "رب ضارة نافعة"
+   ],
+   "negatives_detail": [
+    {
+     "text": "رب ضارة نافعة",
+     "start": 240,
+     "end": 253,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-002-sub",
+   "category": "substitution",
+   "article": "حين يطول المرض ويتأخر الشفاء يحتاج المريض إلى من يذكّره بأنه ليس وحده. كانت جدتي تمسح على رأسي وتردد: واصبر لحكم الله فإنك بأعيننا، ثم تبتسم وكأنها ترى ما لا نراه. ما زلت أحفظ نبرة صوتها حتى اليوم.",
+   "gold": [
+    {
+     "quote": "واصبر لحكم الله فإنك بأعيننا",
+     "surah": 52,
+     "ayah_start": 48,
+     "ayah_end": 48,
+     "word_start": 0,
+     "word_end": 5,
+     "correct_text": "واصبر لحكم ربك فإنك بأعيننا",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 2,
+      "written": "الله",
+      "source": "ربك"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 102,
+     "end": 130,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-003-sub",
+   "category": "substitution",
+   "article": "في عالم المحتوى الرقمي تنتشر المنشورات الصاخبة بسرعة ثم تختفي، أما الكتابة الرصينة فتبقى وتُتداول سنوات. وهذا معنى قديم يلخصه المثل القرآني: وأما ما ينفع الناس فيبقى في الأرض، فالقيمة الحقيقية لا تحتاج إلى ضجيج.",
+   "gold": [
+    {
+     "quote": "وأما ما ينفع الناس فيبقى في الأرض",
+     "surah": 13,
+     "ayah_start": 17,
+     "ayah_end": 17,
+     "word_start": 31,
+     "word_end": 38,
+     "correct_text": "وأما ما ينفع الناس فيمكث في الأرض",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 4,
+      "written": "فيبقى",
+      "source": "فيمكث"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 141,
+     "end": 174,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-004-sub",
+   "category": "substitution",
+   "article": "يشعر بعض الناس بالوحدة حتى وهم وسط الزحام، ويظنون أن أحدًا لا يسمع شكواهم. لكن المؤمن يدرك أن ربه مطّلع على سره ونجواه، ونحن أقرب إليكم من حبل الوريد، فيهدأ قلبه ويخف حمله مهما اشتدت الظروف.",
+   "gold": [
+    {
+     "quote": "ونحن أقرب إليكم من حبل الوريد",
+     "surah": 50,
+     "ayah_start": 16,
+     "ayah_end": 16,
+     "word_start": 8,
+     "word_end": 14,
+     "correct_text": "ونحن أقرب إليه من حبل الوريد",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 2,
+      "written": "إليكم",
+      "source": "إليه"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 120,
+     "end": 149,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-005-sub",
+   "category": "substitution",
+   "article": "انتهى موسم الاختبارات وظهرت النتائج، وامتلأت مجموعات العائلة بالتهاني والصور. نبارك لكل من اجتهد وحصد ثمرة تعبه، ونقول لهم: بفضل الله وبرحمته فلذلك فليفرحوا، واجعلوا هذا الفرح بداية لعطاء أكبر في الأعوام القادمة.",
+   "gold": [
+    {
+     "quote": "بفضل الله وبرحمته فلذلك فليفرحوا",
+     "surah": 10,
+     "ayah_start": 58,
+     "ayah_end": 58,
+     "word_start": 1,
+     "word_end": 6,
+     "correct_text": "بفضل الله وبرحمته فبذلك فليفرحوا",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "فلذلك",
+      "source": "فبذلك"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 124,
+     "end": 156,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-006-sub",
+   "category": "substitution",
+   "article": "بعد الخسارة في النهائي جلس اللاعبون في غرفة الملابس صامتين، فوقف المدرب وقال لهم بهدوء: ولا تهنوا ولا تيأسوا وأنتم الأعلون، فالمباراة القادمة تبدأ من هذه اللحظة لا من صافرة الحكم.",
+   "gold": [
+    {
+     "quote": "ولا تهنوا ولا تيأسوا وأنتم الأعلون",
+     "surah": 3,
+     "ayah_start": 139,
+     "ayah_end": 139,
+     "word_start": 0,
+     "word_end": 6,
+     "correct_text": "ولا تهنوا ولا تحزنوا وأنتم الأعلون",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "تيأسوا",
+      "source": "تحزنوا"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 88,
+     "end": 122,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-007-omission",
+   "category": "omission",
+   "article": "أطلقت الجمعية الخيرية في حيّنا حملة لسداد ديون الأسر المتعثرة، وكتبت على لوحتها الكبيرة عند مدخل المسجد: من ذا يقرض الله قرضا حسنا. وقد تجاوزت التبرعات في أسبوعها الأول ما كان متوقعًا للشهر كله.",
+   "gold": [
+    {
+     "quote": "من ذا يقرض الله قرضا حسنا",
+     "surah": 2,
+     "ayah_start": 245,
+     "ayah_end": 245,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "من ذا الذي يقرض الله قرضا حسنا",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 2,
+      "written": null,
+      "source": "الذي"
+     },
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 105,
+     "end": 130,
+     "expect": {
+      "detect": "desirable",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "missing_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-008-omission",
+   "category": "omission",
+   "article": "نمر على الآيات مرورًا سريعًا وكأنها كلمات عادية، بينما يصور القرآن أثرها على الجماد نفسه: لو أنزلنا القرآن على جبل لرأيته خاشعا. فكيف بقلب الإنسان إذا أصغى وتدبر؟ لعل المشكلة في طريقة إصغائنا لا في قوة الكلمات.",
+   "gold": [
+    {
+     "quote": "لو أنزلنا القرآن على جبل لرأيته خاشعا",
+     "surah": 59,
+     "ayah_start": 21,
+     "ayah_end": 21,
+     "word_start": 0,
+     "word_end": 8,
+     "correct_text": "لو أنزلنا هذا القرآن على جبل لرأيته خاشعا",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 2,
+      "written": null,
+      "source": "هذا"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 90,
+     "end": 127,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "missing_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-009-omission",
+   "category": "omission",
+   "article": "الابتلاء ليس علامة غضب كما يظن بعض الناس، بل هو سنة ماضية في حياة الأفراد والمجتمعات، ومن هنا جاء السؤال الذي يوقظ الغافل: أحسب الناس أن يتركوا يقولوا آمنا دون أن يُمتحن صدقهم؟ إنه سؤال يعيد ترتيب نظرتنا إلى الشدائد.",
+   "gold": [
+    {
+     "quote": "أحسب الناس أن يتركوا يقولوا آمنا",
+     "surah": 29,
+     "ayah_start": 2,
+     "ayah_end": 2,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "أحسب الناس أن يتركوا أن يقولوا آمنا",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 4,
+      "written": null,
+      "source": "أن"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 123,
+     "end": 155,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "missing_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-010-omission",
+   "category": "omission",
+   "article": "لاحظت في حلقات التحفيظ أن بعض الأطفال يتحدثون أثناء التلاوة، فعلّقت المعلمة لوحة صغيرة فوق السبورة كتبت عليها: وإذا قرئ القرآن فاستمعوا وأنصتوا لعلكم ترحمون. ومنذ ذلك اليوم صار الصمت عادة يتواصى بها الصغار فيما بينهم.",
+   "gold": [
+    {
+     "quote": "وإذا قرئ القرآن فاستمعوا وأنصتوا لعلكم ترحمون",
+     "surah": 7,
+     "ayah_start": 204,
+     "ayah_end": 204,
+     "word_start": 0,
+     "word_end": 8,
+     "correct_text": "وإذا قرئ القرآن فاستمعوا له وأنصتوا لعلكم ترحمون",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 4,
+      "written": null,
+      "source": "له"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 111,
+     "end": 156,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "missing_word",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-011-omission",
+   "category": "omission",
+   "article": "الصحة والأمن والأسرة والعمل، كلها عطايا نعتادها حتى ننسى مصدرها. وحين نتذكر أن وما بكم نعمة فمن الله يتغير موقفنا من النعمة، فنستعملها في الخير ونتواضع لمن حُرم منها.",
+   "gold": [
+    {
+     "quote": "وما بكم نعمة فمن الله",
+     "surah": 16,
+     "ayah_start": 53,
+     "ayah_end": 53,
+     "word_start": 0,
+     "word_end": 6,
+     "correct_text": "وما بكم من نعمة فمن الله",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 2,
+      "written": null,
+      "source": "من"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 79,
+     "end": 100,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "missing_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-012-wrong-first",
+   "category": "wrong_first",
+   "article": "تزكية النفس عمل يومي هادئ لا يراه الناس: محاسبة قبل النوم، واعتذار سريع، وصدقة خفية. ولقد صدق من قال إن الفلاح يبدأ من الداخل، لقد أفلح من تزكى، ومن أهملها خسر وإن ربح كل شيء.",
+   "gold": [
+    {
+     "quote": "لقد أفلح من تزكى",
+     "surah": 87,
+     "ayah_start": 14,
+     "ayah_end": 14,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "قد أفلح من تزكى",
+     "wording": "wording_error",
+     "error": "wrong_first",
+     "error_detail": {
+      "op": "substitute",
+      "position": 0,
+      "written": "لقد",
+      "source": "قد"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 127,
+     "end": 143,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_first_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-013-wrong-first",
+   "category": "wrong_first",
+   "article": "قبل أن تنتقد ملامحك أمام المرآة أو تقارن جسدك بصور معدّلة على الشاشات، تذكّر أن الخالق أخبرنا: ولقد خلقنا الإنسان في أحسن تقويم. التقدير يبدأ من الرضا بما وهبك الله.",
+   "gold": [
+    {
+     "quote": "ولقد خلقنا الإنسان في أحسن تقويم",
+     "surah": 95,
+     "ayah_start": 4,
+     "ayah_end": 4,
+     "word_start": 0,
+     "word_end": 6,
+     "correct_text": "لقد خلقنا الإنسان في أحسن تقويم",
+     "wording": "wording_error",
+     "error": "wrong_first",
+     "error_detail": {
+      "op": "substitute",
+      "position": 0,
+      "written": "ولقد",
+      "source": "لقد"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 95,
+     "end": 127,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_first_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-014-wrong-first",
+   "category": "wrong_first",
+   "article": "يحاول بعضنا إخفاء نواياه عن الناس، ويتقن تجميل ظاهره حتى يصدّق هو نفسه الصورة التي رسمها. أفلا يعلم من خلق وهو اللطيف الخبير، فالذي صنع القلب أعلم بما يدور فيه من أي رقيب.",
+   "gold": [
+    {
+     "quote": "أفلا يعلم من خلق وهو اللطيف الخبير",
+     "surah": 67,
+     "ayah_start": 14,
+     "ayah_end": 14,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "ألا يعلم من خلق وهو اللطيف الخبير",
+     "wording": "wording_error",
+     "error": "wrong_first",
+     "error_detail": {
+      "op": "substitute",
+      "position": 0,
+      "written": "أفلا",
+      "source": "ألا"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 90,
+     "end": 124,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_first_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-015-wrong-first",
+   "category": "wrong_first",
+   "article": "في أيام الأوبئة يكثر القلق وتتضارب الأخبار، والطمأنينة لا تعني إهمال الوقاية، بل الأخذ بالأسباب مع يقين راسخ يردده المؤمن: وقل لن يصيبنا إلا ما كتب الله لنا، ثم يمضي في عمله بقلب ثابت، عملًا بالتوجيه النبوي: اعقلها وتوكل.",
+   "gold": [
+    {
+     "quote": "وقل لن يصيبنا إلا ما كتب الله لنا",
+     "surah": 9,
+     "ayah_start": 51,
+     "ayah_end": 51,
+     "word_start": 0,
+     "word_end": 8,
+     "correct_text": "قل لن يصيبنا إلا ما كتب الله لنا",
+     "wording": "wording_error",
+     "error": "wrong_first",
+     "error_detail": {
+      "op": "substitute",
+      "position": 0,
+      "written": "وقل",
+      "source": "قل"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 123,
+     "end": 156,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_first_word"
+     ]
+    }
+   ],
+   "negatives": [
+    "اعقلها وتوكل"
+   ],
+   "negatives_detail": [
+    {
+     "text": "اعقلها وتوكل",
+     "start": 208,
+     "end": 220,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-016-wrong-last",
+   "category": "wrong_last",
+   "article": "الرحمة ليست خلقًا جانبيًا في سيرة النبي ﷺ، بل هي جوهر رسالته كلها. وما أرسلناك إلا رحمة للناس، هكذا نفهم رسالته حين نتأمل معاملته للصغير والكبير والقريب والبعيد.",
+   "gold": [
+    {
+     "quote": "وما أرسلناك إلا رحمة للناس",
+     "surah": 21,
+     "ayah_start": 107,
+     "ayah_end": 107,
+     "word_start": 0,
+     "word_end": 5,
+     "correct_text": "وما أرسلناك إلا رحمة للعالمين",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 4,
+      "written": "للناس",
+      "source": "للعالمين"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 67,
+     "end": 93,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-017-wrong-last",
+   "category": "wrong_last",
+   "article": "المسؤولية الفردية فكرة بسيطة لكننا نهرب منها كثيرًا، فنلوم الظروف والآخرين والزمن. كل نفس بما كسبت رهين، فلا أحد سيحمل عنك ما اخترته بإرادتك، ولا أحد سيُسأل عن قرارك غيرك.",
+   "gold": [
+    {
+     "quote": "كل نفس بما كسبت رهين",
+     "surah": 74,
+     "ayah_start": 38,
+     "ayah_end": 38,
+     "word_start": 0,
+     "word_end": 5,
+     "correct_text": "كل نفس بما كسبت رهينة",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 4,
+      "written": "رهين",
+      "source": "رهينة"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 83,
+     "end": 103,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-018-wrong-last",
+   "category": "wrong_last",
+   "article": "زرت صديقي في المستشفى بعد العملية، فوجدته مبتسمًا رغم الألم. سألته عن سر هذا الهدوء فأشار إلى ورقة علّقها ابنه الصغير على الجدار المقابل لسريره مكتوب فيها بخط طفولي: وإذا مرضت فهو يشفيني.",
+   "gold": [
+    {
+     "quote": "وإذا مرضت فهو يشفيني",
+     "surah": 26,
+     "ayah_start": 80,
+     "ayah_end": 80,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "وإذا مرضت فهو يشفين",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "يشفيني",
+      "source": "يشفين"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 166,
+     "end": 186,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-019-wrong-last",
+   "category": "wrong_last",
+   "article": "نتذكر الشيء الوحيد الذي لم نحصل عليه وننسى عشرات النعم التي بين أيدينا، ثم نتعجب من ضيق صدورنا. إن الإنسان لربه لكفور، إلا من روّض نفسه على الشكر وعدّ النعم قبل أن يعدّ المفقود. وقديمًا قيل: الشكر قيد النعم.",
+   "gold": [
+    {
+     "quote": "إن الإنسان لربه لكفور",
+     "surah": 100,
+     "ayah_start": 6,
+     "ayah_end": 6,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "إن الإنسان لربه لكنود",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "لكفور",
+      "source": "لكنود"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 96,
+     "end": 117,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word"
+     ]
+    }
+   ],
+   "negatives": [
+    "الشكر قيد النعم"
+   ],
+   "negatives_detail": [
+    {
+     "text": "الشكر قيد النعم",
+     "start": 191,
+     "end": 206,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-020-extra",
+   "category": "extra_word",
+   "article": "لا يُطلب منك أن تكون كاملًا، بل أن تبذل وسعك وتصدق في المحاولة. فاتقوا الله قدر ما استطعتم، قاعدة تريح الموظف المرهق والطالب القلق والأم التي تحاول أن توازن بين بيتها وعملها.",
+   "gold": [
+    {
+     "quote": "فاتقوا الله قدر ما استطعتم",
+     "surah": 64,
+     "ayah_start": 16,
+     "ayah_end": 16,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "فاتقوا الله ما استطعتم",
+     "wording": "wording_error",
+     "error": "extra_word",
+     "error_detail": {
+      "op": "insert",
+      "position": 2,
+      "written": "قدر",
+      "source": null
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 64,
+     "end": 90,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "extra_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-021-extra",
+   "category": "extra_word",
+   "article": "حين تنكشف الشائعات الكاذبة بعد أيام من تداولها، يكتب كثيرون على حساباتهم: وقل قد جاء الحق وزهق الباطل. لكن الأجدر أن نتثبت قبل النشر، لا أن نحتفل بعد أن يقع الضرر.",
+   "gold": [
+    {
+     "quote": "وقل قد جاء الحق وزهق الباطل",
+     "surah": 17,
+     "ayah_start": 81,
+     "ayah_end": 81,
+     "word_start": 0,
+     "word_end": 5,
+     "correct_text": "وقل جاء الحق وزهق الباطل",
+     "wording": "wording_error",
+     "error": "extra_word",
+     "error_detail": {
+      "op": "insert",
+      "position": 1,
+      "written": "قد",
+      "source": null
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 74,
+     "end": 101,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "extra_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-022-two-errors",
+   "category": "two_errors",
+   "article": "في اليوم العالمي لكبار السن نظّمت المدرسة زيارة لدار الرعاية، وحمل الطلاب لافتة صغيرة كتبوا عليها: وصينا الإنسان بوالديه حسنا، ثم جلسوا يستمعون إلى حكايات المسنين ساعتين كاملتين.",
+   "gold": [
+    {
+     "quote": "وصينا الإنسان بوالديه حسنا",
+     "surah": 46,
+     "ayah_start": 15,
+     "ayah_end": 15,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "ووصينا الإنسان بوالديه إحسانا",
+     "wording": "wording_error",
+     "error": "two_errors",
+     "error_detail": [
+      {
+       "op": "substitute",
+       "position": 0,
+       "written": "وصينا",
+       "source": "ووصينا"
+      },
+      {
+       "op": "substitute",
+       "position": 3,
+       "written": "حسنا",
+       "source": "إحسانا"
+      }
+     ],
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 99,
+     "end": 125,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "two_edits",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-023-two-errors",
+   "category": "two_errors",
+   "article": "التوبة الصادقة لا تمحو الماضي فحسب، بل تحوّله إلى رصيد من الخير. هذا ما يُفهم من وعد الله للتائبين: أولئك يبدل الله سيئاتهم بحسنات، وهو باب يبقى مفتوحًا ما دام في العمر بقية.",
+   "gold": [
+    {
+     "quote": "أولئك يبدل الله سيئاتهم بحسنات",
+     "surah": 25,
+     "ayah_start": 70,
+     "ayah_end": 70,
+     "word_start": 7,
+     "word_end": 12,
+     "correct_text": "فأولئك يبدل الله سيئاتهم حسنات",
+     "wording": "wording_error",
+     "error": "two_errors",
+     "error_detail": [
+      {
+       "op": "substitute",
+       "position": 0,
+       "written": "أولئك",
+       "source": "فأولئك"
+      },
+      {
+       "op": "substitute",
+       "position": 4,
+       "written": "بحسنات",
+       "source": "حسنات"
+      }
+     ],
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 100,
+     "end": 130,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "two_edits",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-024-partial",
+   "category": "correct_partial",
+   "article": "قبل كل رحلة طويلة تجمع أمي العائلة في الصالة، وتدعو بصوت خافت: ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار، ثم توصينا بالاتصال فور الوصول. صار هذا الدعاء جزءًا من طقوس السفر في بيتنا.",
+   "gold": [
+    {
+     "quote": "ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار",
+     "surah": 2,
+     "ayah_start": 201,
+     "ayah_end": 201,
+     "word_start": 3,
+     "word_end": 14,
+     "correct_text": "ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 63,
+     "end": 119,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-025-partial",
+   "category": "correct_partial",
+   "article": "في ليالي الصحراء البعيدة عن أضواء المدن تبدو السماء مزدحمة بالنجوم، فيشعر المرء بصغره أمام هذا الاتساع. الله نور السماوات والأرض، وكل ضوء نراه أثر من آثار ذلك النور.",
+   "gold": [
+    {
+     "quote": "الله نور السماوات والأرض",
+     "surah": 24,
+     "ayah_start": 35,
+     "ayah_end": 35,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "الله نور السماوات والأرض",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 104,
+     "end": 128,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-026-partial",
+   "category": "correct_partial",
+   "article": "تتسابق تطبيقات الأرصاد والتحليلات المالية إلى التنبؤ بما سيحدث غدًا، وتخطئ كثيرًا. أما المؤمن فيعمل بالأسباب ويعلم أن وعنده مفاتح الغيب لا يعلمها إلا هو، فلا يغتر بالأرقام ولا ييأس منها.",
+   "gold": [
+    {
+     "quote": "وعنده مفاتح الغيب لا يعلمها إلا هو",
+     "surah": 6,
+     "ayah_start": 59,
+     "ayah_end": 59,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "وعنده مفاتح الغيب لا يعلمها إلا هو",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 118,
+     "end": 152,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-027-partial",
+   "category": "correct_partial",
+   "article": "الثبات على الطريق أصعب من بدايته، ولهذا كان من أدعية الراسخين: ربنا لا تزغ قلوبنا بعد إذ هديتنا. نكررها في الصباح والمساء لأن القلوب تتقلب أسرع مما نتصور.",
+   "gold": [
+    {
+     "quote": "ربنا لا تزغ قلوبنا بعد إذ هديتنا",
+     "surah": 3,
+     "ayah_start": 8,
+     "ayah_end": 8,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "ربنا لا تزغ قلوبنا بعد إذ هديتنا",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 63,
+     "end": 95,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-028-partial",
+   "category": "correct_partial",
+   "article": "حين تقرأ سير الأثرياء الذين جمعوا الملايين ثم رحلوا فجأة، تفهم معنى قول الحكماء إن المال وسيلة لا غاية. وما هذه الحياة الدنيا إلا لهو ولعب، أما الباقي فهو ما قدّمه الإنسان لغيره. وفي الحديث: لو كان لابن آدم واديان من مال لابتغى ثالثًا.",
+   "gold": [
+    {
+     "quote": "وما هذه الحياة الدنيا إلا لهو ولعب",
+     "surah": 29,
+     "ayah_start": 64,
+     "ayah_end": 64,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "وما هذه الحياة الدنيا إلا لهو ولعب",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 104,
+     "end": 138,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [
+    "لو كان لابن آدم واديان من مال لابتغى ثالثًا"
+   ],
+   "negatives_detail": [
+    {
+     "text": "لو كان لابن آدم واديان من مال لابتغى ثالثًا",
+     "start": 191,
+     "end": 234,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-029-partial",
+   "category": "correct_partial",
+   "article": "احترام المساجد والمصاحف ومواسم العبادة ليس مظهرًا شكليًا، بل علامة على حياة القلب. ومن يعظم شعائر الله فإنها من تقوى القلوب، ومن استخف بها فليراجع ما في صدره قبل أن يراجع سلوكه.",
+   "gold": [
+    {
+     "quote": "ومن يعظم شعائر الله فإنها من تقوى القلوب",
+     "surah": 22,
+     "ayah_start": 32,
+     "ayah_end": 32,
+     "word_start": 1,
+     "word_end": 9,
+     "correct_text": "ومن يعظم شعائر الله فإنها من تقوى القلوب",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 83,
+     "end": 123,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-030-lead",
+   "category": "lead_in",
+   "article": "يتساءل بعض الشباب عن سر بقاء القرآن محفوظًا بحروفه عبر القرون رغم ما مر بالأمة من حروب وفتن. والجواب في وعد صريح، قال تعالى: إنا نحن نزلنا الذكر وإنا له لحافظون، وهو وعد تشهد له ملايين الصدور الحافظة.",
+   "gold": [
+    {
+     "quote": "إنا نحن نزلنا الذكر وإنا له لحافظون",
+     "surah": 15,
+     "ayah_start": 9,
+     "ayah_end": 9,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "إنا نحن نزلنا الذكر وإنا له لحافظون",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "قال تعالى",
+     "start": 125,
+     "end": 160,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "lead_in",
+      "no_reference",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-031-lead",
+   "category": "lead_in",
+   "article": "الكلمة الطيبة تبقى أثرًا ممتدًا في حياة الآخرين. يقول الله عز وجل: ألم تر كيف جعل الله مثلا كلمة طيبة كشجرة طيبة، فالكلمة الصادقة تنمو مع الأيام كما تنمو الشجرة.",
+   "gold": [
+    {
+     "quote": "ألم تر كيف جعل الله مثلا كلمة طيبة كشجرة طيبة",
+     "surah": 14,
+     "ayah_start": 24,
+     "ayah_end": 24,
+     "word_start": 0,
+     "word_end": 10,
+     "correct_text": "ألم تر كيف ضرب الله مثلا كلمة طيبة كشجرة طيبة",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "جعل",
+      "source": "ضرب"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "يقول الله عز وجل",
+     "start": 67,
+     "end": 112,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-032-lead",
+   "category": "lead_in",
+   "article": "النظام في المؤسسات لا يقوم إلا على وضوح المرجعيات واحترامها. ونجد أصل هذا المعنى في القرآن الكريم: أطيعوا الله والرسول وأولي الأمر منكم، فالطاعة هنا مرتبة ومقيدة بما قبلها.",
+   "gold": [
+    {
+     "quote": "أطيعوا الله والرسول وأولي الأمر منكم",
+     "surah": 4,
+     "ayah_start": 59,
+     "ayah_end": 59,
+     "word_start": 4,
+     "word_end": 11,
+     "correct_text": "أطيعوا الله وأطيعوا الرسول وأولي الأمر منكم",
+     "wording": "wording_error",
+     "error": "two_errors",
+     "error_detail": [
+      {
+       "op": "omit",
+       "position": 2,
+       "written": null,
+       "source": "وأطيعوا"
+      },
+      {
+       "op": "substitute",
+       "position": 3,
+       "written": "والرسول",
+       "source": "الرسول"
+      }
+     ],
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "في القرآن الكريم",
+     "start": 99,
+     "end": 135,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "two_edits",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-033-lead",
+   "category": "lead_in",
+   "article": "الأسواق المالية تعلّمنا كل يوم أن الربح والخسارة يتعاقبان بلا استئذان. والحكمة ألا يكسرنا الفقد ولا يُبطرنا المكسب، قال سبحانه: لكيلا تأسوا على ما فاتكم ولا تفرحوا بما أعطاكم، وهذا ميزان نفسي قبل أن يكون اقتصاديًا.",
+   "gold": [
+    {
+     "quote": "لكيلا تأسوا على ما فاتكم ولا تفرحوا بما أعطاكم",
+     "surah": 57,
+     "ayah_start": 23,
+     "ayah_end": 23,
+     "word_start": 0,
+     "word_end": 9,
+     "correct_text": "لكيلا تأسوا على ما فاتكم ولا تفرحوا بما آتاكم",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 8,
+      "written": "أعطاكم",
+      "source": "آتاكم"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "قال سبحانه",
+     "start": 128,
+     "end": 174,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-034-lead",
+   "category": "lead_in",
+   "article": "قد يبذل المعلم جهدًا كبيرًا مع طالب لا يتغير، فيظن أن تعبه ضاع. لكن الأجر لا يرتبط بالنتيجة الظاهرة، كما في قوله تعالى: وإنا لا نضيع أجر من أحسن عملا، فالمطلوب الإحسان لا ضمان الثمرة.",
+   "gold": [
+    {
+     "quote": "وإنا لا نضيع أجر من أحسن عملا",
+     "surah": 18,
+     "ayah_start": 30,
+     "ayah_end": 30,
+     "word_start": 5,
+     "word_end": 12,
+     "correct_text": "إنا لا نضيع أجر من أحسن عملا",
+     "wording": "wording_error",
+     "error": "wrong_first",
+     "error_detail": {
+      "op": "substitute",
+      "position": 0,
+      "written": "وإنا",
+      "source": "إنا"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "كما في قوله تعالى",
+     "start": 120,
+     "end": 149,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_first_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-035-lead",
+   "category": "lead_in",
+   "article": "تتكرر الصلاة على النبي ﷺ في الأذكار اليومية، والأصل في ذلك أمر صريح، قال الله تعالى: إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ثم جاء الأمر للمؤمنين بعد ذلك مباشرة.",
+   "gold": [
+    {
+     "quote": "إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ",
+     "surah": 33,
+     "ayah_start": 56,
+     "ayah_end": 56,
+     "word_start": 0,
+     "word_end": 6,
+     "correct_text": "إن الله وملائكته يصلون على النبي",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "قال الله تعالى",
+     "start": 85,
+     "end": 142,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "no_reference",
+      "partial",
+      "single_verse",
+      "unmarked",
+      "vocalized"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-036-ref",
+   "category": "reference",
+   "article": "يشتكي بعض حفاظ القرآن من أنهم يحفظون كثيرًا ويفهمون قليلًا، مع أن مقصد الإنزال واضح: كتاب أنزلناه إليك مبارك ليدبروا آياته وليتذكر أولو الألباب (ص: 29). فالحفظ وسيلة إلى التدبر وليس بديلًا عنه.",
+   "gold": [
+    {
+     "quote": "كتاب أنزلناه إليك مبارك ليدبروا آياته وليتذكر أولو الألباب",
+     "surah": 38,
+     "ayah_start": 29,
+     "ayah_end": 29,
+     "word_start": 0,
+     "word_end": 9,
+     "correct_text": "كتاب أنزلناه إليك مبارك ليدبروا آياته وليتذكر أولو الألباب",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "ص: 29",
+     "reference": "correct",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "reference_ayah"
+     ],
+     "lead_in_text": null,
+     "start": 85,
+     "end": 143,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "plain",
+      "reference_correct",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-037-ref",
+   "category": "reference",
+   "article": "يتألم الآباء حين يرون أبناءهم يبتعدون عن الطريق رغم كل النصح، وعليهم أن يتذكروا أن الهداية بيد الله وحده: إنك لا تهدي من تحب ولكن الله يهدي من يشاء (سورة القصص، الآية 56). فاستمروا في الدعاء والقدوة الحسنة.",
+   "gold": [
+    {
+     "quote": "إنك لا تهدي من تحب ولكن الله يهدي من يشاء",
+     "surah": 28,
+     "ayah_start": 56,
+     "ayah_end": 56,
+     "word_start": 0,
+     "word_end": 10,
+     "correct_text": "إنك لا تهدي من أحببت ولكن الله يهدي من يشاء",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 4,
+      "written": "تحب",
+      "source": "أحببت"
+     },
+     "ambiguous": false,
+     "reference_text": "سورة القصص، الآية 56",
+     "reference": "correct",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "reference_ayah"
+     ],
+     "lead_in_text": null,
+     "start": 106,
+     "end": 147,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "reference_correct",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-038-ref",
+   "category": "reference",
+   "article": "العمل الجماعي المنظم قيمة يحتاجها كل فريق ناجح، في الملعب وفي الشركة وفي المسجد. ومن أبلغ صوره إن الله يحب الذين يقاتلون في سبيله صفا كأنهم بنيان مرصوص [الصف: 3]، فالتراص والانضباط من أسرار القوة.",
+   "gold": [
+    {
+     "quote": "إن الله يحب الذين يقاتلون في سبيله صفا كأنهم بنيان مرصوص",
+     "surah": 61,
+     "ayah_start": 4,
+     "ayah_end": 4,
+     "word_start": 0,
+     "word_end": 11,
+     "correct_text": "إن الله يحب الذين يقاتلون في سبيله صفا كأنهم بنيان مرصوص",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "الصف: 3",
+     "reference": "incorrect",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "reference_ayah"
+     ],
+     "lead_in_text": null,
+     "start": 95,
+     "end": 151,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wrong_reference"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-039-ref",
+   "category": "reference",
+   "article": "مهما بلغت قدرة العقل البشري على التخيل يبقى عاجزًا عن تصور الخالق، ولذلك كانت القاعدة الجامعة في هذا الباب: ليس كمثله شيء وهو السميع العليم (الشورى: 12)، فنثبت ما أثبته لنفسه دون تشبيه.",
+   "gold": [
+    {
+     "quote": "ليس كمثله شيء وهو السميع العليم",
+     "surah": 42,
+     "ayah_start": 11,
+     "ayah_end": 11,
+     "word_start": 13,
+     "word_end": 19,
+     "correct_text": "ليس كمثله شيء وهو السميع البصير",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 5,
+      "written": "العليم",
+      "source": "البصير"
+     },
+     "ambiguous": false,
+     "reference_text": "الشورى: 12",
+     "reference": "incorrect",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "reference_ayah"
+     ],
+     "lead_in_text": null,
+     "start": 108,
+     "end": 139,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word",
+      "wrong_reference"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-040-ref",
+   "category": "reference",
+   "article": "الاكتئاب حالة طبية تحتاج إلى علاج متخصص، لكن الطمأنينة الروحية سند لا غنى عنه أثناء العلاج. وفي سورة طه تحذير واضح من الإعراض: ومن أعرض عن ذكري فإن له معيشة ضنكا، والضنك ضيق يعرفه كل من ابتعد.",
+   "gold": [
+    {
+     "quote": "ومن أعرض عن ذكري فإن له معيشة ضنكا",
+     "surah": 20,
+     "ayah_start": 124,
+     "ayah_end": 124,
+     "word_start": 0,
+     "word_end": 8,
+     "correct_text": "ومن أعرض عن ذكري فإن له معيشة ضنكا",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "سورة طه",
+     "reference": "surah_only",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "reference_surah"
+     ],
+     "lead_in_text": null,
+     "start": 127,
+     "end": 161,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "partial",
+      "plain",
+      "single_verse",
+      "surah_only_reference",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-041-ref",
+   "category": "reference",
+   "article": "نؤجل التوبة ونسوّف الأعمال الصالحة اعتمادًا على سعة الرحمة، وننسى أن الكرم الإلهي يستحق الحياء لا الجرأة. يا أيها الإنسان ما غرك بربك الكريم (الانفطار: 26)، سؤال يهزّ القلب ويوقظه من غفلته.",
+   "gold": [
+    {
+     "quote": "يا أيها الإنسان ما غرك بربك الكريم",
+     "surah": 82,
+     "ayah_start": 6,
+     "ayah_end": 6,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "يا أيها الإنسان ما غرك بربك الكريم",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "الانفطار: 26",
+     "reference": "out_of_range",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "reference_ayah"
+     ],
+     "lead_in_text": null,
+     "start": 106,
+     "end": 140,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "out_of_range_reference",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-042-quotes",
+   "category": "quotation_marks",
+   "article": "لا بأس أن تبكي وأن تعترف بضعفك، فالأنبياء أنفسهم شكوا أحزانهم. لكن الفرق أين تضع شكواك؛ قال يعقوب عليه السلام: ««إنما أشكو همي وحزني إلى الله»»، ولم يشكُ إلى الناس.",
+   "gold": [
+    {
+     "quote": "إنما أشكو همي وحزني إلى الله",
+     "surah": 12,
+     "ayah_start": 86,
+     "ayah_end": 86,
+     "word_start": 1,
+     "word_end": 7,
+     "correct_text": "إنما أشكو بثي وحزني إلى الله",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 2,
+      "written": "همي",
+      "source": "بثي"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 113,
+     "end": 141,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-043-quotes",
+   "category": "quotation_marks",
+   "article": "كل يوم من أيامنا خطوة في طريق طويل ينتهي إلى لقاء لا مفر منه. تقول الآية: ««يا أيها الإنسان إنك كادح إلى ربك كدحا فملاقيه»»، والكدح هنا هو السعي بكل ما فيه من تعب وأمل.",
+   "gold": [
+    {
+     "quote": "يا أيها الإنسان إنك كادح إلى ربك كدحا فملاقيه",
+     "surah": 84,
+     "ayah_start": 6,
+     "ayah_end": 6,
+     "word_start": 0,
+     "word_end": 9,
+     "correct_text": "يا أيها الإنسان إنك كادح إلى ربك كدحا فملاقيه",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": false,
+     "context": [
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 76,
+     "end": 121,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "marked",
+      "no_reference",
+      "plain",
+      "single_verse"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-044-quotes",
+   "category": "quotation_marks",
+   "article": "الاعتراف بالخطأ أول خطوات الإصلاح، وقد علّمنا أبوانا آدم وحواء ذلك حين قالا: \"\"ربنا ظلمنا أنفسنا وإن لم تغفر وترحمنا لنكونن من الخاسرين\"\". لم يبررا ولم يلوما أحدًا، بل اعترفا وطلبا المغفرة.",
+   "gold": [
+    {
+     "quote": "ربنا ظلمنا أنفسنا وإن لم تغفر وترحمنا لنكونن من الخاسرين",
+     "surah": 7,
+     "ayah_start": 23,
+     "ayah_end": 23,
+     "word_start": 1,
+     "word_end": 12,
+     "correct_text": "ربنا ظلمنا أنفسنا وإن لم تغفر لنا وترحمنا لنكونن من الخاسرين",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 6,
+      "written": null,
+      "source": "لنا"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 79,
+     "end": 135,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "missing_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-045-quotes",
+   "category": "quotation_marks",
+   "article": "قبل الامتحانات النهائية أرسل مشرف السكن الجامعي إلى الطلاب رسالة قصيرة فيها دعاء طالوت وجنوده: ««اللهم أفرغ علينا صبرا وثبت أقدامنا»» (البقرة: 250)، وتمنى لهم التوفيق.",
+   "gold": [
+    {
+     "quote": "اللهم أفرغ علينا صبرا وثبت أقدامنا",
+     "surah": 2,
+     "ayah_start": 250,
+     "ayah_end": 250,
+     "word_start": 5,
+     "word_end": 11,
+     "correct_text": "ربنا أفرغ علينا صبرا وثبت أقدامنا",
+     "wording": "wording_error",
+     "error": "wrong_first",
+     "error_detail": {
+      "op": "substitute",
+      "position": 0,
+      "written": "اللهم",
+      "source": "ربنا"
+     },
+     "ambiguous": false,
+     "reference_text": "البقرة: 250",
+     "reference": "correct",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "reference_ayah",
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 97,
+     "end": 131,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "partial",
+      "plain",
+      "reference_correct",
+      "single_verse",
+      "wording_error",
+      "wrong_first_word"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-046-brackets",
+   "category": "brackets",
+   "article": "عند الانتقال إلى وظيفة جديدة أو مدينة جديدة يحتاج المرء إلى دعاء يجمع له حسن البداية وحسن النهاية، ومن أجمع ذلك: ﴿﴿وَقُلْ رَبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ وَأَخْرِجْنِي مُخْرَجَ صِدْقٍ﴾﴾ [الإسراء: 80].",
+   "gold": [
+    {
+     "quote": "وَقُلْ رَبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ وَأَخْرِجْنِي مُخْرَجَ صِدْقٍ",
+     "surah": 17,
+     "ayah_start": 80,
+     "ayah_end": 80,
+     "word_start": 0,
+     "word_end": 8,
+     "correct_text": "وقل رب أدخلني مدخل صدق وأخرجني مخرج صدق",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "الإسراء: 80",
+     "reference": "correct",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "reference_ayah",
+      "brackets"
+     ],
+     "lead_in_text": null,
+     "start": 115,
+     "end": 185,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "partial",
+      "reference_correct",
+      "single_verse",
+      "vocalized"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-047-brackets",
+   "category": "brackets",
+   "article": "الصناعات الحديثة كلها تقريبًا قائمة على المعادن، وأولها الحديد. قال تعالى: ﴿﴿وأنزلنا الحديد فيه بأس عظيم ومنافع للناس﴾﴾، فالقوة والمنفعة اجتمعتا في معدن واحد، والإنسان يختار كيف يستعمله.",
+   "gold": [
+    {
+     "quote": "وأنزلنا الحديد فيه بأس عظيم ومنافع للناس",
+     "surah": 57,
+     "ayah_start": 25,
+     "ayah_end": 25,
+     "word_start": 11,
+     "word_end": 18,
+     "correct_text": "وأنزلنا الحديد فيه بأس شديد ومنافع للناس",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 4,
+      "written": "عظيم",
+      "source": "شديد"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "lead_in",
+      "brackets"
+     ],
+     "lead_in_text": "قال تعالى",
+     "start": 77,
+     "end": 117,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "marked",
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-048-brackets",
+   "category": "brackets",
+   "article": "التأمل في الكون ليس ترفًا فكريًا، بل عبادة تنتهي بالخضوع والدعاء، كما في دعاء أولي الألباب: ﴿﴿ربنا ما خلقت باطلا سبحانك فقنا عذاب النار﴾﴾ (آل عمران: 190).",
+   "gold": [
+    {
+     "quote": "ربنا ما خلقت باطلا سبحانك فقنا عذاب النار",
+     "surah": 3,
+     "ayah_start": 191,
+     "ayah_end": 191,
+     "word_start": 12,
+     "word_end": 21,
+     "correct_text": "ربنا ما خلقت هذا باطلا سبحانك فقنا عذاب النار",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 3,
+      "written": null,
+      "source": "هذا"
+     },
+     "ambiguous": false,
+     "reference_text": "آل عمران: 190",
+     "reference": "incorrect",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "reference_ayah",
+      "brackets"
+     ],
+     "lead_in_text": null,
+     "start": 94,
+     "end": 135,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "missing_word",
+      "partial",
+      "plain",
+      "single_verse",
+      "wording_error",
+      "wrong_reference"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-049-brackets",
+   "category": "brackets",
+   "article": "أقصر سورة في المصحف تحمل بشارة عظيمة للنبي ﷺ في وقت اشتد فيه الأذى عليه: ﴿﴿إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ﴾﴾. ثلاث كلمات فقط، لكنها غيّرت مزاج المرحلة كلها.",
+   "gold": [
+    {
+     "quote": "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ",
+     "surah": 108,
+     "ayah_start": 1,
+     "ayah_end": 1,
+     "word_start": 0,
+     "word_end": 3,
+     "correct_text": "إنا أعطيناك الكوثر",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": false,
+     "context": [
+      "brackets"
+     ],
+     "lead_in_text": null,
+     "start": 75,
+     "end": 107,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "marked",
+      "no_reference",
+      "short",
+      "single_verse",
+      "vocalized"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-050-uthmani",
+   "category": "uthmani",
+   "article": "في مجالس العزاء نحتاج إلى كلمات تخفف الفقد دون أن تنكره، ومن أرق ما يُقرأ على أهل الميت: ﴿﴿يَا أَيَّتُهَا ٱلنَّفۡسُ ٱلۡمُطۡمَئِنَّةُ ٱرۡجِعِي إِلَىٰ رَبِّكِ رَاضِيَةً مَرۡضِيَّةً﴾﴾ [الفجر: 27-28].",
+   "gold": [
+    {
+     "quote": "يَا أَيَّتُهَا ٱلنَّفۡسُ ٱلۡمُطۡمَئِنَّةُ ٱرۡجِعِي إِلَىٰ رَبِّكِ رَاضِيَةً مَرۡضِيَّةً",
+     "surah": 89,
+     "ayah_start": 27,
+     "ayah_end": 28,
+     "word_start": 0,
+     "word_end": 5,
+     "correct_text": "يا أيتها النفس المطمئنة ارجعي إلى ربك راضية مرضية",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "الفجر: 27-28",
+     "reference": "correct",
+     "unmarked": false,
+     "partial": false,
+     "context": [
+      "reference_ayah",
+      "brackets",
+      "uthmani"
+     ],
+     "lead_in_text": null,
+     "start": 91,
+     "end": 178,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "marked",
+      "multi_verse",
+      "reference_correct",
+      "uthmani"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-051-uthmani",
+   "category": "uthmani",
+   "article": "الشريعة لم تأتِ لتعقيد حياة الناس، فالرخص في السفر والمرض شاهد على ذلك. يقول الله تعالى: يُرِيدُ ٱللَّهُ ٱلۡيُسۡرَ وَلَا يُرِيدُ بِكُمُ ٱلۡعُسۡرَ، فمن شدد على نفسه وعلى غيره فقد خالف هذا المقصد.",
+   "gold": [
+    {
+     "quote": "يُرِيدُ ٱللَّهُ ٱلۡيُسۡرَ وَلَا يُرِيدُ بِكُمُ ٱلۡعُسۡرَ",
+     "surah": 2,
+     "ayah_start": 185,
+     "ayah_end": 185,
+     "word_start": 27,
+     "word_end": 35,
+     "correct_text": "يريد الله بكم اليسر ولا يريد بكم العسر",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 2,
+      "written": null,
+      "source": "بكم"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in",
+      "uthmani"
+     ],
+     "lead_in_text": "يقول الله تعالى",
+     "start": 89,
+     "end": 145,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "missing_word",
+      "no_reference",
+      "partial",
+      "single_verse",
+      "unmarked",
+      "uthmani",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-052-uthmani",
+   "category": "uthmani",
+   "article": "الكلمة الصادقة والعمل الصالح متلازمان، فالقول وحده لا يكفي. وفي ذلك قوله: ««إِلَيۡهِ يَصۡعَدُ ٱلۡكَلَامُ ٱلطَّيِّبُ وَٱلۡعَمَلُ ٱلصَّالِحُ يَرۡفَعُهُ»»، فالعمل هو الذي يرفع الكلام ويعطيه وزنه.",
+   "gold": [
+    {
+     "quote": "إِلَيۡهِ يَصۡعَدُ ٱلۡكَلَامُ ٱلطَّيِّبُ وَٱلۡعَمَلُ ٱلصَّالِحُ يَرۡفَعُهُ",
+     "surah": 35,
+     "ayah_start": 10,
+     "ayah_end": 10,
+     "word_start": 7,
+     "word_end": 14,
+     "correct_text": "إليه يصعد الكلم الطيب والعمل الصالح يرفعه",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 2,
+      "written": "ٱلۡكَلَامُ",
+      "source": "الكلم"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "quotation_marks",
+      "uthmani"
+     ],
+     "lead_in_text": null,
+     "start": 76,
+     "end": 149,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "single_verse",
+      "uthmani",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-053-famous",
+   "category": "famous_short",
+   "article": "وقفت طويلًا أمام صورة مكبرة لجناح فراشة التقطها مصور هاوٍ: ألوان متناظرة ونقوش دقيقة لا يصنعها فنان بشري. إنها لمسة من صنع أحسن الخالقين في أصغر مخلوقاته.",
+   "gold": [
+    {
+     "quote": "أحسن الخالقين",
+     "surah": 23,
+     "ayah_start": 14,
+     "ayah_end": 14,
+     "word_start": 19,
+     "word_end": 21,
+     "correct_text": "أحسن الخالقين",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 123,
+     "end": 136,
+     "expect": {
+      "detect": "desirable",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "short",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-054-famous",
+   "category": "famous_short",
+   "article": "قد يتقدم المحتال في السوق خطوات، ويظن الأمين أن صدقه أخّره عن الآخرين. لكن التجربة الطويلة تقول غير ذلك، والعاقبة للمتقين، ولو بعد حين. وكما يقول المثل الشعبي: من حفر حفرة لأخيه وقع فيها.",
+   "gold": [
+    {
+     "quote": "والعاقبة للمتقين",
+     "surah": 28,
+     "ayah_start": 83,
+     "ayah_end": 83,
+     "word_start": 12,
+     "word_end": 14,
+     "correct_text": "والعاقبة للمتقين",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 105,
+     "end": 121,
+     "expect": {
+      "detect": "desirable",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "short",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [
+    "من حفر حفرة لأخيه وقع فيها"
+   ],
+   "negatives_detail": [
+    {
+     "text": "من حفر حفرة لأخيه وقع فيها",
+     "start": 160,
+     "end": 186,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-055-famous",
+   "category": "famous_short",
+   "article": "وعد المرشح ببناء جسر وملعب ومستشفى في عام واحد، فلما انتهت الانتخابات تبيّن أن تلك الوعود كانت أضغاث أحلام، وعاد الناس إلى طرقهم المزدحمة كما كانوا، يرددون ساخرين: تمخض الجبل فولد فأرًا.",
+   "gold": [
+    {
+     "quote": "أضغاث أحلام",
+     "surah": 21,
+     "ayah_start": 5,
+     "ayah_end": 5,
+     "word_start": 2,
+     "word_end": 4,
+     "correct_text": "أضغاث أحلام",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 95,
+     "end": 106,
+     "expect": {
+      "detect": "desirable",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "short",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [
+    "تمخض الجبل فولد فأرًا"
+   ],
+   "negatives_detail": [
+    {
+     "text": "تمخض الجبل فولد فأرًا",
+     "start": 164,
+     "end": 185,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-056-famous",
+   "category": "famous_short",
+   "article": "حين يلتزم الإنسان الصدق في عمله ويتجنب الشبهات، يشعر بأنه يسير على صراط مستقيم مهما كثرت المنعطفات حوله، فالوضوح الداخلي يمنحه ثباتًا لا تمنحه المناصب.",
+   "gold": [
+    {
+     "quote": "على صراط مستقيم",
+     "surah": 11,
+     "ayah_start": 56,
+     "ayah_end": 56,
+     "word_start": 15,
+     "word_end": 18,
+     "correct_text": "على صراط مستقيم",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 63,
+     "end": 78,
+     "expect": {
+      "detect": "desirable",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "short",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [],
+   "negatives_detail": [],
+   "formulas": []
+  },
+  {
+   "id": "HD-057-famous",
+   "category": "famous_short",
+   "article": "شهد له جيرانه بأنه رجل على خلق عظيم: لا يرفع صوته، ولا يتأخر عن مساعدة، ولا يذكر أحدًا بسوء في غيابه. وقد صدق فيه الحديث: أكمل المؤمنين إيمانًا أحسنهم خلقًا. رحمه الله وأسكنه فسيح جناته.",
+   "gold": [
+    {
+     "quote": "خلق عظيم",
+     "surah": 68,
+     "ayah_start": 4,
+     "ayah_end": 4,
+     "word_start": 2,
+     "word_end": 4,
+     "correct_text": "خلق عظيم",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 27,
+     "end": 35,
+     "expect": {
+      "detect": "desirable",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "short",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [
+    "أكمل المؤمنين إيمانًا أحسنهم خلقًا",
+    "رحمه الله وأسكنه فسيح جناته"
+   ],
+   "negatives_detail": [
+    {
+     "text": "أكمل المؤمنين إيمانًا أحسنهم خلقًا",
+     "start": 122,
+     "end": 156,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "رحمه الله وأسكنه فسيح جناته",
+     "start": 158,
+     "end": 185,
+     "kind": "dua",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-058-famous",
+   "category": "famous_short",
+   "article": "نخطط ونرتب ونحسب كل شيء، ثم يأتي أمر الله في لحظة فيغيّر الخطة كلها. فهو سبحانه إذا أراد أمرًا قال له: كن فيكون، ونحن نتعلم أن نرضى ونعيد البناء ونقول: قدّر الله وما شاء فعل.",
+   "gold": [
+    {
+     "quote": "كن فيكون",
+     "surah": 19,
+     "ayah_start": 35,
+     "ayah_end": 35,
+     "word_start": 14,
+     "word_end": 16,
+     "correct_text": "كن فيكون",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 103,
+     "end": 111,
+     "expect": {
+      "detect": "desirable",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "short",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [
+    "قدّر الله وما شاء فعل"
+   ],
+   "negatives_detail": [
+    {
+     "text": "قدّر الله وما شاء فعل",
+     "start": 152,
+     "end": 173,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N01-hadith",
+   "category": "negative",
+   "article": "في محاضرة عن أخلاقيات العمل استشهد المحاضر بالحديث الشريف: إن الله يحب إذا عمل أحدكم عملًا أن يتقنه، ثم أضاف أن الإتقان عادة تُبنى بالتدريج، وأن أحب الأعمال إلى الله أدومها وإن قل. وختم بالمثل المعروف: أول الغيث قطرة.",
+   "gold": [],
+   "negatives": [
+    "إن الله يحب إذا عمل أحدكم عملًا أن يتقنه",
+    "أحب الأعمال إلى الله أدومها وإن قل",
+    "أول الغيث قطرة"
+   ],
+   "negatives_detail": [
+    {
+     "text": "إن الله يحب إذا عمل أحدكم عملًا أن يتقنه",
+     "start": 59,
+     "end": 99,
+     "kind": "hard_negative",
+     "shares_quran_run": "ان الله يحب",
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "أحب الأعمال إلى الله أدومها وإن قل",
+     "start": 145,
+     "end": 179,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "أول الغيث قطرة",
+     "start": 202,
+     "end": 216,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N02-dua",
+   "category": "negative",
+   "article": "دعاء اليوم: اللهم إني أسألك علمًا نافعًا ورزقًا طيبًا وعملًا متقبلًا. اللهم أعني على ذكرك وشكرك وحسن عبادتك. شاركوه مع من تحبون، ولا تنسونا من صالح دعائكم في هذه الساعات المباركة.",
+   "gold": [],
+   "negatives": [
+    "اللهم إني أسألك علمًا نافعًا ورزقًا طيبًا وعملًا متقبلًا",
+    "اللهم أعني على ذكرك وشكرك وحسن عبادتك"
+   ],
+   "negatives_detail": [
+    {
+     "text": "اللهم إني أسألك علمًا نافعًا ورزقًا طيبًا وعملًا متقبلًا",
+     "start": 12,
+     "end": 68,
+     "kind": "dua",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "اللهم أعني على ذكرك وشكرك وحسن عبادتك",
+     "start": 70,
+     "end": 107,
+     "kind": "dua",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N03-common-runs",
+   "category": "negative",
+   "article": "تقيم البلدية في كل عام مهرجانًا للتمور يجمع المزارعين من مختلف المناطق، ويُعرض فيه من كل شيء تقريبًا: التمور والعسل والحرف اليدوية. ويؤكد المنظمون أنهم حريصون على كل شيء يخص سلامة الزوار وراحتهم.",
+   "gold": [],
+   "negatives": [
+    "في كل عام",
+    "من كل شيء",
+    "على كل شيء"
+   ],
+   "negatives_detail": [
+    {
+     "text": "في كل عام",
+     "start": 13,
+     "end": 22,
+     "kind": "hard_negative",
+     "shares_quran_run": "في كل عام",
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "من كل شيء",
+     "start": 83,
+     "end": 92,
+     "kind": "hard_negative",
+     "shares_quran_run": "من كل شيء",
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "على كل شيء",
+     "start": 159,
+     "end": 169,
+     "kind": "hard_negative",
+     "shares_quran_run": "علي كل شيء",
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N04-lookalike",
+   "category": "negative",
+   "article": "إلى كل المتعبين من طول الطريق: إن بعد الليل فجرًا، وإن مع الصبر فرجًا، فلا تبكوا على ما مضى ولا تقلقوا مما هو آت. اكتبوا أحلامكم من جديد، وابدؤوا بخطوة واحدة صغيرة هذا المساء.",
+   "gold": [],
+   "negatives": [
+    "إن بعد الليل فجرًا",
+    "وإن مع الصبر فرجًا"
+   ],
+   "negatives_detail": [
+    {
+     "text": "إن بعد الليل فجرًا",
+     "start": 31,
+     "end": 49,
+     "kind": "prose_lookalike",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "وإن مع الصبر فرجًا",
+     "start": 51,
+     "end": 69,
+     "kind": "prose_lookalike",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N05-common",
+   "category": "negative",
+   "article": "سيُفتتح الفرع الجديد للمكتبة العامة الأسبوع القادم بإذن الله، وسيضم قاعة للأطفال ومساحة للعمل المشترك ومقهى صغيرًا. نسأل الله التوفيق للقائمين عليه، ونتمنى أن يكون إضافة حقيقية للحي.",
+   "gold": [],
+   "negatives": [
+    "بإذن الله",
+    "نسأل الله التوفيق للقائمين عليه"
+   ],
+   "negatives_detail": [
+    {
+     "text": "بإذن الله",
+     "start": 51,
+     "end": 60,
+     "kind": "common_phrase",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "نسأل الله التوفيق للقائمين عليه",
+     "start": 116,
+     "end": 147,
+     "kind": "common_phrase",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N06-paraphrase",
+   "category": "negative",
+   "article": "لا تيأس مهما كثرت أخطاؤك، فأنت تعلم أن الله غفور رحيم، وأن باب التوبة مفتوح لا يُغلق في وجه أحد، وأن الندم الصادق أول الطريق. ابدأ اليوم ولا تنتظر أن تصبح مثاليًا.",
+   "gold": [],
+   "negatives": [
+    "أن الله غفور رحيم"
+   ],
+   "negatives_detail": [
+    {
+     "text": "أن الله غفور رحيم",
+     "start": 36,
+     "end": 53,
+     "kind": "hard_negative",
+     "shares_quran_run": "ان الله غفور رحيم",
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N07-lookalike",
+   "category": "negative",
+   "article": "في ختام التقرير السنوي كتب مدير الجمعية: هذه ثمرة جهد فريق كامل، وما توفيقنا إلا بالله، ثم بدعم المتبرعين الذين لم يبخلوا بوقتهم وأموالهم، وسنواصل العمل في العام القادم بروح أكبر.",
+   "gold": [],
+   "negatives": [
+    "وما توفيقنا إلا بالله"
+   ],
+   "negatives_detail": [
+    {
+     "text": "وما توفيقنا إلا بالله",
+     "start": 65,
+     "end": 86,
+     "kind": "prose_lookalike",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N08-social",
+   "category": "negative",
+   "article": "صباح الخير يا أصدقاء، اليوم أول يوم دوام بعد الإجازة الطويلة. تذكروا أن النجاح لا يأتي صدفة، وأن لكل مجتهد نصيبًا، وكما في الحديث: يسروا ولا تعسروا وبشروا ولا تنفروا. #يوم_جديد #بداية",
+   "gold": [],
+   "negatives": [
+    "لكل مجتهد نصيبًا",
+    "يسروا ولا تعسروا وبشروا ولا تنفروا"
+   ],
+   "negatives_detail": [
+    {
+     "text": "لكل مجتهد نصيبًا",
+     "start": 97,
+     "end": 113,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "يسروا ولا تعسروا وبشروا ولا تنفروا",
+     "start": 131,
+     "end": 165,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N09-hadith",
+   "category": "negative",
+   "article": "من الوصايا النبوية الجامعة التي يحفظها الصغار قبل الكبار: اتق الله حيثما كنت، وأتبع السيئة الحسنة تمحها، وخالق الناس بخلق حسن. ثلاث جمل قصيرة تختصر علاقة الإنسان بربه وبنفسه وبالناس.",
+   "gold": [],
+   "negatives": [
+    "اتق الله حيثما كنت، وأتبع السيئة الحسنة تمحها، وخالق الناس بخلق حسن"
+   ],
+   "negatives_detail": [
+    {
+     "text": "اتق الله حيثما كنت، وأتبع السيئة الحسنة تمحها، وخالق الناس بخلق حسن",
+     "start": 58,
+     "end": 125,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-N10-lookalike",
+   "category": "negative",
+   "article": "والليل إذا أقبل بسكونه، والنهار إذا أدبر بضجيجه، يذكّران الإنسان بأن العمر رحلة قصيرة بين ضوء وظلمة. هكذا كتب الشاعر في مطلع قصيدته الأخيرة قبل أن يغادر مدينته إلى الأبد.",
+   "gold": [],
+   "negatives": [
+    "والليل إذا أقبل بسكونه، والنهار إذا أدبر بضجيجه"
+   ],
+   "negatives_detail": [
+    {
+     "text": "والليل إذا أقبل بسكونه، والنهار إذا أدبر بضجيجه",
+     "start": 0,
+     "end": 47,
+     "kind": "prose_lookalike",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  },
+  {
+   "id": "HD-L01-gratitude",
+   "category": "long_article",
+   "article": "الشكر: عادة صغيرة تغيّر نظرتنا إلى الحياة\n\nنستيقظ كل صباح على قائمة طويلة من المطالب: فواتير تنتظر السداد، ورسائل لم نرد عليها، ومواعيد تتزاحم في التقويم. وقلّما نبدأ يومنا بقائمة أخرى أكثر طولًا وأعمق أثرًا، هي قائمة ما نملكه فعلًا. هذا المقال محاولة لإعادة الاعتبار إلى عادة صغيرة يمكن أن تغيّر مزاج اليوم كله: عادة الشكر.\n\nأول ما يلفت النظر أن النعم أكثر من أن تُحصى. لو حاول أحدنا أن يكتب كل ما أنعم الله به عليه في يوم واحد لما استطاع، فالنفس الذي يدخل ويخرج دون جهد، والقلب الذي ينبض دون أن نأمره، والعين التي تفتح على النور، كلها عطايا لا ننتبه لها إلا حين تتعطل. ولهذا جاء التنبيه الواضح: ﴿﴿وَإِنْ تَعُدُّوا نِعْمَةَ اللَّهِ لَا تُحْصُوهَا﴾﴾ (النحل: 18). إنها دعوة إلى التواضع قبل أن تكون دعوة إلى الإحصاء.\n\nومع ذلك فإن الشاكرين قلة في كل زمان، وقد أخبرنا القرآن بذلك صراحة حين قال: وقليل من عبادي الشكور (1). وهذه القلة ليست ذمًا للناس بقدر ما هي بيان لصعوبة المقام؛ فالشكر ليس كلمة تقال، بل حالة يعيشها القلب ويترجمها السلوك. وفي الأثر النبوي تذكير بالوجه الاجتماعي للشكر: من لا يشكر الناس لا يشكر الله، فمن عجز عن الاعتراف بمعروف من حوله فهو عن الاعتراف بفضل ربه أعجز.\n\nوالنعمة لا تقتصر على ما نطلبه ونحصل عليه، بل تشمل ما أُعطيناه دون أن نسأل. يقول أحد المفسرين في تأمل جميل إن الله سبحانه وآتاكم من كل ما سألتموه وأعطاهم فوق ذلك ما لم يخطر لهم على بال. ومن هنا كان الحمد الحقيقي أن نقول: الحمد لله، ونحن نستحضر هذا الفيض كله، لا أن نرددها عادةً لسانية بلا حضور.\n\nوتتكرر في القرآن عبارة واحدة تختم آيات الفضل والعطاء بحقيقة مؤلمة عن طبيعة البشر: ««ولكن أكثر الناس لا يشكرون»». وهذا التكرار ليس حشوًا، بل منهج تربوي يعيدنا كل مرة إلى نقطة البداية: انظر حولك، ثم اسأل نفسك بصدق من أي الفريقين أنت.\n\nويبقى الإنسان أمام خيارين لا ثالث لهما، كما يصور ذلك قوله: ﴿﴿إِنَّا هَدَيْنَاهُ السَّبِيلَ إِمَّا شَاكِرًا وَإِمَّا كَفُورًا﴾﴾ (الإنسان: 2). فالطريق واضح، والاختيار بيد صاحبه، والشكر هنا ليس شعورًا عابرًا بل موقف وجودي من الحياة كلها.\n\nكيف نتعلم الشكر عمليًا؟\n\nأولًا: أن نربط الشكر بالعمل. فالشكر في القرآن مقرون بحسن الاستعمال، يقول الله تعالى: كلوا من طيبات ما رزقناكم واشكروا الله، فالأكل من الطيبات نعمة، وشكرها أن تُستعمل القوة التي تمنحها في طاعة المنعم. ثانيًا: أن نعدّ النعم بصوت مسموع مع أطفالنا قبل النوم، ثلاث نعم كل ليلة، فتتحول العادة إلى طبع. ثالثًا: أن نعبّر عن امتنان محدد لشخص محدد كل يوم، برسالة قصيرة أو كلمة طيبة.\n\nيقول المثل: بالشكر تدوم النعم، ويؤيده ما نراه في حياة الناس؛ فالشاكر يرى النعمة فيحافظ عليها، والجاحد لا يراها فيفرّط فيها حتى تزول. وكانت أمي تختم كل وجبة بقولها: نحمد الله على كل شيء، فنضحك صغارًا من تكرارها، ثم فهمنا كبارًا أنها كانت تعلّمنا درسًا لا تعلّمه المدارس.\n\nوأخيرًا، حين تضيق بك الدنيا وتشعر أن ما ينقصك أكثر مما عندك، عد إلى القاعدة الأولى: وإن تعدوا نعمة الله لا تحصوها. ثم ابدأ العدّ، وستكتشف أنك أغنى مما تظن.\n\nالهوامش:\n(1) سورة سبأ، الآية 13.",
+   "gold": [
+    {
+     "quote": "وَإِنْ تَعُدُّوا نِعْمَةَ اللَّهِ لَا تُحْصُوهَا",
+     "surah": 16,
+     "ayah_start": 18,
+     "ayah_end": 18,
+     "word_start": 0,
+     "word_end": 6,
+     "correct_text": "وإن تعدوا نعمة الله لا تحصوها",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "النحل: 18",
+     "reference": "correct",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "reference_ayah",
+      "brackets"
+     ],
+     "lead_in_text": null,
+     "start": 599,
+     "end": 647,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "partial",
+      "reference_correct",
+      "repeated_in_article",
+      "single_verse",
+      "vocalized"
+     ]
+    },
+    {
+     "quote": "وقليل من عبادي الشكور",
+     "surah": 34,
+     "ayah_start": 13,
+     "ayah_end": 13,
+     "word_start": 15,
+     "word_end": 19,
+     "correct_text": "وقليل من عبادي الشكور",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "سورة سبأ، الآية 13",
+     "reference": "correct",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "reference_ayah",
+      "footnote_ref"
+     ],
+     "lead_in_text": null,
+     "start": 791,
+     "end": 812,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "footnote_ref",
+      "partial",
+      "plain",
+      "reference_correct",
+      "single_verse",
+      "unmarked"
+     ]
+    },
+    {
+     "quote": "وآتاكم من كل ما سألتموه",
+     "surah": 14,
+     "ayah_start": 34,
+     "ayah_end": 34,
+     "word_start": 0,
+     "word_end": 5,
+     "correct_text": "وآتاكم من كل ما سألتموه",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 1202,
+     "end": 1225,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    },
+    {
+     "quote": "ولكن أكثر الناس لا يشكرون",
+     "surah": 40,
+     "ayah_start": 61,
+     "ayah_end": 61,
+     "word_start": 15,
+     "word_end": 20,
+     "correct_text": "ولكن أكثر الناس لا يشكرون",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 1460,
+     "end": 1485,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "single_verse"
+     ]
+    },
+    {
+     "quote": "إِنَّا هَدَيْنَاهُ السَّبِيلَ إِمَّا شَاكِرًا وَإِمَّا كَفُورًا",
+     "surah": 76,
+     "ayah_start": 3,
+     "ayah_end": 3,
+     "word_start": 0,
+     "word_end": 7,
+     "correct_text": "إنا هديناه السبيل إما شاكرا وإما كفورا",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "الإنسان: 2",
+     "reference": "incorrect",
+     "unmarked": false,
+     "partial": false,
+     "context": [
+      "reference_ayah",
+      "brackets"
+     ],
+     "lead_in_text": null,
+     "start": 1670,
+     "end": 1733,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "marked",
+      "single_verse",
+      "vocalized",
+      "wrong_reference"
+     ]
+    },
+    {
+     "quote": "كلوا من طيبات ما رزقناكم واشكروا الله",
+     "surah": 2,
+     "ayah_start": 172,
+     "ayah_end": 172,
+     "word_start": 4,
+     "word_end": 11,
+     "correct_text": "كلوا من طيبات ما رزقناكم واشكروا لله",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 6,
+      "written": "الله",
+      "source": "لله"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "يقول الله تعالى",
+     "start": 1955,
+     "end": 1992,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word"
+     ]
+    },
+    {
+     "quote": "وإن تعدوا نعمة الله لا تحصوها",
+     "surah": 16,
+     "ayah_start": 18,
+     "ayah_end": 18,
+     "word_start": 0,
+     "word_end": 6,
+     "correct_text": "وإن تعدوا نعمة الله لا تحصوها",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 2599,
+     "end": 2628,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_article",
+      "single_verse",
+      "unmarked"
+     ]
+    }
+   ],
+   "negatives": [
+    "من لا يشكر الناس لا يشكر الله",
+    "بالشكر تدوم النعم",
+    "نحمد الله على كل شيء"
+   ],
+   "negatives_detail": [
+    {
+     "text": "من لا يشكر الناس لا يشكر الله",
+     "start": 983,
+     "end": 1012,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "بالشكر تدوم النعم",
+     "start": 2256,
+     "end": 2273,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "نحمد الله على كل شيء",
+     "start": 2408,
+     "end": 2428,
+     "kind": "hard_negative",
+     "shares_quran_run": "الله علي كل شيء",
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": [
+    "الحمد لله"
+   ]
+  },
+  {
+   "id": "HD-L02-time-work",
+   "category": "long_article",
+   "article": "خطبة الجمعة: الوقت والعمل\n\nالحمد لله الذي جعل الأيام خزائن للأعمال، والصلاة والسلام على نبينا محمد الذي كان أشد الناس حرصًا على وقته. أما بعد، أيها الإخوة الكرام، فإن حديثنا اليوم عن رأس مال الإنسان الحقيقي: الوقت، وعن الطريقة التي يتحول بها الوقت إلى عمل نافع.\n\nلقد نظّم الله حياتنا على إيقاع دقيق بين الراحة والسعي، فقال سبحانه: ﴿﴿وَجَعَلْنَا اللَّيْلَ لِبَاسًا وَجَعَلْنَا النَّهَارَ مَعَاشًا﴾﴾ [النبأ: 10-11]. فالليل للسكون والتجدد، والنهار للكسب والحركة، ومن قلب هذا النظام فسهر ليله في اللهو ونام نهاره عن الواجبات خسر الاثنين معًا. وقد دعا النبي ﷺ لأمته فقال: اللهم بارك لأمتي في بكورها، فالبركة في أول النهار لمن أدركها.\n\nثم اعلموا أن الإنسان لم يُخلق للفراغ، وأن الحياة ليست صدفة بلا معنى، أفحسبتم أنما خلقناكم عبثا ثم نُترك بلا حساب؟ هذا السؤال وحده كافٍ لأن يعيد ترتيب جدول أيامنا. والمؤمن يبادر قبل أن تشغله الشواغل، وفي الحديث: بادروا بالأعمال، أي سارعوا إليها قبل أن تأتي الفتن والعوائق.\n\nأيها الأحبة، لا يضيع عند الله عمل صادق مهما كان صغيرًا. وقد طمأن الله عباده العاملين بقوله: ««أَنِّي لَا أُضِيعُ عَمَلَ عَامِلٍ مِنْكُمْ»»، فالموظف الأمين في مكتبه، والعامل المتقن في ورشته، والأم الساهرة على أبنائها، كلهم في ميزان واحد عند ربهم. ولن يضيع تعب أحد منهم، فهو سبحانه قال: أني لا أضيع عمل عامل منكم، وكررها بصيغ متعددة في كتابه ليطمئن كل عامل.\n\nوليس المطلوب أن نرى ثمرة العمل في الدنيا دائمًا، فالسعي نفسه محفوظ ومكتوب، وأن سعيه سوف يرى (1)، أي أنه سيُعرض على صاحبه يوم القيامة كاملًا غير منقوص. ومن هنا كان الأنبياء يسارعون إلى الطاعة شوقًا لا خوفًا فقط، كما قال موسى عليه السلام: ««وعجلت إليك رب لترضى»» (طه: 83).\n\nوأثنى القرآن على بيت زكريا عليه السلام فقال: إنهم كانوا يتسابقون في الخيرات، فالمبادرة صفة أهل الإيمان، والتسويف صفة المترددين. ويقول المثل القديم: الوقت من ذهب، لكن الحقيقة أنه أغلى من الذهب، فالذهب إذا ضاع عُوّض، والوقت إذا مضى لا يعود.\n\nوتذكروا أن ما تقدمونه اليوم هو رصيدكم غدًا. قال تعالى: ﴿﴿وما تقدموا من خير تجدوه عند الله﴾﴾، فالصدقة الصغيرة، والكلمة الطيبة، والساعة التي تمنحها لغيرك، كلها تنتظرك هناك. فاجعلوا لأنفسكم نصيبًا من كل يوم، واطلبوا الخير في الدنيا والآخرة، ولا تجعلوا الفراغ يسرق أعماركم.\n\nولكي لا يبقى الكلام نظريًا، إليكم ثلاث وصايا عملية لهذا الأسبوع: أن يكتب كل واحد منكم قبل نومه أهم ثلاثة أعمال يريد إنجازها في الغد، وأن يبدأ بأصعبها في الساعات الأولى من الصباح، وأن يخصص نصف ساعة يوميًا لعمل تطوعي أو لزيارة قريب أو لقراءة نافعة. وراقبوا هواتفكم، فكم من ساعة تضيع في التنقل بين المقاطع القصيرة دون أن نشعر، ثم نشكو قلة الوقت وكثرة المشاغل. ومن نظم وقته نظم حياته، ومن تركه للمصادفات تركته الأيام على هامشها.\n\nأقول قولي هذا، وأستغفر الله لي ولكم.\n\n____\n(1) سورة النجم، الآية 40.",
+   "gold": [
+    {
+     "quote": "وَجَعَلْنَا اللَّيْلَ لِبَاسًا وَجَعَلْنَا النَّهَارَ مَعَاشًا",
+     "surah": 78,
+     "ayah_start": 10,
+     "ayah_end": 11,
+     "word_start": 0,
+     "word_end": 3,
+     "correct_text": "وجعلنا الليل لباسا وجعلنا النهار معاشا",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "النبأ: 10-11",
+     "reference": "correct",
+     "unmarked": false,
+     "partial": false,
+     "context": [
+      "lead_in",
+      "reference_ayah",
+      "brackets"
+     ],
+     "lead_in_text": "قال سبحانه",
+     "start": 333,
+     "end": 395,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "lead_in",
+      "marked",
+      "multi_verse",
+      "reference_correct",
+      "vocalized"
+     ]
+    },
+    {
+     "quote": "أفحسبتم أنما خلقناكم عبثا",
+     "surah": 23,
+     "ayah_start": 115,
+     "ayah_end": 115,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "أفحسبتم أنما خلقناكم عبثا",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 699,
+     "end": 724,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    },
+    {
+     "quote": "أَنِّي لَا أُضِيعُ عَمَلَ عَامِلٍ مِنْكُمْ",
+     "surah": 3,
+     "ayah_start": 195,
+     "ayah_end": 195,
+     "word_start": 3,
+     "word_end": 9,
+     "correct_text": "أني لا أضيع عمل عامل منكم",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 997,
+     "end": 1039,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "no_reference",
+      "partial",
+      "repeated_in_article",
+      "single_verse",
+      "vocalized"
+     ]
+    },
+    {
+     "quote": "أني لا أضيع عمل عامل منكم",
+     "surah": 3,
+     "ayah_start": 195,
+     "ayah_end": 195,
+     "word_start": 3,
+     "word_end": 9,
+     "correct_text": "أني لا أضيع عمل عامل منكم",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 1188,
+     "end": 1213,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_article",
+      "single_verse",
+      "unmarked"
+     ]
+    },
+    {
+     "quote": "وأن سعيه سوف يرى",
+     "surah": 53,
+     "ayah_start": 40,
+     "ayah_end": 40,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "وأن سعيه سوف يرى",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "سورة النجم، الآية 40",
+     "reference": "correct",
+     "unmarked": true,
+     "partial": false,
+     "context": [
+      "reference_ayah",
+      "footnote_ref"
+     ],
+     "lead_in_text": null,
+     "start": 1335,
+     "end": 1351,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "footnote_ref",
+      "full_verse",
+      "plain",
+      "reference_correct",
+      "single_verse",
+      "unmarked"
+     ]
+    },
+    {
+     "quote": "وعجلت إليك رب لترضى",
+     "surah": 20,
+     "ayah_start": 84,
+     "ayah_end": 84,
+     "word_start": 5,
+     "word_end": 9,
+     "correct_text": "وعجلت إليك رب لترضى",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "طه: 83",
+     "reference": "incorrect",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "reference_ayah",
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 1499,
+     "end": 1518,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "partial",
+      "plain",
+      "single_verse",
+      "wrong_reference"
+     ]
+    },
+    {
+     "quote": "إنهم كانوا يتسابقون في الخيرات",
+     "surah": 21,
+     "ayah_start": 90,
+     "ayah_end": 90,
+     "word_start": 8,
+     "word_end": 13,
+     "correct_text": "إنهم كانوا يسارعون في الخيرات",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 2,
+      "written": "يتسابقون",
+      "source": "يسارعون"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 1577,
+     "end": 1607,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    },
+    {
+     "quote": "وما تقدموا من خير تجدوه عند الله",
+     "surah": 2,
+     "ayah_start": 110,
+     "ayah_end": 110,
+     "word_start": 4,
+     "word_end": 12,
+     "correct_text": "وما تقدموا لأنفسكم من خير تجدوه عند الله",
+     "wording": "wording_error",
+     "error": "omission",
+     "error_detail": {
+      "op": "omit",
+      "position": 2,
+      "written": null,
+      "source": "لأنفسكم"
+     },
+     "ambiguous": true,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "lead_in",
+      "brackets"
+     ],
+     "lead_in_text": "قال تعالى",
+     "start": 1829,
+     "end": 1861,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "marked",
+      "missing_word",
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_quran",
+      "single_verse",
+      "wording_error"
+     ]
+    }
+   ],
+   "negatives": [
+    "اللهم بارك لأمتي في بكورها",
+    "بادروا بالأعمال",
+    "الوقت من ذهب",
+    "في الدنيا والآخرة"
+   ],
+   "negatives_detail": [
+    {
+     "text": "اللهم بارك لأمتي في بكورها",
+     "start": 567,
+     "end": 593,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "بادروا بالأعمال",
+     "start": 841,
+     "end": 856,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "الوقت من ذهب",
+     "start": 1680,
+     "end": 1692,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "في الدنيا والآخرة",
+     "start": 1991,
+     "end": 2008,
+     "kind": "hard_negative",
+     "shares_quran_run": "في الدنيا والاخره",
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": [
+    "الحمد لله"
+   ]
+  },
+  {
+   "id": "HD-L03-family",
+   "category": "long_article",
+   "article": "رسالة إلى ابني في يوم زفافه\n\nيا بني، اليوم تبدأ بيتًا جديدًا، وأنا أكتب لك هذه الكلمات بيد ترتجف قليلًا من الفرح ومن الخوف عليك. لن أعطيك نصائح كثيرة، فأنت رجل تعرف طريقك، لكنني أردت أن أترك لك ورقة تعود إليها كلما احتجت.\n\nأولًا: لا تنسَ والديك وأنت تنشغل بأسرتك الجديدة. فالوصية بهما من أعظم الوصايا، وقد قرنها القرآن بالتوحيد في أكثر من موضع، وجعل الإحسان إليهما بابًا من أبواب العبادة لا مجرد أدب اجتماعي. ستأتيك أيام تزدحم فيها المواعيد وتكثر المسؤوليات، فتجد نفسك تؤجل زيارتنا أسبوعًا بعد أسبوع، فلا تجعل زحمة الحياة تنسيك هذا الحق. وفي الحديث: رضا الرب في رضا الوالد، وهي جملة قصيرة تكفي لتعيش بها عمرك كله. واتصال قصير كل مساء يملأ قلب أمك فرحًا لا تتخيله.\n\nوحتى لو اختلفت معنا في الرأي يومًا، فاعلم أن الخلاف لا يُسقط الحق؛ فالقرآن أمر بالإحسان إلى الوالدين حتى مع اختلاف أعظم من اختلافنا، فقال: وصاحبهما في الدنيا بالمعروف. والصحبة بالمعروف تعني الزيارة والهدية والكلمة الطيبة، لا المجاملة الباردة.\n\nثانيًا: ادعُ لنا كما كنا ندعو لك. كان جدك رحمه الله يردد في سجوده: رب اغفر لي ولوالدي، وكنت أسمعه وأنا صغير فأحفظ الكلمات قبل أن أفهمها، وما زلت إلى اليوم أختم بها صلاتي: ««رَبِّ اغْفِرْ لِي وَلِوَالِدَيَّ»». وأنا اليوم أوصيك بدعاء إبراهيم عليه السلام: ««ربنا اغفر لي ولوالدي وللمؤمنين يوم يقوم الحساب»» (إبراهيم: 41)، فهو يجمع الوالدين والمؤمنين جميعًا. وإن شئت فقل كما كانت جدتك تقول: اللهم ارحم والديّ كما ربياني صغيرًا.\n\nثالثًا: اعلم أن صلاحك يمتد إلى أبنائك من بعدك. يقول سبحانه: والذين آمنوا واتبعتهم ذريتهم بإيمان ألحقنا بهم ذريتهم، فالذرية تلحق بآبائها الصالحين في المنزلة بفضل الله. وأنت حين تصلح نفسك تصلح ما بعدك.\n\nرابعًا: كن بارًا لينًا لا جبارًا متكبرًا. وصف الله يحيى عليه السلام بأجمل صفة فقال: ﴿﴿وبرا بوالديه ولم يكن جبارا شقيا﴾﴾ (مريم: 13)، فالبر لا يجتمع مع القسوة والتعالي.\n\nخامسًا: شاور أهلك في أمورك ولو كنت صاحب القرار. وانظر كيف قال إبراهيم لابنه إسماعيل في أصعب امتحان: يا بني إني رأيت في المنام أني أذبحك فانظر ماذا ترى. لقد شاوره في أمر لا يحتمل المشاورة، ليعلّمنا أن الاحترام يبدأ من الإصغاء.\n\nوأخيرًا، كلما شعرت بالنعمة في بيتك الجديد فقل كما قال الصالحون: ﴿﴿رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ الَّتِي أَنْعَمْتَ عَلَيَّ وَعَلَىٰ وَالِدَيَّ وَأَنْ أَعْمَلَ صَالِحًا تَرْضَاهُ﴾﴾ (1). ولا تنسَ أن الأم مدرسة إذا أعددتها أعددت شعبًا طيب الأعراق، فأكرم زوجتك لأنها ستكون أمّ أبنائك. وتذكر دائمًا أن بر الوالدين باب واسع من أبواب الجنة.\n\nسادسًا: لا تجعل المال محور بيتك. اعمل واجتهد وادخر، لكن لا تقِس سعادة أسرتك بما في حسابك المصرفي، فكم من بيت متواضع عامر بالمودة، وكم من قصر لا يجتمع أهله على مائدة واحدة. واجعل لبيتك عادات صغيرة ثابتة: إفطار جماعي يوم الجمعة، ونزهة شهرية، وحديث هادئ قبل النوم بعيدًا عن الشاشات.\n\nأبوك المحب.\n\n(1) الأحقاف: 15.",
+   "gold": [
+    {
+     "quote": "وصاحبهما في الدنيا بالمعروف",
+     "surah": 31,
+     "ayah_start": 15,
+     "ayah_end": 15,
+     "word_start": 13,
+     "word_end": 17,
+     "correct_text": "وصاحبهما في الدنيا معروفا",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "بالمعروف",
+      "source": "معروفا"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 804,
+     "end": 831,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error",
+      "wrong_last_word"
+     ]
+    },
+    {
+     "quote": "رب اغفر لي ولوالدي",
+     "surah": 71,
+     "ayah_start": 28,
+     "ayah_end": 28,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "رب اغفر لي ولوالدي",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 976,
+     "end": 994,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "partial",
+      "plain",
+      "repeated_in_article",
+      "single_verse",
+      "unmarked"
+     ]
+    },
+    {
+     "quote": "رَبِّ اغْفِرْ لِي وَلِوَالِدَيَّ",
+     "surah": 71,
+     "ayah_start": 28,
+     "ayah_end": 28,
+     "word_start": 0,
+     "word_end": 4,
+     "correct_text": "رب اغفر لي ولوالدي",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 1082,
+     "end": 1114,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "marked",
+      "no_reference",
+      "partial",
+      "repeated_in_article",
+      "single_verse",
+      "vocalized"
+     ]
+    },
+    {
+     "quote": "ربنا اغفر لي ولوالدي وللمؤمنين يوم يقوم الحساب",
+     "surah": 14,
+     "ayah_start": 41,
+     "ayah_end": 41,
+     "word_start": 0,
+     "word_end": 8,
+     "correct_text": "ربنا اغفر لي ولوالدي وللمؤمنين يوم يقوم الحساب",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": "إبراهيم: 41",
+     "reference": "correct",
+     "unmarked": false,
+     "partial": false,
+     "context": [
+      "reference_ayah",
+      "quotation_marks"
+     ],
+     "lead_in_text": null,
+     "start": 1164,
+     "end": 1210,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "marked",
+      "plain",
+      "reference_correct",
+      "single_verse"
+     ]
+    },
+    {
+     "quote": "والذين آمنوا واتبعتهم ذريتهم بإيمان ألحقنا بهم ذريتهم",
+     "surah": 52,
+     "ayah_start": 21,
+     "ayah_end": 21,
+     "word_start": 0,
+     "word_end": 8,
+     "correct_text": "والذين آمنوا واتبعتهم ذريتهم بإيمان ألحقنا بهم ذريتهم",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "lead_in"
+     ],
+     "lead_in_text": "يقول سبحانه",
+     "start": 1394,
+     "end": 1447,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "lead_in",
+      "no_reference",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked"
+     ]
+    },
+    {
+     "quote": "وبرا بوالديه ولم يكن جبارا شقيا",
+     "surah": 19,
+     "ayah_start": 14,
+     "ayah_end": 14,
+     "word_start": 0,
+     "word_end": 6,
+     "correct_text": "وبرا بوالديه ولم يكن جبارا عصيا",
+     "wording": "wording_error",
+     "error": "wrong_last",
+     "error_detail": {
+      "op": "substitute",
+      "position": 5,
+      "written": "شقيا",
+      "source": "عصيا"
+     },
+     "ambiguous": false,
+     "reference_text": "مريم: 13",
+     "reference": "incorrect",
+     "unmarked": false,
+     "partial": false,
+     "context": [
+      "reference_ayah",
+      "brackets"
+     ],
+     "lead_in_text": null,
+     "start": 1621,
+     "end": 1652,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "full_verse",
+      "marked",
+      "plain",
+      "single_verse",
+      "wording_error",
+      "wrong_last_word",
+      "wrong_reference"
+     ]
+    },
+    {
+     "quote": "يا بني إني رأيت في المنام أني أذبحك فانظر ماذا ترى",
+     "surah": 37,
+     "ayah_start": 102,
+     "ayah_end": 102,
+     "word_start": 5,
+     "word_end": 16,
+     "correct_text": "يا بني إني أرى في المنام أني أذبحك فانظر ماذا ترى",
+     "wording": "wording_error",
+     "error": "substitution",
+     "error_detail": {
+      "op": "substitute",
+      "position": 3,
+      "written": "رأيت",
+      "source": "أرى"
+     },
+     "ambiguous": false,
+     "reference_text": null,
+     "reference": "missing",
+     "unmarked": true,
+     "partial": true,
+     "context": [
+      "none"
+     ],
+     "lead_in_text": null,
+     "start": 1803,
+     "end": 1853,
+     "expect": {
+      "detect": "required",
+      "max_wording": "difference",
+      "auto_replacement": "forbidden",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "no_reference",
+      "one_word_wrong",
+      "partial",
+      "plain",
+      "single_verse",
+      "unmarked",
+      "wording_error"
+     ]
+    },
+    {
+     "quote": "رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ الَّتِي أَنْعَمْتَ عَلَيَّ وَعَلَىٰ وَالِدَيَّ وَأَنْ أَعْمَلَ صَالِحًا تَرْضَاهُ",
+     "surah": 46,
+     "ayah_start": 15,
+     "ayah_end": 15,
+     "word_start": 21,
+     "word_end": 35,
+     "correct_text": "رب أوزعني أن أشكر نعمتك التي أنعمت علي وعلى والدي وأن أعمل صالحا ترضاه",
+     "wording": "correct",
+     "error": "none",
+     "error_detail": null,
+     "ambiguous": true,
+     "reference_text": "الأحقاف: 15",
+     "reference": "correct",
+     "unmarked": false,
+     "partial": true,
+     "context": [
+      "reference_ayah",
+      "footnote_ref",
+      "brackets"
+     ],
+     "lead_in_text": null,
+     "start": 1996,
+     "end": 2120,
+     "expect": {
+      "detect": "required",
+      "max_wording": "matched",
+      "auto_replacement": "allowed_if_span_and_verse_established",
+      "gold_verse_listed": true
+     },
+     "tags": [
+      "footnote_ref",
+      "marked",
+      "partial",
+      "reference_correct",
+      "repeated_in_quran",
+      "single_verse",
+      "vocalized"
+     ]
+    }
+   ],
+   "negatives": [
+    "رضا الرب في رضا الوالد",
+    "اللهم ارحم والديّ كما ربياني صغيرًا",
+    "الأم مدرسة إذا أعددتها أعددت شعبًا طيب الأعراق",
+    "بر الوالدين باب واسع من أبواب الجنة"
+   ],
+   "negatives_detail": [
+    {
+     "text": "رضا الرب في رضا الوالد",
+     "start": 550,
+     "end": 572,
+     "kind": "hadith",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "اللهم ارحم والديّ كما ربياني صغيرًا",
+     "start": 1296,
+     "end": 1331,
+     "kind": "hard_negative",
+     "shares_quran_run": "كما ربياني صغيرا",
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "الأم مدرسة إذا أعددتها أعددت شعبًا طيب الأعراق",
+     "start": 2140,
+     "end": 2186,
+     "kind": "proverb",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    },
+    {
+     "text": "بر الوالدين باب واسع من أبواب الجنة",
+     "start": 2240,
+     "end": 2275,
+     "kind": "prose_lookalike",
+     "shares_quran_run": null,
+     "expect": "no_finding_or_possible_only"
+    }
+   ],
+   "formulas": []
+  }
+ ]
+}
