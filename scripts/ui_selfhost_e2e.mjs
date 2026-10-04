@@ -67,6 +67,14 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
     check(r.headers()["content-security-policy"] === csp, `${pg}: same strict policy`);
     const ok = await page.evaluate(() => document.fonts.check('16px "Readex Pro"', "المصادر") && [...document.fonts].some((x) => x.family.replace(/"/g, "") === "Readex Pro" && x.status === "loaded"));
     check(ok, `${pg}: Readex Pro loaded from this server`);
+    if (!mobile) {  // keyboard: the first Tab reaches a visible skip link; the next focused control draws a visible outline
+      const html = await page.evaluate(() => [document.documentElement.lang, document.documentElement.dir]);
+      await page.keyboard.press("Tab");
+      const skip = await page.evaluate(() => { const a = document.activeElement, r = a.getBoundingClientRect(); return { cls: a.className, href: a.getAttribute("href"), shown: r.top >= 0 && r.height > 0, target: !!document.querySelector(a.getAttribute("href")) }; });
+      await page.keyboard.press("Tab");
+      const ring = await page.evaluate(() => { const cs = getComputedStyle(document.activeElement); return `${cs.outlineStyle} ${cs.outlineWidth}`; });
+      check(html.join(" ") === "ar rtl" && skip.cls === "skip-link" && skip.shown && skip.target && /^solid [1-9]/.test(ring), `${pg}: lang=ar dir=rtl, the first Tab shows the skip link (→ ${skip.href}), the next focus has an outline (${ring})`);
+    }
     if (pg === "/privacy") check(!/fonts\.googleapis|خطوط جوجل \(/.test(await page.textContent("main")) && /مستضافة/.test(await page.textContent("main")), "/privacy says the fonts are hosted on the tool's own server");
     if (pg === "/sources") check(/SIL/.test(await page.textContent("main")) && (await page.locator('a[href="/static/fonts/readex-pro/OFL.txt"]').count()) === 1, "/sources names the SIL licence and links each font's licence file");
     await shot(`3-${pg.slice(1)}`, true);

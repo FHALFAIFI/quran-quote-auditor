@@ -958,3 +958,64 @@ Write-up, tables and disclosure of what was tuned on what: `docs/EVALUATION.md`,
   numbers were updated with a comment; the behaviour the script tests (optional phrases after the decisions, «في كل عام» first and optional)
   is unchanged.
 - **Demo samples:** one finding changes tier (a lead-in quotation, «candidate» → «stated»); nothing else.
+## 2026-10-04 (evening, Riyadh) — Stage 4 code-level gates: self-hosted fonts, CSP and headers, body cap, log scrubbing, monitor fields, load test (challenge period)
+
+Branch `hardening` from `main` @ `05e34d5`; commits `efbca20` (fonts, CSP, headers, body cap), `e6bcd46` (log scrubbing), `240e78a` (monitor fields) and a docs/load-test commit. Not reviewed, not merged, not deployed. macOS (Apple M2, 8 cores), Python 3.14.7 (Render uses 3.12), Playwright 1.63, axe-core 4.13. Every server was local with `AI_PROVIDER=none` and no key. **No model call and no request to the live service were made.**
+
+### 1. Self-hosted fonts
+
+- Files: the Arabic and Latin WOFF2 subsets that `fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600&family=Readex+Pro:wght@300;400;500;600;700&display=swap` gives a Chrome user agent, fetched once from `fonts.gstatic.com` at 19:51: Amiri Quran v19 (45,688 + 12,264 bytes), Noto Naskh Arabic v44, variable 400–700 (93,960 + 19,732), Readex Pro v27, variable 160–700 (22,764 + 31,392). **225,800 bytes in all**, the same six files the browser fetched from Google before, plus Google's stylesheet (26,705 bytes, now gone); `styles.css` grows by 2,488 bytes of `@font-face` rules (`font-display: swap`, Google's Arabic and Latin `unicode-range`s).
+- Coverage checked with fontTools: every one of the 55 characters at or above U+0600 in the cached Quranpedia Hafs text is in the Amiri Quran and Noto Naskh Arabic files (U+FEFF falls in the Latin subset's range); ﴾ ﴿ and Arabic-Indic digits are in all three.
+- Licences (read 4 Oct 2026, 19:52): `license: "OFL"` in `github.com/google/fonts` `ofl/{amiriquran,notonaskharabic,readexpro}/METADATA.pb`; the `OFL.txt` beside each (copied into `app/static/fonts/<font>/OFL.txt`); GitHub's licence API reports `OFL-1.1` for `aliftype/amiri`, `notofonts/arabic` and `ThomasJockin/readexpro`. Readex Pro's OFL reserves the name «RevReading Lexend», which is not used.
+- `node scripts/ui_selfhost_e2e.mjs` (new; Chromium, 1366×900 and 390×844): load → demo article (audits) → approve both changes → copy → `/sources`, `/privacy`, `/limitations`. **45 PASS, 0 FAIL.** Per width: 55 requests, all to the local origin, 0 to another host; 0 CSP violations; all three families `status loaded` with `document.fonts.check` true for Arabic text; the six font files fetched from `/static/fonts/` (225,800 bytes); on each trust page the first Tab shows the skip link and the next focus has a 3 px solid outline. A control in a separate, uncounted context shows the listener works: an injected `<style>`, a `style` attribute in markup and a `fonts.gstatic.com` font are each refused and reported (`style-src-elem`, `style-src-attr`, `font-src`), while `element.style` (CSSOM, which the app uses) is not. Screenshots at both widths were looked at (scratch directory, not committed): the interface in Readex Pro, the article in Noto Naskh Arabic, source words in Amiri Quran.
+
+### 2. CSP and headers
+
+Final policy, on every response (API, pages, `/static/*`, 404, 413, 422, and the 500 answer, which is sent outside the middleware and so carries the headers itself):
+
+`default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`
+
+plus `Permissions-Policy: camera=(), microphone=(), geolocation=()`, `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`, the existing `nosniff` / `no-referrer` / `DENY`, and `Strict-Transport-Security: max-age=31536000` only when the request came over HTTPS (`x-forwarded-proto: https` from Render's proxy, or an https scheme). No page has a `<style>` block or `style` attribute; the JavaScript sets styles only through CSSOM. `_ui_common.mjs` now listens for `securitypolicyviolation` and for any request to another host on every page every suite opens, and `finish()` fails the suite if either count is not 0 (`ui_crossbrowser` does the same in Firefox and WebKit).
+
+### 3. Bounded requests
+
+- The old middleware checked `Content-Length` only; a chunked POST had none and was not capped. Now a pure ASGI middleware counts the body as it arrives and answers 413 once it passes `MAX_BODY_BYTES` (80,024 bytes); a body under the cap is buffered and replayed to the app. Tested with a generator body (httpx sends `Transfer-Encoding: chunked`, no `Content-Length`) on `/api/audit`, `/api/phrase` and `/api/suggest`, and in a real uvicorn process.
+- Bounds confirmed: `others` ≤ 200 pairs, `surah` 1–114, `finding_id` ≤ 10,000, `before` ≤ 800 and `after` ≤ 120 characters (422 beyond). JSON nested 40,000 deep, a 30,000-digit integer, `1e400`, ±1e308 offsets, a lone surrogate and invalid UTF-8 all give 4xx, never 500, on all three POST endpoints.
+
+### 4. Article text in logs
+
+`app/logging_safety.py` replaces any run of more than 20 Arabic letters in a log record (message, arguments, traceback, stack; percent- or plus-encoded text decoded first) with `[Arabic text removed: N letters]`, as a log-record factory and as a filter on the root and uvicorn handlers. uvicorn's access log writes method, path, status and client address, never a body. **What the real-process test found before the fix:** article text put in a query string (`/?q=…`) reached uvicorn's access log percent-encoded, and the traceback uvicorn logs after an unhandled exception would carry any text in the exception message. Both are now scrubbed. `tests/test_log_safety.py`: the scrubber, uvicorn's access formatter, tracebacks, `caplog` over an audit / validation error / 413 / unhandled exception, and a real uvicorn process whose combined log is searched for a sentinel article (absent, also percent-encoded) while the access lines and the error type are present.
+
+### 5. Monitor fields
+
+`/api/health` adds `source_ok` (loaded and not stale; `?deep=1` loads the text first, at most one Quranpedia request per 24 h or per failure back-off; without `deep` nothing is fetched) and `ai_recent` (`calls`, `ok`, `failed`, `rate_limited`, `since`; counted in `CallTracker.record`, so provider code is unchanged; cooldown skips are not counted; `null` with no model). The keywords documented in `docs/RENDER_DEPLOY.md` (`"source_ok":true`, `"http_status":429`) are tested against the raw JSON. **No uptime service was signed up for and no alert was fired**; that remains the Stage 4 evidence to record.
+
+### 6. Load test (LOCAL numbers: this laptop, Python 3.14.7; not Render)
+
+`python scripts/load_test.py` starts its own AI-off server (rate limit raised for the run) and posts the ten long evaluation articles cut to 5,994–5,999 characters (10–20 findings each). The script refuses `onrender.com`, any other non-local URL without `--allow-remote`, and any server with a model configured. 20:11–20:12:
+
+| Run | Requests | Errors | p50 | p95 | max | wall per round |
+|---|---|---|---|---|---|---|
+| `--k 1 --rounds 10` (sequential) | 10 | 0 | 0.337 s | 0.496 s | 0.496 s | 0.31–0.50 s |
+| `--k 10 --rounds 3` (1 process) | 30 | 0 | 3.428 s | 3.571 s | 3.574 s | 3.40–3.58 s |
+| `--k 10 --rounds 3 --workers 2` (experiment) | 30 | 0 | 2.639 s | 3.625 s | 3.645 s | 2.64–3.65 s |
+| `--k 10 --rounds 3 --workers 4` (experiment) | 30 | 0 | 1.989 s | 3.369 s | 3.425 s | 2.20–3.43 s |
+
+Observed: the routes are synchronous and run in the threadpool, and the audit is CPU-bound Python, so under the GIL ten concurrent audits are served together in about ten times one audit's time; every request finishes near the end of the round (p50 ≈ p95 ≈ 10 × 0.34 s). Several uvicorn worker processes help only partly here (the first rounds include each process loading its own Quran index, and macOS spreads connections unevenly), so the experiment is **not** a measurement of the fix. Proposal, not implemented: on a paid instance with several CPUs, measure `uvicorn --workers N` there (each process holds its own index, about 94 MB, and its own rate limiter and counters) or run `run_audit` in a process pool. Render Free's shared CPU is slower than this laptop; the Stage 4 gate (p95 of 10 concurrent 6,000-character audits on the chosen instance) is still open.
+
+### 7. Accessibility
+
+`ui_a11y_check` covers the three trust pages at 320, 390 and 1366 px: 0 violations (56 PASS). All four pages have `lang="ar" dir="rtl"` (also a pytest), a skip link, and a 3 px focus outline (checked by keyboard in `ui_selfhost_e2e`). No fix was needed. Real devices, VoiceOver and TalkBack: not tested.
+
+### 8. Dependency audit
+
+`pip-audit` 2.10.1 in a scratch venv (not the project's), 20:04: `pip-audit -r requirements.txt` → "No known vulnerabilities found"; `-r requirements-dev.txt` → same, with the PyPI service and with `--vulnerability-service osv`. No version changed.
+
+### Gates on the branch
+
+- `pytest` **458 passed** (415 before; +29 `test_security_headers`, +7 `test_log_safety`, +7 `test_health_monitor`); also 444 at `efbca20` and 451 at `e6bcd46`. `node --test tests/*.test.mjs` **24 passed**. `git diff --check` clean. Every `eval/*.sha256` matches; no eval file touched.
+- Browser suites, each with its own AI-off server, 0 FAIL, 0 SKIP (counts include the two new CSP / other-host checks where the suite calls `finish()`): `ui_journey_e2e` 169, `ui_final_qa` 143, `ui_a11y_check` 56, `ui_workspace_e2e` 139, `ui_crossbrowser` 89 (Chromium, Firefox, WebKit; desktop and phone), `ui_suggest_e2e` 202, `ui_selfhost_e2e` 45; and the other suites, since every page they open is now watched: `ui_e2e` 29, `ui_phrase_e2e` 38, `ui_boundary_e2e` 48, `ui_uthmani_e2e` 34, `ui_long_e2e` 93, `ui_async_navigation_e2e` 7, `ui_approved_e2e` 148, `ui_counts_e2e` 19, `ui_dock_e2e` 36, `ui_model_notices_e2e` 54, `ui_possible_order_e2e` 55, `ui_suggest_place_e2e` 82. Run 19:58–20:20 (Riyadh).
+
+### Not done / still open
+
+Own domain and TLS (HSTS is only sent over HTTPS, so it takes effect on Render's HTTPS today, not on a domain of our own); a paid always-on host and the load test on it; signing up an external monitor and firing one alert; an error-reporting service; zero data retention at the model provider; real-device accessibility review. The live service still runs `main` with Google Fonts until this branch is reviewed and released.
