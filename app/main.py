@@ -243,6 +243,9 @@ def health(deep: bool = False):
         "ai_last_call": provider.tracker.status() if provider and provider.tracker else None,
         "max_chars": settings.max_chars,
         "ai_max_chars": settings.ai_max_chars,
+        # Output tokens reserved per model request (GROQ_MAX_COMPLETION_TOKENS; not a secret). Groq counts it against the account's
+        # output-tokens-per-minute limit, so a live 429 «Request too large … OTPM» can be checked against it without the dashboard.
+        "ai_max_completion_tokens": settings.groq_max_completion_tokens if (provider and provider.name == "groq") else None,
         # The commit the host built (Render sets RENDER_GIT_COMMIT; public information, null elsewhere).
         "build": (os.environ.get("RENDER_GIT_COMMIT") or "")[:40] or None,
         "source": src,

@@ -130,3 +130,19 @@ def test_documented_monitor_keywords_match_the_raw_answer(monkeypatch):
     assert '"source_ok":true' in raw and '"http_status":429' in raw
     monkeypatch.setattr(main, "source", RecordingSource(fail=True))
     assert '"source_ok":true' not in TestClient(main.app).get("/api/health?deep=1").text
+
+
+def test_health_reports_the_output_token_reservation_only_for_groq(monkeypatch):
+    """The reservation is a configuration number (no secret); it helps read a live OTPM 429 without the host's dashboard."""
+    from fastapi.testclient import TestClient
+
+    import app.main as main
+
+    class FakeGroq:
+        name, label, tracker = "groq", "Groq (test)", None
+
+    monkeypatch.setattr(main, "get_provider", lambda: FakeGroq())
+    body = TestClient(main.app).get("/api/health").json()
+    assert body["ai_max_completion_tokens"] == main.settings.groq_max_completion_tokens
+    monkeypatch.setattr(main, "get_provider", lambda: None)
+    assert TestClient(main.app).get("/api/health").json()["ai_max_completion_tokens"] is None
