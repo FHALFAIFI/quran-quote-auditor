@@ -1139,7 +1139,10 @@ aggregates are published (`docs/EVALUATION.md`, «The model's measured contribut
 | Triage prototype, run 2 (rule unchanged) | 21:35–22:43 | 64 | 64 × 200 |
 | Extraction answers for the two hard-quotation sets, part 1 | 22:44–22:56 | 12 | see the hard-set entry |
 | Live probe on `bee3e03` (after PR #10: default reservation 800; recorder paused, 100 s with no call) | 22:57:59 | 1 | **200**, 920 ms, proposed 4 / located 4 / discarded 0, added_only 0, also_found 4; journey 22 PASS |
-| Extraction answers for the two hard-quotation sets, part 2 (resumed; recorded articles are not sent again) | from 23:00 | (running) | see the hard-set entry |
+| Extraction answers for the two hard-quotation sets, part 2 (resumed; recorded articles are not sent again) | 23:00–00:53 | 107 | 99 × 200; 4 × 400 `json_validate_failed`; 3 timeouts and 1 connection failure (00:33–00:52) |
+| Pacing experiment (two calls through the production adapter, 800 reserved, 20 s apart, after 4 min with no call) | 00:57:05, 00:57:26 | 2 | **200, 200** (4 proposals each, 910 tokens each). A second request inside a minute is **not** refused at 800, so the one-request-a-minute guard prepared on branch `groq-pacing` (local, never pushed) was **not** released: it would withhold model calls for no reason. |
+
+**Total real Groq calls tonight: 276** = 195 extraction answers for the paired replay (76 + 119) + 76 triage calls (12 + 64) + 3 live probes (two HTTP 429 at the old 4,096 reservation, one HTTP 200 at 800) + 2 pacing-experiment calls. None was retried after a failure; the account's day counter read 738 of 1,000 requests remaining after the last one.
 
 Both live probes: the page showed the complete source-based audit and the calm failure line; `live_smoke` 24 PASS, 0 FAIL each time. The
 service's cooldown (≥ 120 s after a 429) applied. **Live probes were then stopped** (no retry after repeated 429s). The difference between the

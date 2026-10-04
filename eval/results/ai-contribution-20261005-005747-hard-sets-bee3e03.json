@@ -1,0 +1,1123 @@
+{
+ "tag": "hard-sets-bee3e03",
+ "evidence_dir_name": "ai-20261004",
+ "totals": {
+  "calls": 119,
+  "answered": 111,
+  "proposed": 27,
+  "located": 27,
+  "discarded": 0,
+  "also_found": 26,
+  "overlapped": 1,
+  "empty_answers": 84,
+  "chars": 32633,
+  "call_failed": 8,
+  "failed_http_400": 4,
+  "failed_http_None": 4,
+  "harms": 0
+ },
+ "per_set": {
+  "hard_quotes_dev_20261004": {
+   "calls": 71,
+   "answered": 69,
+   "proposed": 20,
+   "located": 20,
+   "discarded": 0,
+   "also_found": 19,
+   "overlapped": 1,
+   "empty_answers": 49,
+   "chars": 20064,
+   "call_failed": 2,
+   "failed_http_400": 2
+  },
+  "hard_quotes_heldout_20261004": {
+   "calls": 48,
+   "answered": 42,
+   "proposed": 7,
+   "located": 7,
+   "discarded": 0,
+   "also_found": 7,
+   "overlapped": 0,
+   "empty_answers": 35,
+   "chars": 12569,
+   "call_failed": 6,
+   "failed_http_None": 4,
+   "failed_http_400": 2
+  }
+ },
+ "model_only_findings": [],
+ "harms": [],
+ "calls": [
+  {
+   "id": "hard_quotes_dev_20261004/HD-001-sub",
+   "outcome": "ok",
+   "elapsed_ms": 331,
+   "at": "2026-10-04T19:44:16+00:00",
+   "http_status": 200,
+   "tokens": 604,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-002-sub",
+   "outcome": "ok",
+   "elapsed_ms": 481,
+   "at": "2026-10-04T19:45:21+00:00",
+   "http_status": 200,
+   "tokens": 589,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-003-sub",
+   "outcome": "ok",
+   "elapsed_ms": 273,
+   "at": "2026-10-04T19:46:27+00:00",
+   "http_status": 200,
+   "tokens": 583,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-004-sub",
+   "outcome": "ok",
+   "elapsed_ms": 318,
+   "at": "2026-10-04T19:47:32+00:00",
+   "http_status": 200,
+   "tokens": 588,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-005-sub",
+   "outcome": "ok",
+   "elapsed_ms": 286,
+   "at": "2026-10-04T19:48:38+00:00",
+   "http_status": 200,
+   "tokens": 588,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-006-sub",
+   "outcome": "ok",
+   "elapsed_ms": 313,
+   "at": "2026-10-04T19:49:43+00:00",
+   "http_status": 200,
+   "tokens": 573,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-007-omission",
+   "outcome": "ok",
+   "elapsed_ms": 355,
+   "at": "2026-10-04T19:50:48+00:00",
+   "http_status": 200,
+   "tokens": 604,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-008-omission",
+   "outcome": "ok",
+   "elapsed_ms": 454,
+   "at": "2026-10-04T19:51:53+00:00",
+   "http_status": 200,
+   "tokens": 587,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-009-omission",
+   "outcome": "ok",
+   "elapsed_ms": 555,
+   "at": "2026-10-04T19:52:59+00:00",
+   "http_status": 200,
+   "tokens": 593,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-010-omission",
+   "outcome": "ok",
+   "elapsed_ms": 456,
+   "at": "2026-10-04T19:54:05+00:00",
+   "http_status": 200,
+   "tokens": 618,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-011-omission",
+   "outcome": "ok",
+   "elapsed_ms": 382,
+   "at": "2026-10-04T19:55:10+00:00",
+   "http_status": 200,
+   "tokens": 577,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-012-wrong-first",
+   "outcome": "ok",
+   "elapsed_ms": 641,
+   "at": "2026-10-04T19:56:15+00:00",
+   "http_status": 200,
+   "tokens": 581,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-013-wrong-first",
+   "outcome": "ok",
+   "elapsed_ms": 534,
+   "at": "2026-10-04T19:59:34+00:00",
+   "http_status": 200,
+   "tokens": 599,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-014-wrong-first",
+   "outcome": "ok",
+   "elapsed_ms": 442,
+   "at": "2026-10-04T20:00:39+00:00",
+   "http_status": 200,
+   "tokens": 576,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-015-wrong-first",
+   "outcome": "ok",
+   "elapsed_ms": 594,
+   "at": "2026-10-04T20:01:45+00:00",
+   "http_status": 200,
+   "tokens": 599,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-016-wrong-last",
+   "outcome": "ok",
+   "elapsed_ms": 462,
+   "at": "2026-10-04T20:02:50+00:00",
+   "http_status": 200,
+   "tokens": 596,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-017-wrong-last",
+   "outcome": "ok",
+   "elapsed_ms": 425,
+   "at": "2026-10-04T20:03:56+00:00",
+   "http_status": 200,
+   "tokens": 579,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-018-wrong-last",
+   "outcome": "ok",
+   "elapsed_ms": 798,
+   "at": "2026-10-04T20:05:01+00:00",
+   "http_status": 200,
+   "tokens": 579,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-019-wrong-last",
+   "outcome": "ok",
+   "elapsed_ms": 345,
+   "at": "2026-10-04T20:06:07+00:00",
+   "http_status": 200,
+   "tokens": 590,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-020-extra",
+   "outcome": "ok",
+   "elapsed_ms": 293,
+   "at": "2026-10-04T20:07:12+00:00",
+   "http_status": 200,
+   "tokens": 577,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-021-extra",
+   "outcome": "ok",
+   "elapsed_ms": 284,
+   "at": "2026-10-04T20:08:18+00:00",
+   "http_status": 200,
+   "tokens": 575,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-022-two-errors",
+   "outcome": "failed",
+   "elapsed_ms": 290,
+   "at": "2026-10-04T20:09:23+00:00",
+   "http_status": 400,
+   "tokens": null,
+   "error_body_type": "invalid_request_error"
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-023-two-errors",
+   "outcome": "ok",
+   "elapsed_ms": 304,
+   "at": "2026-10-04T20:10:28+00:00",
+   "http_status": 200,
+   "tokens": 580,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-024-partial",
+   "outcome": "failed",
+   "elapsed_ms": 286,
+   "at": "2026-10-04T20:11:34+00:00",
+   "http_status": 400,
+   "tokens": null,
+   "error_body_type": "invalid_request_error"
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-025-partial",
+   "outcome": "ok",
+   "elapsed_ms": 406,
+   "at": "2026-10-04T20:12:39+00:00",
+   "http_status": 200,
+   "tokens": 572,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-026-partial",
+   "outcome": "ok",
+   "elapsed_ms": 359,
+   "at": "2026-10-04T20:13:44+00:00",
+   "http_status": 200,
+   "tokens": 581,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-027-partial",
+   "outcome": "ok",
+   "elapsed_ms": 422,
+   "at": "2026-10-04T20:14:50+00:00",
+   "http_status": 200,
+   "tokens": 570,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-028-partial",
+   "outcome": "ok",
+   "elapsed_ms": 414,
+   "at": "2026-10-04T20:15:55+00:00",
+   "http_status": 200,
+   "tokens": 595,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-029-partial",
+   "outcome": "ok",
+   "elapsed_ms": 279,
+   "at": "2026-10-04T20:17:00+00:00",
+   "http_status": 200,
+   "tokens": 583,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-030-lead",
+   "outcome": "ok",
+   "elapsed_ms": 460,
+   "at": "2026-10-04T20:18:06+00:00",
+   "http_status": 200,
+   "tokens": 607,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-031-lead",
+   "outcome": "ok",
+   "elapsed_ms": 365,
+   "at": "2026-10-04T20:19:11+00:00",
+   "http_status": 200,
+   "tokens": 571,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-032-lead",
+   "outcome": "ok",
+   "elapsed_ms": 456,
+   "at": "2026-10-04T20:20:17+00:00",
+   "http_status": 200,
+   "tokens": 596,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-033-lead",
+   "outcome": "ok",
+   "elapsed_ms": 459,
+   "at": "2026-10-04T20:21:22+00:00",
+   "http_status": 200,
+   "tokens": 591,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-034-lead",
+   "outcome": "ok",
+   "elapsed_ms": 491,
+   "at": "2026-10-04T20:22:28+00:00",
+   "http_status": 200,
+   "tokens": 605,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-035-lead",
+   "outcome": "ok",
+   "elapsed_ms": 325,
+   "at": "2026-10-04T20:23:33+00:00",
+   "http_status": 200,
+   "tokens": 576,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-036-ref",
+   "outcome": "ok",
+   "elapsed_ms": 422,
+   "at": "2026-10-04T20:24:38+00:00",
+   "http_status": 200,
+   "tokens": 622,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-037-ref",
+   "outcome": "ok",
+   "elapsed_ms": 480,
+   "at": "2026-10-04T20:25:44+00:00",
+   "http_status": 200,
+   "tokens": 597,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-038-ref",
+   "outcome": "ok",
+   "elapsed_ms": 470,
+   "at": "2026-10-04T20:26:49+00:00",
+   "http_status": 200,
+   "tokens": 619,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-039-ref",
+   "outcome": "ok",
+   "elapsed_ms": 442,
+   "at": "2026-10-04T20:27:55+00:00",
+   "http_status": 200,
+   "tokens": 603,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-040-ref",
+   "outcome": "ok",
+   "elapsed_ms": 583,
+   "at": "2026-10-04T20:29:00+00:00",
+   "http_status": 200,
+   "tokens": 608,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-041-ref",
+   "outcome": "ok",
+   "elapsed_ms": 384,
+   "at": "2026-10-04T20:30:06+00:00",
+   "http_status": 200,
+   "tokens": 592,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-042-quotes",
+   "outcome": "ok",
+   "elapsed_ms": 555,
+   "at": "2026-10-04T20:31:11+00:00",
+   "http_status": 200,
+   "tokens": 581,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-043-quotes",
+   "outcome": "ok",
+   "elapsed_ms": 411,
+   "at": "2026-10-04T20:32:17+00:00",
+   "http_status": 200,
+   "tokens": 608,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-044-quotes",
+   "outcome": "ok",
+   "elapsed_ms": 369,
+   "at": "2026-10-04T20:33:22+00:00",
+   "http_status": 200,
+   "tokens": 621,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-045-quotes",
+   "outcome": "ok",
+   "elapsed_ms": 512,
+   "at": "2026-10-04T20:34:28+00:00",
+   "http_status": 200,
+   "tokens": 606,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-046-brackets",
+   "outcome": "ok",
+   "elapsed_ms": 453,
+   "at": "2026-10-04T20:35:33+00:00",
+   "http_status": 200,
+   "tokens": 652,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-047-brackets",
+   "outcome": "ok",
+   "elapsed_ms": 381,
+   "at": "2026-10-04T20:36:39+00:00",
+   "http_status": 200,
+   "tokens": 604,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-048-brackets",
+   "outcome": "ok",
+   "elapsed_ms": 532,
+   "at": "2026-10-04T20:37:44+00:00",
+   "http_status": 200,
+   "tokens": 616,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-049-brackets",
+   "outcome": "ok",
+   "elapsed_ms": 527,
+   "at": "2026-10-04T20:38:50+00:00",
+   "http_status": 200,
+   "tokens": 605,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-050-uthmani",
+   "outcome": "ok",
+   "elapsed_ms": 402,
+   "at": "2026-10-04T20:39:55+00:00",
+   "http_status": 200,
+   "tokens": 621,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-051-uthmani",
+   "outcome": "ok",
+   "elapsed_ms": 519,
+   "at": "2026-10-04T20:41:01+00:00",
+   "http_status": 200,
+   "tokens": 651,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-052-uthmani",
+   "outcome": "ok",
+   "elapsed_ms": 450,
+   "at": "2026-10-04T20:42:06+00:00",
+   "http_status": 200,
+   "tokens": 678,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-053-famous",
+   "outcome": "ok",
+   "elapsed_ms": 453,
+   "at": "2026-10-04T20:43:12+00:00",
+   "http_status": 200,
+   "tokens": 578,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-054-famous",
+   "outcome": "ok",
+   "elapsed_ms": 357,
+   "at": "2026-10-04T20:44:17+00:00",
+   "http_status": 200,
+   "tokens": 578,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-055-famous",
+   "outcome": "ok",
+   "elapsed_ms": 504,
+   "at": "2026-10-04T20:45:22+00:00",
+   "http_status": 200,
+   "tokens": 586,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-056-famous",
+   "outcome": "ok",
+   "elapsed_ms": 353,
+   "at": "2026-10-04T20:46:28+00:00",
+   "http_status": 200,
+   "tokens": 568,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-057-famous",
+   "outcome": "ok",
+   "elapsed_ms": 384,
+   "at": "2026-10-04T20:47:33+00:00",
+   "http_status": 200,
+   "tokens": 585,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-058-famous",
+   "outcome": "ok",
+   "elapsed_ms": 382,
+   "at": "2026-10-04T20:48:39+00:00",
+   "http_status": 200,
+   "tokens": 578,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N01-hadith",
+   "outcome": "ok",
+   "elapsed_ms": 433,
+   "at": "2026-10-04T20:49:44+00:00",
+   "http_status": 200,
+   "tokens": 586,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N02-dua",
+   "outcome": "ok",
+   "elapsed_ms": 315,
+   "at": "2026-10-04T20:50:50+00:00",
+   "http_status": 200,
+   "tokens": 588,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N03-common-runs",
+   "outcome": "ok",
+   "elapsed_ms": 723,
+   "at": "2026-10-04T20:51:55+00:00",
+   "http_status": 200,
+   "tokens": 580,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N04-lookalike",
+   "outcome": "ok",
+   "elapsed_ms": 309,
+   "at": "2026-10-04T20:53:01+00:00",
+   "http_status": 200,
+   "tokens": 582,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N05-common",
+   "outcome": "ok",
+   "elapsed_ms": 469,
+   "at": "2026-10-04T20:54:06+00:00",
+   "http_status": 200,
+   "tokens": 575,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N06-paraphrase",
+   "outcome": "ok",
+   "elapsed_ms": 364,
+   "at": "2026-10-04T20:55:11+00:00",
+   "http_status": 200,
+   "tokens": 576,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N07-lookalike",
+   "outcome": "ok",
+   "elapsed_ms": 414,
+   "at": "2026-10-04T20:56:17+00:00",
+   "http_status": 200,
+   "tokens": 574,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N08-social",
+   "outcome": "ok",
+   "elapsed_ms": 766,
+   "at": "2026-10-04T20:57:22+00:00",
+   "http_status": 200,
+   "tokens": 591,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N09-hadith",
+   "outcome": "ok",
+   "elapsed_ms": 485,
+   "at": "2026-10-04T20:58:28+00:00",
+   "http_status": 200,
+   "tokens": 582,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-N10-lookalike",
+   "outcome": "ok",
+   "elapsed_ms": 327,
+   "at": "2026-10-04T20:59:34+00:00",
+   "http_status": 200,
+   "tokens": 574,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-L01-gratitude",
+   "outcome": "ok",
+   "elapsed_ms": 549,
+   "at": "2026-10-04T21:00:39+00:00",
+   "http_status": 200,
+   "tokens": 1465,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-L02-time-work",
+   "outcome": "ok",
+   "elapsed_ms": 588,
+   "at": "2026-10-04T21:01:44+00:00",
+   "http_status": 200,
+   "tokens": 1376,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_dev_20261004/HD-L03-family",
+   "outcome": "ok",
+   "elapsed_ms": 456,
+   "at": "2026-10-04T21:02:50+00:00",
+   "http_status": 200,
+   "tokens": 1454,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-001-sub",
+   "outcome": "ok",
+   "elapsed_ms": 340,
+   "at": "2026-10-04T21:03:55+00:00",
+   "http_status": 200,
+   "tokens": 598,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-002-sub",
+   "outcome": "ok",
+   "elapsed_ms": 511,
+   "at": "2026-10-04T21:05:01+00:00",
+   "http_status": 200,
+   "tokens": 583,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-003-sub",
+   "outcome": "ok",
+   "elapsed_ms": 496,
+   "at": "2026-10-04T21:06:06+00:00",
+   "http_status": 200,
+   "tokens": 614,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-004-sub",
+   "outcome": "ok",
+   "elapsed_ms": 704,
+   "at": "2026-10-04T21:07:12+00:00",
+   "http_status": 200,
+   "tokens": 573,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-005-omission",
+   "outcome": "ok",
+   "elapsed_ms": 327,
+   "at": "2026-10-04T21:08:18+00:00",
+   "http_status": 200,
+   "tokens": 580,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-006-omission",
+   "outcome": "ok",
+   "elapsed_ms": 446,
+   "at": "2026-10-04T21:09:23+00:00",
+   "http_status": 200,
+   "tokens": 572,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-007-omission",
+   "outcome": "ok",
+   "elapsed_ms": 312,
+   "at": "2026-10-04T21:10:28+00:00",
+   "http_status": 200,
+   "tokens": 580,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-008-wrong-first",
+   "outcome": "ok",
+   "elapsed_ms": 537,
+   "at": "2026-10-04T21:11:34+00:00",
+   "http_status": 200,
+   "tokens": 576,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-009-wrong-first",
+   "outcome": "ok",
+   "elapsed_ms": 563,
+   "at": "2026-10-04T21:12:39+00:00",
+   "http_status": 200,
+   "tokens": 581,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-010-wrong-first",
+   "outcome": "ok",
+   "elapsed_ms": 449,
+   "at": "2026-10-04T21:13:45+00:00",
+   "http_status": 200,
+   "tokens": 575,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-011-wrong-last",
+   "outcome": "ok",
+   "elapsed_ms": 290,
+   "at": "2026-10-04T21:14:50+00:00",
+   "http_status": 200,
+   "tokens": 575,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-012-wrong-last",
+   "outcome": "ok",
+   "elapsed_ms": 479,
+   "at": "2026-10-04T21:15:55+00:00",
+   "http_status": 200,
+   "tokens": 591,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-013-wrong-last",
+   "outcome": "ok",
+   "elapsed_ms": 762,
+   "at": "2026-10-04T21:17:01+00:00",
+   "http_status": 200,
+   "tokens": 582,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-014-extra",
+   "outcome": "ok",
+   "elapsed_ms": 526,
+   "at": "2026-10-04T21:18:07+00:00",
+   "http_status": 200,
+   "tokens": 582,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-015-two-errors",
+   "outcome": "ok",
+   "elapsed_ms": 405,
+   "at": "2026-10-04T21:19:12+00:00",
+   "http_status": 200,
+   "tokens": 581,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-016-partial",
+   "outcome": "ok",
+   "elapsed_ms": 393,
+   "at": "2026-10-04T21:20:18+00:00",
+   "http_status": 200,
+   "tokens": 585,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-017-partial",
+   "outcome": "ok",
+   "elapsed_ms": 315,
+   "at": "2026-10-04T21:21:23+00:00",
+   "http_status": 200,
+   "tokens": 578,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-018-partial",
+   "outcome": "ok",
+   "elapsed_ms": 482,
+   "at": "2026-10-04T21:22:28+00:00",
+   "http_status": 200,
+   "tokens": 573,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-019-partial",
+   "outcome": "ok",
+   "elapsed_ms": 344,
+   "at": "2026-10-04T21:23:34+00:00",
+   "http_status": 200,
+   "tokens": 605,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-020-lead",
+   "outcome": "ok",
+   "elapsed_ms": 592,
+   "at": "2026-10-04T21:24:39+00:00",
+   "http_status": 200,
+   "tokens": 609,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-021-lead",
+   "outcome": "ok",
+   "elapsed_ms": 518,
+   "at": "2026-10-04T21:25:45+00:00",
+   "http_status": 200,
+   "tokens": 573,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-022-lead",
+   "outcome": "ok",
+   "elapsed_ms": 548,
+   "at": "2026-10-04T21:26:50+00:00",
+   "http_status": 200,
+   "tokens": 593,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-023-lead",
+   "outcome": "ok",
+   "elapsed_ms": 521,
+   "at": "2026-10-04T21:27:56+00:00",
+   "http_status": 200,
+   "tokens": 597,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-024-ref",
+   "outcome": "ok",
+   "elapsed_ms": 311,
+   "at": "2026-10-04T21:29:01+00:00",
+   "http_status": 200,
+   "tokens": 583,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-025-ref",
+   "outcome": "ok",
+   "elapsed_ms": 449,
+   "at": "2026-10-04T21:30:07+00:00",
+   "http_status": 200,
+   "tokens": 580,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-026-ref",
+   "outcome": "ok",
+   "elapsed_ms": 365,
+   "at": "2026-10-04T21:31:12+00:00",
+   "http_status": 200,
+   "tokens": 579,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-027-ref",
+   "outcome": "ok",
+   "elapsed_ms": 449,
+   "at": "2026-10-04T21:32:18+00:00",
+   "http_status": 200,
+   "tokens": 616,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-028-quotes",
+   "outcome": "failed",
+   "elapsed_ms": 6312,
+   "at": "2026-10-04T21:33:23+00:00",
+   "http_status": null,
+   "tokens": null,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-029-quotes",
+   "outcome": "ok",
+   "elapsed_ms": 419,
+   "at": "2026-10-04T21:34:34+00:00",
+   "http_status": 200,
+   "tokens": 610,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-030-quotes",
+   "outcome": "failed",
+   "elapsed_ms": 5360,
+   "at": "2026-10-04T21:35:40+00:00",
+   "http_status": 400,
+   "tokens": null,
+   "error_body_type": "invalid_request_error"
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-031-brackets",
+   "outcome": "failed",
+   "elapsed_ms": 10092,
+   "at": "2026-10-04T21:36:50+00:00",
+   "http_status": null,
+   "tokens": null,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-032-brackets",
+   "outcome": "ok",
+   "elapsed_ms": 730,
+   "at": "2026-10-04T21:38:05+00:00",
+   "http_status": 200,
+   "tokens": 573,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-033-brackets",
+   "outcome": "ok",
+   "elapsed_ms": 327,
+   "at": "2026-10-04T21:39:11+00:00",
+   "http_status": 200,
+   "tokens": 576,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-034-uthmani",
+   "outcome": "ok",
+   "elapsed_ms": 432,
+   "at": "2026-10-04T21:40:16+00:00",
+   "http_status": 200,
+   "tokens": 657,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-035-uthmani",
+   "outcome": "ok",
+   "elapsed_ms": 325,
+   "at": "2026-10-04T21:41:22+00:00",
+   "http_status": 200,
+   "tokens": 635,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-036-famous",
+   "outcome": "ok",
+   "elapsed_ms": 701,
+   "at": "2026-10-04T21:42:27+00:00",
+   "http_status": 200,
+   "tokens": 566,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-037-famous",
+   "outcome": "ok",
+   "elapsed_ms": 367,
+   "at": "2026-10-04T21:43:33+00:00",
+   "http_status": 200,
+   "tokens": 569,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-038-famous",
+   "outcome": "ok",
+   "elapsed_ms": 499,
+   "at": "2026-10-04T21:44:38+00:00",
+   "http_status": 200,
+   "tokens": 585,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-039-famous",
+   "outcome": "ok",
+   "elapsed_ms": 302,
+   "at": "2026-10-04T21:45:44+00:00",
+   "http_status": 200,
+   "tokens": 569,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-N01-hadith",
+   "outcome": "failed",
+   "elapsed_ms": 324,
+   "at": "2026-10-04T21:46:49+00:00",
+   "http_status": 400,
+   "tokens": null,
+   "error_body_type": "invalid_request_error"
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-N02-dua",
+   "outcome": "ok",
+   "elapsed_ms": 310,
+   "at": "2026-10-04T21:47:54+00:00",
+   "http_status": 200,
+   "tokens": 582,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-N03-common-runs",
+   "outcome": "ok",
+   "elapsed_ms": 301,
+   "at": "2026-10-04T21:49:00+00:00",
+   "http_status": 200,
+   "tokens": 586,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-N04-proverbs",
+   "outcome": "ok",
+   "elapsed_ms": 6747,
+   "at": "2026-10-04T21:50:05+00:00",
+   "http_status": 200,
+   "tokens": 583,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-N05-lookalike",
+   "outcome": "failed",
+   "elapsed_ms": 8422,
+   "at": "2026-10-04T21:51:17+00:00",
+   "http_status": null,
+   "tokens": null,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-N06-social",
+   "outcome": "failed",
+   "elapsed_ms": 6136,
+   "at": "2026-10-04T21:52:30+00:00",
+   "http_status": null,
+   "tokens": null,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-N07-notes",
+   "outcome": "ok",
+   "elapsed_ms": 336,
+   "at": "2026-10-04T21:53:41+00:00",
+   "http_status": 200,
+   "tokens": 578,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-L01-knowledge",
+   "outcome": "ok",
+   "elapsed_ms": 404,
+   "at": "2026-10-04T21:54:47+00:00",
+   "http_status": 200,
+   "tokens": 1414,
+   "error_body_type": null
+  },
+  {
+   "id": "hard_quotes_heldout_20261004/HH-L02-patience-illness",
+   "outcome": "ok",
+   "elapsed_ms": 385,
+   "at": "2026-10-04T21:55:52+00:00",
+   "http_status": 200,
+   "tokens": 1416,
+   "error_body_type": null
+  }
+ ]
+}

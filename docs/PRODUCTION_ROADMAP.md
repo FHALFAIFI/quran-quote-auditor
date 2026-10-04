@@ -76,7 +76,7 @@ Work and tests:
 
 ### 1.5 Measured incremental value of the model
 
-- **Status (4 Oct, challenge period):** measured on 76 short labelled articles (21,423 characters) with a paired replay: **1 true additional quotation, 0 false additions, 0 changed findings — about 0.5 per 10,000 characters, below the rule below.** The switch-off the rule calls for was **not** made: the owner decides (`docs/EVALUATION.md`, «The model's measured contribution»). A narrower role (triage of «possible» phrases from the surrounding sentence) passed its pre-registered rule on two small runs but is not built (same section). The hard-quotation sets are being recorded for a larger sample.
+- **Status (4 Oct, challenge period):** measured on 76 short labelled articles (21,423 characters) with a paired replay: **1 true additional quotation, 0 false additions, 0 changed findings — about 0.5 per 10,000 characters, below the rule below.** The switch-off the rule calls for was **not** made: the owner decides (`docs/EVALUATION.md`, «The model's measured contribution»). A narrower role (triage of «possible» phrases from the surrounding sentence) passed its pre-registered rule on two small runs but is not built (same section). Second sample the same night, the two hard-quotation sets (111 answered calls, 32,633 characters): **0** additions, 0 false, 0 changed. Both together: 1 true addition in 54,056 characters (≈ 0.2 per 10,000); 9 of 195 calls failed (4.6%).
 
 In every audit so far the model proposed nothing that the deterministic path had not already found (`ai.added_only = 0`). Since `47f224e` the model is attempted on every short audit, so it is sent text on every audit. That has to be justified.
 

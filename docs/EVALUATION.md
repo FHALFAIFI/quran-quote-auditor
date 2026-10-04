@@ -782,8 +782,26 @@ labelled sets that the service would send to the model (≤ 6,000 characters): t
 | False «possible» items added by the model | **0** |
 | Deterministic findings changed by the model (harm check) | **0** |
 
-So on these sets the model added **one real quotation in 21,423 characters (≈ 0.5 per 10,000)** and nothing false. The roadmap's rule
-(§1.5, fixed before this run) keeps the model on by default only at ≥ 2 true additions and ≤ 1 false addition per 10,000 characters: **the
+So on these sets the model added **one real quotation in 21,423 characters (≈ 0.5 per 10,000)** and nothing false.
+
+**Second sample, recorded the same night (22:44–00:53): the two hard-quotation sets** (`hard_quotes_dev` 71 and `hard_quotes_heldout` 48 articles,
+32,633 characters; the sets built to contain short, unmarked and misquoted passages, where the model was expected to help most). Same method; the
+recording was paused for two minutes around the live probe of PR #10 and resumed without re-sending any article.
+
+| | Hard dev | Hard held-out | Both |
+|---|---|---|---|
+| Calls / answered | 71 / 69 | 48 / 42 | 119 / 111 |
+| Failed calls | 2 × HTTP 400 `json_validate_failed` | 2 × 400 `json_validate_failed`, 3 timeouts, 1 connection failure (all between 00:33 and 00:52) | 8 (6.7%) |
+| Answers with no proposal | 49 | 35 | 84 of 111 |
+| Proposals / located / also found by the search / overlapping | 20 / 20 / 19 / 1 | 7 / 7 / 7 / 0 | 27 / 27 / 26 / 1 |
+| **Findings only the model proposed** | **0** | **0** | **0** |
+| False items added / deterministic findings changed | 0 / 0 | 0 / 0 | 0 / 0 |
+
+Latency of answered calls: median 433 ms, max 6747 ms; 69,755 tokens. Result file: `eval/results/ai-contribution-20261005-005747-hard-sets-bee3e03.json`.
+
+**Both samples together: 195 calls, 186 answered (9 failed: 5 × HTTP 400 generation failures, 3 timeouts, 1 connection failure — 4.6%),
+54,056 characters, one true additional quotation (≈ 0.2 per 10,000 characters), no false addition, no changed finding.** The roadmap's rule
+(§1.5, fixed before these runs) keeps the model on by default only at ≥ 2 true additions and ≤ 1 false addition per 10,000 characters: **the
 rule is not met**. The roadmap's consequence would be to switch the model off on the server (`AI_PROVIDER=none`) and say so on `/privacy`.
 **That was not done**: the owner asked to decide it. Recorded for the decision: the model costs one transfer of each short article to Groq;
 it found one quotation the search missed and harmed nothing; when it fails the audit is complete without it.
