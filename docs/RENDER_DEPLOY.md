@@ -57,6 +57,35 @@ Everything else keeps the defaults in `.env.example`. `PORT` is set by Render; d
 3. `python scripts/e2e_check.py https://<service>.onrender.com` for the API, sample and error-case checks.
 4. Only if the live site shows it: write down what AI added, with the model name as displayed.
 
+## External uptime monitor (not set up; for the owner)
+
+Nothing is signed up for. Any free HTTP uptime service that can request a URL on a schedule and look for a keyword in the answer will do.
+`/api/health` is public, needs no key and returns no personal data and no article text.
+
+1. **URL:** `https://<service>.onrender.com/api/health?deep=1`, method GET, every 5 minutes, timeout 60 s (a sleeping Free
+   instance takes about a minute to wake). `?deep=1` first makes sure the Quran text is loaded, so a fresh instance does not report
+   "not loaded". It costs at most one Quranpedia request per 24 hours (or one per minute while the source is failing), exactly as an
+   audit would. Render's own health check (`healthCheckPath: /api/health`, without `deep`) never fetches anything.
+2. **Alert when** (the JSON is compact, no spaces):
+   - the status is not 200, or there is no answer within 60 s, twice in a row: the service is down;
+   - the keyword `"source_ok":true` is **absent**: the Quran text is stale (served from an old copy) or Quranpedia is unreachable
+     (`source.last_error` names the error type);
+   - the keyword `"http_status":429` is **present** in the answer: the model's last call was refused for its rate limit. A service
+     that can evaluate JSON can instead alert when `ai_recent.rate_limited / ai_recent.calls` passes a threshold (proposal: 0.2 with
+     at least 5 calls). `ai_recent` counts real model calls since the process started (`calls`, `ok`, `failed`, `rate_limited`,
+     `since`); calls skipped during a cooldown are not counted. The counters start again at every restart, and a Free instance restarts
+     after each sleep. With the model off (`AI_PROVIDER=none`), `ai_recent` is `null`.
+3. **After each deploy:** check by hand that `build` equals the commit that was released.
+4. **Fire one alert on purpose** (for example, point the monitor at `/api/health-missing` for one check), see that it arrives, and
+   record it in `docs/TEST_LOG.md`. That record is the Stage 4 evidence; it does not exist yet.
+
+Note for the Free plan: a check every 5 minutes keeps the instance awake (it sleeps after 15 idle minutes), which uses about 744 of
+the workspace's 750 free instance hours a month (render.com/docs/free, read 4 Oct 2026). On a paid instance this does not matter.
+
+Error reporting: there is no external error-reporting service. The app's own log lines go to Render's log only; they carry the path,
+the status and, for an unexpected error, the exception type. As defence in depth, `app/logging_safety.py` removes any run of Arabic
+text longer than 20 letters from every log record (message, arguments and traceback, percent-encoded or not) before it is written.
+
 ## Free-tier notes
 
 - The service sleeps after about 15 minutes idle. The first request afterwards can take close to a minute,

@@ -221,8 +221,16 @@ async def validation_error(request: Request, exc: RequestValidationError):
 
 
 @app.get("/api/health")
-def health():
+def health(deep: bool = False):
+    """Public, no personal data. ``?deep=1`` (for an external uptime monitor) first makes sure the Quran text is loaded: at
+    most one Quranpedia request per 24 h or per failure back-off, exactly as an audit would. Without it nothing is fetched."""
     provider = get_provider()
+    if deep:
+        try:
+            source.get()
+        except SourceUnavailable:
+            pass
+    src = source.status()
     return {
         "status": "ok",
         # "ai" means a provider is CONFIGURED (a key is set). Whether it has actually
@@ -237,7 +245,11 @@ def health():
         "ai_max_chars": settings.ai_max_chars,
         # The commit the host built (Render sets RENDER_GIT_COMMIT; public information, null elsewhere).
         "build": (os.environ.get("RENDER_GIT_COMMIT") or "")[:40] or None,
-        "source": source.status(),
+        "source": src,
+        # For monitors: the Quran text is loaded and not a stale fallback copy (false before the first load: use ?deep=1).
+        "source_ok": bool(src.get("loaded") and not src.get("stale")),
+        # Model calls since this process started (counts only; null when no model is configured).
+        "ai_recent": provider.tracker.recent() if provider and provider.tracker else None,
     }
 
 
