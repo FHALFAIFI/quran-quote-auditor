@@ -247,15 +247,16 @@ Nothing below exists in the repository, and no assistant session can create it.
 
 ---
 
-## The interface revision on this branch (draft PR #2: what it does and does not settle)
+## The interface revision of PR #2 (`ui-editorial-2026-10`): what it does and does not settle
 
-Done in the UI PR (`ui-editorial-2026-10`), 3–4 Oct:
+Done in the UI PR, 3–4 Oct:
 
 - the empty page leads with the article sheet; the explanation is one sentence; the demonstration article is a secondary action under the sheet;
 - the first verse insertion stops at the source's pause sign or before a new clause, says where it stops, and the next piece follows one action later;
-- an approved correction is drawn above the writer's own word (the box keeps their text) and is not drawn as a source match;
+- an approved correction strikes through only the writer's words that change and draws the source's text above where the change starts (the box keeps their text; the label stays inside the box and clear of the line above); the final review offers «تراجع عنه» on each approved change;
+- the verse suggestion box never covers or pushes off-screen the line being typed, including on a screen made short by a phone's keyboard (it drops the full verse line there, keeping the words, the reference and «أدرج»);
 - the phone's bottom bar follows where the writer is and does not cover the final review;
-- an exact but common «possible» phrase waits behind the concrete decisions as «عبارات للتأكيد» and is not counted as a quotation found;
+- an exact but common «possible» phrase waits behind the concrete decisions as «عبارات للتأكيد (اختياري)», is not counted as a quotation found, and is drawn lighter than a decision («تأكيد اختياري», no shading, its group closed while decisions wait, its card titled «العبارة»);
 - the model's state (answered, failed, over the limit, or not configured) is named in a calm line, with detail behind disclosure.
 
 It does **not** reduce the 1.2 noise (it changes order and counting only), does not settle any Stage 4 gate, and adds no sign-in, cloud-save, import or OCR control.

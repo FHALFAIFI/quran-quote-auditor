@@ -615,6 +615,13 @@ concrete decisions; the headline counts it apart («و٧ عبارات تشبه �
 `approximate` items stay in the main queue (27 of 32 real, mostly misquotations). These counts are from author-written, unreviewed labels on development data;
 they guided an ordering decision and are not a precision estimate.
 
+**Later on 4 Oct (release review of PR #2), presentation only.** The same items now also *look* optional: the group reads «عبارات للتأكيد (اختياري): قد تكون اقتباسات» and is
+closed while concrete decisions wait, each row says «تأكيد اختياري» in a neutral style instead of the decisions' amber «يحتاج تأكيدك», the phrase is not shaded in the text
+(a grey dotted line only), its card is titled «العبارة» rather than «الاقتباس» and says it may be ordinary prose and is copied as written if left alone, and the headline says
+«…؛ تأكيدها اختياري». No detection code changed. Before merging, the seven detection sets were rerun in fallback mode (`eval/results/fallback-20261004-0722*-release-20261004-*.json`)
+and the two suggestion sets (`eval/results/suggest-20261004-072257-*-release-20261004.json`): rows, negative hits, formula hits and extra findings are identical to the
+recorded runs (`…-recheck-*`, `…-long-20261003-first-run`, `…-gapafter-uthmani-*`, `…-chunk-letters`); only the run times differ. Suggestion hits stay A 71/76 and B 69/76, 0 of 39 false.
+
 ### Length: measured, not assumed (`scripts/measure_length.py`, `eval/results/length-20261003-local.json`; macOS arm64, Python 3.14, AI off, median of 3, fresh process)
 
 | Input | Characters | Audit time | Findings | Response | Process memory |
