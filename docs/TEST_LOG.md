@@ -1117,9 +1117,9 @@ not count towards the "Interface sign-off" gate. **Not tested with users.**
 | 1 Start an article | typed text sits in «مقالك»; the counter shows `٦٣ / ٢٠٬٠٠٠ حرف` | — |
 | 2 Insert a verse suggestion | after «قال تعالى: إن مع العسر» the box offered «يسرا» (الشرح: 6) with the verse line; Tab inserted it | the box sits below the typed line, does not cover it |
 | 3 Audit a long article (LA03, 14,700 characters) | first decision card 0.8 s after «دقّق الاقتباسات» (local; the free host took 25.7 s for the same article, cold source, measured live today); «وجدنا ٢١ اقتباسًا؛ يحتاج ١١ منها إلى قرارك» | — |
-| 4 Settle an uncertain quotation | a boundary card for «وتحسبونه هينا وهو عند الله عظيم» asks whether «منه» belongs to the quotation (the verse has «علم» there) | **finding:** the article gives the reference in words, «وهي الآية الخامسة عشرة من سورة النور», which the reference parser does not read (only digits), so that reference does not help; recorded as a known limit, not fixed tonight |
+| 4 Settle an uncertain quotation | a boundary card for «وتحسبونه هينا وهو عند الله عظيم» asks whether «منه» belongs to the quotation (the verse has «علم» there) | **finding:** the article gives the reference in words, «وهي الآية الخامسة عشرة من سورة النور», which the reference parser did not read (only digits), so that reference did not help; **fixed later the same evening** (PR #8, `4cd0746`: ordinals 1–99 before «من/في سورة …») |
 | 5 Approve, then undo | «يجزى → يوفى» approved: struck word and source word drawn, undo line «اعتمدتَ «يوفى» مكان «يجزى» … تراجع»; undo restored it | a card that proposes a fix also shows the amber line «مطابقة تقريبية: الموضع المقترح يحتاج إلى تأكيد بشري» — a writer may read it as the tool doubting its own proposal; a question for the pilot, not changed |
 | 6 Final review | «سيُنسخ مقالك بعد تغيير واحد اعتمدتَه», the change in its sentence with «تراجع عنه», one item still pending, the "not a certificate" line | — |
 | 7 Copy | the clipboard held the article with «يوفى» (402 characters) | — |
 
-No defect that blocks a task was found; the reference-in-words gap is listed in `docs/EVALUATION.md` known limits through this entry.
+No defect that blocks a task was found; the reference-in-words gap was fixed (PR #8).
