@@ -794,10 +794,11 @@ it found one quotation the search missed and harmed nothing; when it fails the a
 |---|---|---|
 | `aee587c` (harness + detection + hardening) | 21:17:12 | **HTTP 429**, 240 ms, «Request too large … output tokens per minute (OTPM): Limit 1000, Requested 1556»; outcome failed; page showed the full source audit and the calm failure line (24 journey checks PASS). A local call had been made less than a minute earlier on the same Groq organisation, so this one may be the minute window. |
 | `91568af` (+ import) | 21:33:40 | **HTTP 429**, 234 ms, same message, «Requested 2834»; no local call in the 4 minutes before. Not explained by spacing. |
+| `bee3e03` (default reservation 800, PR #10) | 22:57:59 | **HTTP 200**, model 920 ms, proposed 4, located 4, discarded 0, `added_only` 0, `also_found` 4; audit 8.9 s (cold source). The local recorder was paused and no call was made in the 100 s before. |
 
 Both live calls failed while 75 local calls with an 800-token reservation succeeded, so the service's own configuration is the first thing
 to check (`GROQ_MAX_COMPLETION_TOKENS` on Render; `/api/health` reports it as `ai_max_completion_tokens` from this release on).
-Live probes were stopped after these two (rule: no retry after repeated 429s).
+Live probes were stopped after these two (rule: no retry after repeated 429s). After PR #9, `/api/health` on the live service reported **`ai_max_completion_tokens: 4096`**: the 800 recorded on 3 Oct was not in effect on Render. PR #10 made 800 the code default (the largest answer measured tonight used 341 output tokens), and the one probe of that release answered HTTP 200 (row above). One answered call shows the setting works; it is not a reliability rate.
 
 ### 4. A narrower role, prototyped (not in the product): triage of «possible» phrases
 

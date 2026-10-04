@@ -51,7 +51,7 @@ On a service with Groq configured, an audit of an article up to 6,000 characters
 
 You paste an Arabic article or post. The app:
 
-1. finds likely Quran quotations: marked ones (﴿﴾, {}, «» after a cue or before a reference), and unmarked phrases, shown as a *candidate* or as «قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة» (*possible*). It also finds the surah/ayah reference written next to a quotation;
+1. finds likely Quran quotations: marked ones (﴿﴾, {}, «» after a cue or before a reference), and unmarked phrases, shown as a *candidate* or as «قد يكون اقتباسًا قرآنيًا — يحتاج مراجعة» (*possible*). Since 4 Oct 2026 (challenge period) it also looks where the writer **announced** a verse — after a lead-in («قال تعالى», «يقول الله عز وجل», «بقوله»), before a reference in citation form or one written as a word («الآية الخامسة عشرة من سورة النور»), or inside quotation marks — and aligns those words to the named verse even when a word is wrong or missing (`app/cues.py`); such a near match is only *possible*, with verse choices and no replacement until the writer confirms, unless an adjacent ayah reference names the matched verse and both edges are settled (`docs/EVALUATION.md`, «Hard quotations»). It also finds the surah/ayah reference written next to a quotation;
 2. checks each quotation's **wording** and **reference** against Quranpedia's Hafs text;
 3. shows one review list, with what needs the editor first: the quotation in the article, the source verse, the exact difference, the reference status and the action asked of the editor. A quotation copied in the **Uthmani script** of a mushaf site or app (`ٱلصَّلَوٰةَ`, `ءَامَنُوا۟`) is matched when its words are the source's words, and gets no correction ([docs/UTHMANI.md](docs/UTHMANI.md));
 4. proposes **source-backed corrections** only when the source supports both the text and the location. The editor **approves or rejects each one**; a before/after preview and a copy button give the corrected text;
@@ -85,7 +85,7 @@ Earlier samples are still in the list («مثال: العلم», «مثال: ا�
 - **Uthmani script is recognised only as far as the documented rules go** ([docs/UTHMANI.md](docs/UTHMANI.md)). Before the change on 2 October 2026 (pre-challenge) a correct Uthmani quotation was shown as «difference» or «uncertain» and could get a wrong correction (30 of 41 on the frozen Uthmani set). Now 37 of those 41 read «matched», and none of the other 8 wrong quotations is. The rules explain 99.2% of the verses of the Tanzil Uthmani text (SOURCES.md §1b) and 98.8% of Quranpedia's Uthmani edition; about 50 rare spellings are not covered and read «uncertain» with no replacement. The held-out set was no longer untouched after its first run, and it contains label errors, so these figures are not an independent accuracy rate. A genuinely changed word, a different vowel or a wrong reference in Uthmani text is still flagged.
 - It does not proofread Arabic, interpret verses, translate, or give religious rulings.
 - **No measured accuracy.** The only numbers are from small, author-written, labelled sets (below). They are not independent measurements, and the labels are still awaiting review by an Arabic specialist ([docs/LABEL_REVIEW.md](docs/LABEL_REVIEW.md)).
-- **No measured AI benefit.** On the live demo sample the model proposed the same 7 quotations that the deterministic path found without it. In the labelled sets, with the phrase search in place, it added one quotation (a 3-word misquotation) in one run on one set, and none on the other two.
+- **AI benefit, measured (4 Oct 2026):** with the same code run with and without the model's recorded answer on 76 short labelled articles (21,423 characters), the model added **one** real quotation the source search missed («ادعوني أستجيب لكم»), added nothing false and changed no deterministic finding — about 0.5 additions per 10,000 characters, below the keep rule fixed in advance in `docs/PRODUCTION_ROADMAP.md` §1.5. Whether to keep sending short articles to the model is the owner's decision (`docs/EVALUATION.md`, «The model's measured contribution and failures»).
 
 ## Results observed so far (all pre-challenge, no AI; code as of `cccd084`)
 
@@ -152,6 +152,7 @@ article ──► candidate extraction ──► locate in article ──► att
             │   Gemini, one per audit)  not literally          nearest quote)       Hafs text,     only; none if
             │ marked ﴿…﴾ {…} «…»        present)                                   deterministic) span ambiguous)
             │ unmarked phrase search (seed-and-extend over the word index)
+            │ writer-cue retrieval (lead-in / reference / quotation marks → aligned to the named verse; app/cues.py)
             │ manual highlight (POST /api/phrase, no AI)
 ```
 

@@ -1137,7 +1137,9 @@ aggregates are published (`docs/EVALUATION.md`, «The model's measured contribut
 | Triage prototype, run 1 (300 tokens reserved) | 21:17–21:29 | 12 | 12 × 200 |
 | Live probe on `91568af` | 21:33:40 | 1 | 429 OTPM «Requested 2834» (no local call in the previous 4 min) |
 | Triage prototype, run 2 (rule unchanged) | 21:35–22:43 | 64 | 64 × 200 |
-| Extraction answers for the two hard-quotation sets | from 22:44 | (running) | (recorded in a later entry) |
+| Extraction answers for the two hard-quotation sets, part 1 | 22:44–22:56 | 12 | see the hard-set entry |
+| Live probe on `bee3e03` (after PR #10: default reservation 800; recorder paused, 100 s with no call) | 22:57:59 | 1 | **200**, 920 ms, proposed 4 / located 4 / discarded 0, added_only 0, also_found 4; journey 22 PASS |
+| Extraction answers for the two hard-quotation sets, part 2 (resumed; recorded articles are not sent again) | from 23:00 | (running) | see the hard-set entry |
 
 Both live probes: the page showed the complete source-based audit and the calm failure line; `live_smoke` 24 PASS, 0 FAIL each time. The
 service's cooldown (≥ 120 s after a 429) applied. **Live probes were then stopped** (no retry after repeated 429s). The difference between the
