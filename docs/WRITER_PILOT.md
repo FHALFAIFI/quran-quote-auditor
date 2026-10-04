@@ -68,7 +68,7 @@ and the sample «مثال: مقال بلا أقواس» for task 4. Results on b
 **Before recruiting, the owner decides** (and writes the decision in the session log):
 
 1. which service the sessions use: the live service (the model is configured: audits of articles up to 6,000
-   characters are sent to Groq automatically), or an instance with no model. The consent text in §3 is written for the
+   characters are sent to Groq automatically), or an instance with no model. Re-read `/privacy` on the day of each session and update §3 if it changed (on 4 Oct the fonts moved from Google to the app's own server). The consent text in §3 is written for the
    live service; for an instance with no model, use the alternative sentence given there;
 2. who moderates and who takes notes (ideally two people, neither the participant's manager);
 3. whether any reward is offered (none is promised in the text below);
@@ -132,7 +132,7 @@ and the sample «مثال: مقال بلا أقواس» for task 4. Results on b
 - أما المقال الذي يزيد على ٦٬٠٠٠ حرف فلا يُرسَل إلى Groq، ويُدقَّق بالعلامات والبحث في نص المصحف فقط.
 - وفي اقتراح الآية أثناء الكتابة لا يُرسَل إلى خادم الأداة إلا الكلمات القريبة من المؤشر (حتى ٧٠٠ حرف قبله و١٠٠ حرف بعده)، ولا يُستعمل في ذلك نموذج لغوي. ولا يُرسَل شيء أثناء الكتابة العادية إلا بعد عبارة مثل «قال تعالى» أو داخل علامات الاقتباس، أو حين تطلب ذلك بنفسك.
 - يبقى مقالك وقراراتك في تبويب المتصفح الحالي حتى تغلقه أو تضغط «مسح»، ولا يُحفظ في المتصفح بعد ذلك إلا إذا اخترتَ حفظ المسودة. وسنمسح ذلك كله في نهاية الجلسة.
-- لا تُنشئ الأداة حسابات ولا تستعمل ملفات تعريف الارتباط. ويطلب تحميل الصفحة الخطوط من خوادم جوجل، فيصلها عنوان جهازك ومعلومات المتصفح، لا نص المقال. وللمستضيف Render سجلاته الخاصة خارج تحكمنا.
+- لا تُنشئ الأداة حسابات ولا تستعمل ملفات تعريف الارتباط. وتُحمَّل الخطوط من خادم الأداة نفسه، فلا يُطلب شيء من جوجل أو غيرها عند فتح الصفحة. وللمستضيف Render سجلاته الخاصة خارج تحكمنا.
 - إن لم يكن مسموحًا لك بإرسال مقال ما إلى خدمة خارجية، فلا نستخدمه في الجلسة.
 
 حقك في الانسحاب
