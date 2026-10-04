@@ -399,6 +399,99 @@ async function runDemo() {
   }
 }
 
+// ---- import a file: read in this browser by a worker (app/static/import.js), never uploaded. The text goes into the editor like a
+// paste: it is never audited automatically and never corrected; a text already in the editor is replaced only if the writer says so.
+const IMPORT_TIMEOUT_MS = 10000;
+const IMPORT_MAX_BYTES = 5 * 1024 * 1024;
+let importWorker = null;
+let importBusy = false;
+let importSeq = 0;
+let importPending = null;   // { name, res }: an extracted text waiting for the writer's answer (replace the text in the editor, or not)
+let importNotice = null;    // { gen, text }: the notice of the imported text, kept while that document is in the editor
+// The status a document starts with: the import notice for an imported text (an older audit's late answer must not wipe it), else none.
+const docNote = () => (importNotice && importNotice.gen === docGen ? importNotice.text : "");
+
+function importWorkerReady() {
+  if (!importWorker && window.Worker) {
+    try { importWorker = new Worker("/static/import.js"); } catch { importWorker = null; }
+  }
+  return importWorker;
+}
+
+// The worker reads the file and answers once; if it takes longer than the limit it is stopped (and a new one is made next time).
+function extractFile(file) {
+  return new Promise((resolve) => {
+    const w = importWorkerReady();
+    if (!w) { resolve({ ok: false, message: "لا يستطيع هذا المتصفح قراءة الملف هنا؛ انسخ النص من الملف والصقه." }); return; }
+    const id = ++importSeq;
+    let timer = null;
+    const done = (r) => { clearTimeout(timer); w.onmessage = null; w.onerror = null; resolve(r); };
+    const stop = (message) => { w.terminate(); if (importWorker === w) importWorker = null; done({ ok: false, message }); };
+    timer = setTimeout(() => stop(`استغرقت قراءة الملف أكثر من ${toArabicDigits(String(IMPORT_TIMEOUT_MS / 1000))} ثوانٍ فأُوقفت.`), IMPORT_TIMEOUT_MS);
+    w.onmessage = (ev) => { if (ev.data && ev.data.id === id) done(ev.data); };
+    w.onerror = (ev) => { ev.preventDefault(); stop("تعذّرت قراءة الملف."); };
+    w.postMessage({ id, file, maxChars: MAX_CHARS });
+  });
+}
+
+function importNote(text, isError, busy) {
+  const n = $("import-note");
+  n.replaceChildren();
+  n.classList.toggle("error", !!isError);
+  if (busy) n.append(el("span", { class: "spinner", "aria-hidden": "true" }));
+  if (text) n.append(text);
+  if (isError && text) n.scrollIntoView({ block: "nearest", behavior: motion() });
+}
+
+function openImport() {
+  if (importBusy) return;
+  importWorkerReady();     // the worker's script is fetched now, before a file is chosen: nothing is fetched while a file is read
+  $("import-file").click();
+}
+
+async function onImportChosen(e) {
+  const input = e.target;
+  const file = input.files && input.files[0];
+  if (!file || importBusy) { input.value = ""; return; }
+  hideImportAsk(false);
+  if (file.size > IMPORT_MAX_BYTES) { input.value = ""; importNote("حجم الملف أكبر من ٥ ميغابايت. لم يتغيّر شيء في المحرر.", true); return; }
+  importBusy = true;
+  $("import-btn").setAttribute("aria-busy", "true");
+  importNote("جارٍ قراءة الملف في متصفحك…", false, true);
+  let res;
+  try { res = await extractFile(file); } finally { importBusy = false; input.value = ""; $("import-btn").removeAttribute("aria-busy"); }
+  if (!res.ok) { importNote(`${res.message} لم يتغيّر شيء في المحرر.`, true); return; }
+  importNote("");
+  if (editor().value.trim()) askReplace(file.name, res);
+  else applyImport(res);
+}
+
+function askReplace(name, res) {
+  importPending = { name, res };
+  $("import-ask-text").textContent = `في المحرر نص الآن${lastResult ? " ومعه نتيجة تدقيق وقراراتك" : ""}. أتستبدل به نص الملف «\u2068${name}\u2069» (${arabicCount(res.chars)} حرف)؟`;
+  $("import-ask").hidden = false;
+  $("import-ask-text").focus({ preventScroll: true });
+  $("import-ask").scrollIntoView({ block: "nearest", behavior: motion() });
+}
+
+function hideImportAsk(focusButton) {
+  importPending = null;
+  $("import-ask").hidden = true;
+  if (focusButton) $("import-btn").focus();
+}
+
+function applyImport(res) {
+  window.QQASuggest?.hide();
+  setEditorText(res.text);
+  importNotice = { gen: docGen, text: res.notice };
+  showDraftBanner();
+  setStatus(res.notice);
+  const ta = editor();
+  ta.focus({ preventScroll: true });
+  ta.setSelectionRange(0, 0);
+  $("status").scrollIntoView({ block: "nearest", behavior: motion() });
+}
+
 function setStatus(text, isError, busy, retry) {
   const s = $("status");
   s.replaceChildren();
@@ -475,7 +568,7 @@ async function runAudit() {
   // The free host sleeps when idle and needs up to a minute to wake: say so instead of leaving a spinner.
   // A long article also takes time on its own: about 16 s for 17,500 characters on the free host (measured), besides any waking up.
   const longText = cpCount(sent) > 8000;
-  const slow1 = setTimeout(() => setStatus(longText
+  const slow1 = setTimeout(() => gen === docGen && setStatus(longText
     ? `المقال طويل (${arabicCount(cpCount(sent))} حرف)، فيستغرق تدقيقه على الخادم المجاني عشرات الثواني، وأكثر إن كان الخادم نائمًا. لا تغلق الصفحة، ومقالك محفوظ في المربع.`
     : "ما زال التدقيق جاريًا. الخادم المجاني يستيقظ بعد خمول وقد يستغرق نحو دقيقة؛ لا تغلق الصفحة، ومقالك محفوظ في المربع.", false, true), 7000);
   const ctrl = new AbortController();
@@ -489,7 +582,7 @@ async function runAudit() {
     });
     let data;
     try { data = await res.json(); } catch { data = { error: "استجابة غير متوقعة من الخادم." }; }
-    if (gen !== docGen) { setStatus(""); return; }   // «مسح», a sample or a restored draft replaced the document while this audit ran: its answer describes text that is gone
+    if (gen !== docGen) { setStatus(docNote()); return; }   // «مسح», a sample or a restored draft replaced the document while this audit ran: its answer describes text that is gone
     if (!res.ok) { setStatus(data.error || "تعذّر إكمال التدقيق.", true, false, res.status >= 500 || res.status === 429 ? runAudit : null); return; }
 
     // The result describes `sent`. If the writer kept typing while the audit ran, move it through those edits first.
@@ -1471,7 +1564,7 @@ async function requestPhrase(start, end, choice, findingId, why) {
     const res = await fetch("/api/phrase", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     let data;
     try { data = await res.json(); } catch { data = { error: "استجابة غير متوقعة من الخادم." }; }
-    if (gen !== docGen || !lastResult) { setStatus(""); return; }   // the writer cleared or replaced the document meanwhile
+    if (gen !== docGen || !lastResult) { setStatus(docNote()); return; }   // the writer cleared or replaced the document meanwhile
     if (lastArticle !== sentText) {
       // the offsets in the answer are for the text that was sent; the text has been edited since, so the answer is not applied
       setStatus("تغيّر النص أثناء الفحص فلم يُطبَّق الجواب. أعد الفحص على النص الحالي.", true);
@@ -1852,6 +1945,7 @@ function showDraftBanner() {
 
 // ---------------------------------------------------------------- init
 function resetAll() {
+  hideImportAsk(false);
   setEditorText("");
   setStatus("");
   window.QQASuggest?.hide();
@@ -1871,6 +1965,11 @@ document.addEventListener("DOMContentLoaded", () => {
   $("clear-btn").addEventListener("click", resetAll);
   $("sample-select").addEventListener("change", (e) => { loadSample(e.target.value); e.target.value = ""; });
   $("demo-btn").addEventListener("click", runDemo);
+  $("import-btn").addEventListener("click", openImport);
+  $("import-file").addEventListener("change", onImportChosen);
+  $("import-replace").addEventListener("click", () => { const p = importPending; hideImportAsk(false); if (p) applyImport(p.res); });
+  $("import-cancel").addEventListener("click", () => { hideImportAsk(true); importNote("لم يُستورد الملف، ولم يتغيّر شيء في المحرر."); });
+  $("import-ask").addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); $("import-cancel").click(); } });
   $("dock-next").addEventListener("click", () => {
     const id = nextPending(current);
     if (id === null) goToFinal(); else goTo(id, { scroll: "panel" });

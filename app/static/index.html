@@ -87,6 +87,19 @@
         <p id="editor-hint" class="paste-note muted small">بعد «قال تعالى» أو داخل <span class="quran">﴿ ﴾</span> نقترح تكملة الآية من المصحف؛ <span class="hint-kbd">Tab لإدراجها، وEsc لتجاهلها.</span><span class="hint-touch">المس «أدرج» لإدراجها، أو أكمل الكتابة لتجاهلها.</span> <span id="send-note">عند التدقيق يُرسَل المقال إلى Groq إن كان النموذج متاحًا والمقال لا يتجاوز <span class="ai-limit">٦٬٠٠٠</span> حرف. لا يُحفظ مقالك على خادمنا؛</span> <a href="/privacy">تفاصيل الخصوصية</a>.</p>
 
         <div class="more-row">
+          <div class="import-tool">
+            <button id="import-btn" type="button" class="btn small" aria-describedby="import-hint">استورد نصًّا من ملف</button>
+            <input type="file" id="import-file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-label="ملف المقال" tabindex="-1" hidden>
+            <span id="import-hint" class="import-hint">نص (TXT) أو Word (DOCX). يُقرأ الملف في متصفحك ولا يُرفع.</span>
+            <p id="import-note" class="import-note" role="status" aria-live="polite"></p>
+            <div id="import-ask" class="import-ask" role="group" aria-labelledby="import-ask-text" hidden>
+              <p id="import-ask-text" tabindex="-1"></p>
+              <span class="import-ask-actions">
+                <button id="import-replace" type="button" class="btn small">استبدل النص</button>
+                <button id="import-cancel" type="button" class="btn small ghost">ألغِ</button>
+              </span>
+            </div>
+          </div>
           <div class="samples">
             <label for="sample-select">أمثلة أخرى</label>
             <select id="sample-select">

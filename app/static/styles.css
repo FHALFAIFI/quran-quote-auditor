@@ -115,6 +115,19 @@ select, input[type="number"] { border: 1px solid var(--line); border-radius: 6px
 .ai-limit-note[hidden] { display: none; }
 .more-row { display: flex; align-items: flex-start; gap: 8px 24px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
 .more-row .options { flex: 1 1 100%; margin-top: 0; }
+/* importing a file: one quiet button with its one-line hint; its messages and its one question (replace the text?) appear under it */
+.import-tool { display: flex; align-items: center; gap: 6px 12px; flex-wrap: wrap; flex: 1 1 100%; min-width: 0; }
+.import-hint { font-size: .84rem; color: var(--ink-2); line-height: 1.6; }
+.import-note { flex: 1 1 100%; margin: 0; font-size: .9rem; color: var(--ink-2); line-height: 1.7; }
+.import-note:empty { display: none; }
+.import-note.error { color: var(--old); font-weight: 500; }
+.import-note .spinner { margin-inline-end: 6px; }
+.import-ask { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.import-ask[hidden] { display: none; }
+.import-ask p { margin: 0; flex: 1 1 18rem; font-size: .92rem; line-height: 1.7; }
+.import-ask p:focus { outline: none; }
+.import-ask:focus-within { border-color: var(--accent); }
+.import-ask-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* the editor: a plain textarea over a highlight layer with identical type and wrapping, so the marks sit exactly under the words */
 .editor { position: relative; }
