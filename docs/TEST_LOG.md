@@ -933,3 +933,28 @@ Commands and counts (all local, `AI_PROVIDER=none` servers for the browser):
 - `scripts/live_smoke.mjs` and `scripts/live_workspace.mjs` learned the `skipped_cooldown` state; **neither was run** (they would call the live model).
 
 Not done / open: **concurrent first calls are not single-flighted.** In a local probe (not committed), 8 audits sent at the same moment, before the first 429 arrived, made 8 requests; the cooldown only stops audits that start after a failure has been recorded. Bounded by the per-address limit (10/min) and the number of simultaneous writers; a one-in-flight guard was not added because it would leave a second simultaneous writer without the model. The cooldown is per process (per instance), not shared. No live probe was made.
+## 2026-10-04 (evening, Riyadh) — hard quotations: retrieval anchored on the writer's cues (challenge period)
+
+Branch `hard-quotations` (from `main` @ `05e34d5`; code `365b78d`, `b8d866b`). Fallback only: **no Groq call** was made for this work.
+Write-up, tables and disclosure of what was tuned on what: `docs/EVALUATION.md`, section «Hard quotations».
+
+- **Baseline first.** The seven frozen detection sets rerun on the unchanged `05e34d5` (`eval/results/fallback-20261004-1951*-challenge-baseline-05e34d5-*`):
+  rows identical to the 4 Oct release runs (`eval/compare_runs.py`, new: compares two result files row by row, timings ignored).
+- **Diagnostic set** `eval/hard_quotes_{dev,heldout}_20261004.json` (assistant-authored development data, frozen by SHA-256 in `e296825`;
+  the validator prints `labels OK`). New scorer `eval/run_hard_quotes.py` (recall, false possibilities, wrong «matched», correction safety
+  before and after a simulated confirmation, reported apart).
+- **Held-out split: one run**, `eval/results/hard-20261004-202752-…-heldout-only-run-b8d866b.json`; the same split on `05e34d5` for comparison
+  (`…-heldout-baseline-05e34d5.json`). Dev runs kept: `…-baseline-05e34d5`, `…-cue-v4` (before the bracket fix), `…-final-b8d866b`.
+- **Seven sets after** (`…-cue-final-*`): 0 misquotations «matched», 0 wrong fixes, 0 new fixes on correct text, 0 new false suggestions,
+  on every set; long set detected 186 → 188, right fixes 29 → 49; 71 changed rows in all, listed by `compare_runs.py`.
+- **pytest** 431 passed (415 + 16 in `tests/test_cues.py`; `test_ai_overlap` gained the new method in its priority table; one model-only
+  grading test now also switches the cue retrieval off, since its premise is "the source search found nothing").
+- **Browser suites** (local AI-off servers, code `365b78d` plus the later changes in progress — rerun on the release head below): ui_e2e 27,
+  ui_journey_e2e 167, ui_final_qa 141 (the same 141 checks on `05e34d5`), ui_phrase_e2e 38, ui_boundary_e2e 46, ui_long_e2e 91,
+  ui_counts_e2e 17, ui_approved_e2e 146, ui_uthmani_e2e 32, ui_workspace_e2e 137, ui_suggest_e2e 200, ui_suggest_place_e2e 80, ui_dock_e2e 34,
+  ui_async_navigation_e2e 5, ui_model_notices_e2e 52, ui_a11y_check 54, ui_crossbrowser 87 — 0 failures.
+  **ui_possible_order_e2e: 15 failures**, all pinned counts of `LA01` (20 quotations and 7 optional phrases): the retrieval now reads two of
+  those phrases («أفلا يتدبرون القرآن», «واتقوا الله ويعلمكم الله») as quotations the writer announced, so LA01 has 22 and 5. The expected
+  numbers were updated with a comment; the behaviour the script tests (optional phrases after the decisions, «في كل عام» first and optional)
+  is unchanged.
+- **Demo samples:** one finding changes tier (a lead-in quotation, «candidate» → «stated»); nothing else.

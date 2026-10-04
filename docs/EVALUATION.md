@@ -650,3 +650,98 @@ About **1 ms per character** on the free host, roughly 20 times slower than this
 **An earlier run of the same script timed out at 180 s on one request.** That run printed its table only at the end, so I do not know which input it was; the script now prints each row as it goes and records a failure as a result. The rerun completed all 22 inputs. I did not find the cause (a cold or restarting instance is possible); treat "no timeout" as one clean run, not a guarantee.
 Memory on Render was **not** measured (the host does not expose it); locally the process peaks at 87 MB. A live journey (`scripts/live_workspace.mjs`, desktop and 390 px, model off by the writer) audited a 17,532-character article in 16.0 s and 17.5 s; the page now says, after 7 s, that a long article takes tens of seconds on the free host.
 
+
+
+## Hard quotations: retrieval anchored on the writer's own cues (4 Oct 2026 evening, challenge period, fallback only, no Groq)
+
+**Problem.** The unmarked-phrase search must keep ordinary Arabic from looking like a verse, so it ignores short, common or loosely
+matching phrases. That is right for running prose, but it also drops quotations that the writer announced: «قال تعالى: إن الله لا يضيع
+أجر المصلحين» (the verse has «المحسنين»), «وقل رب زدني فهما [طه: 114]», «… رقيب شهيد (ق: 18)» (the verse ends «عتيد»). Exploratory probes
+(not evidence) showed four failure points: (1) a near match after a lead-in was cut at the wrong word or matched to a neighbouring verse;
+(2) a short misquotation right before its own ayah reference was reported only as its correct part, or not at all; (3) quotation marks
+without a lead-in were not used at all; (4) a citation verb («فلنتأمل قوله ربنا آتنا …») was read as a misspelt «يقول» of the verse, so a
+correct quotation read as a «difference».
+
+**What was built (`app/cues.py`; wired in `app/audit.py`).** Windows the writer announced: the words right after a lead-in (the
+phrase search's list plus «يقول الله عز وجل», «في كتاب الله», «بقوله» …; nouns such as «القرآن», «الآية» only before a colon), the words
+right before a reference in citation form (brackets, a dash, or «طه: 114»; «… في سورة العنكبوت» in running prose does not count), the
+words right after «… الآية 11:», and the words inside «…», "…", “…”. Each window is aligned word by word to the source: to the named verse
+and its neighbours, the named surah, or (lead-in, quotation marks) the whole text. Acceptance needs two exact words and a similarity of 0.6,
+plus: with an ayah reference, two or three matched words next to it; a named surah, three words and rarity mass 8; a lead-in, three words and
+mass 12; quotation marks, three words, mass 12 and most of the quote. The span shown is the aligned hull, widened by one unmatched word only
+at an edge the cue states (after the lead-in, before the reference, inside the marks), and only where the verse has a word there.
+Grading is the audit's usual one, with one rule extended from model-only spans to the search: the writer's own words vouch for a span —
+an exact phrase announced by a lead-in or by an ayah-level reference to that verse is the writer's stated quotation; a **near match** is
+stated only when an adjacent ayah reference names the matched verse **and both edges are settled**; anything else stays «possible», with
+the verse choices and no replacement until the writer confirms. Safety additions: an unmarked span never gets a deletion proposed at its
+first or last word (`verifier.propose_wording`); a cue span inside brackets is dropped; a doubled bracket («﴿﴿ … ﴾﴾») counts as one
+(`extraction/marked.py`; before, it put the pairing out of step and made a paragraphs-long «quotation»). Model spans still rank below all of
+these and cannot replace or suppress them.
+
+**Diagnostic set, written before tuning** (`eval/hard_quotes_dev_20261004.json`, `…_heldout_…`, SHA-256 sidecars, validator
+`eval/validate_hard_quotes_20261004.py`, builder `eval/build_hard_quotes_20261004.py`, commit `e296825`). **Assistant-authored development
+data**: written by an AI subagent (Claude) in a fresh context, told not to read the detector; not human-reviewed; not independent. Dev: 71
+articles, 81 gold quotations (39 correct, 42 misquoted: substitution 13, omission 9, wrong first word 6, wrong last word 9, extra word 2, two
+errors 3), 38 negatives. Held-out: 48 articles, 56 quotations, 27 negatives; gold verses disjoint from dev and from the older sets. Contexts:
+none, lead-in, ayah reference, surah reference, quotation marks, brackets, Uthmani-like, footnote reference; three/two long articles of
+2,500–6,000 characters. Known artefacts: the builder wrapped every marked quotation twice («﴿﴿ ﴾﴾», «««»»»), which is not how most writers
+type (it exposed the doubled-bracket defect above); its «Uthmani» cases are Quranpedia words with Uthmani marks added, not real Uthmani
+spelling; hadith and du'a negatives were written from memory.
+Scorer: `eval/run_hard_quotes.py` (four measures reported apart; a simulated confirmation step: the writer selects the gold span and
+picks the gold verse among the choices shown, through `run_phrase`).
+
+**Order of work (so the reader can judge what was tuned on what).** The retrieval was written from exploratory probes and committed
+(`365b78d`) before the dev split was opened. Its rules were tightened **after** the seven frozen sets were rerun against `05e34d5` and showed
+two new false «possible» items, one reference taken from a neighbouring quotation, two wrong corrections (a deletion of the edge word) and
+one correct quotation read as a difference (noun cues need a colon; citation form for a reference before the words; lead-in mass 10 → 12;
+a gap in the alignment must be backed by two matched words or one rare exact word; phrase places used as hints are widened; the edge-deletion
+guard). That is tuning on frozen data, disclosed here; the rows it changed are all listed by `eval/compare_runs.py`. After the dev split was
+opened: the doubled-bracket fix and the "both edges settled" condition. The held-out split was run **once**, on `b8d866b`, after which no rule
+changed.
+
+**Results (fallback; same labels; "detected" = a finding covers half the gold span and offers the gold verse).**
+
+| Measure | Dev, `05e34d5` | Dev, `b8d866b` | Held-out, `05e34d5` | **Held-out, `b8d866b` (only run)** |
+|---|---|---|---|---|
+| 1. Detected (of all gold) | 64 / 81 | 73 / 81 | 49 / 56 | **54 / 56** |
+| · required (marked, announced or 4+ distinctive words) | 62 / 74 | 71 / 74 | 46 / 50 | **49 / 50** |
+| · desirable (2–3 word unmarked) | 2 / 7 | 2 / 7 | 3 / 6 | **5 / 6** |
+| · found, but the gold verse not offered | 12 | 2 | 6 | **1** |
+| 2. False possibilities (negatives / unlabelled text; none shown as confirmed) | 2 / 1 | 2 / 1 | 2 / 1 | **2 / 1** (2.2 per 10,000 characters) |
+| 3. Misquotations reported "matched" | 0 of 42 | 0 of 41 | 0 of 27 | **0 of 27** |
+| · correct quotations read as «difference» | 0 | 0 | 2 | **2** (the same two; «possible», no fix offered) |
+| 4. Fixes before the writer acts: right / wrong / on correct text | 3 / 0 / 0 | 3 / 0 / 0 | 2 / 0 / 0 | **2 / 0 / 0** |
+| · a fix where the label says "not before confirmation" | 1 | 1 | 0 | **0** |
+| · replacement words or references not from the finding's own verse | 0 | 0 | 0 | **0** |
+| After a simulated confirmation: misquotes right fix / wrong fix / no fix | 33 / 0 / 5 | 33 / 0 / 6 | 22 / 0 / 4 | **23 / 0 / 4** |
+| · writer actions needed (1 = pick the verse, 2 = adjust a boundary then pick) | 41×1, 7×2 | 47×1, 6×2 | 32×1, 4×2 | **35×1, 4×2** |
+
+The one dev fix "where the label forbids" (HD-037, «إنك لا تهدي من تحب …» right before «(سورة القصص، الآية 56)») is the right fix
+(«تحب» → «أحببت»); the label's contract asked for a marker as well, the product accepts an adjacent ayah reference plus settled edges.
+That is a disagreement with a pre-registered label, reported rather than relabelled.
+
+**Seven frozen detection sets** (fallback, labels and checksums unchanged; before `05e34d5` = `eval/results/fallback-*-challenge-baseline-05e34d5-*`,
+identical to the 4 Oct release runs; after = `…-cue-final-*`; every changed row: `python eval/compare_runs.py --tags challenge-baseline-05e34d5 cue-final`):
+
+| Set | Detected | False «matched» wording | Wording right / abstained | Fixes right / wrong / on correct text | Review-only misquotes | False suggestions (shown as confirmed) | Rows changed |
+|---|---|---|---|---|---|---|---|
+| `cases` | 27/28 | 0 | 26 / 1 | 6 / 0 / 0 | 0 | 0 (0) | 3 |
+| `heldout` | 6/6 | 0 | 3 / 3 | 0 / 0 / 0 | 0 | 0 (0) | 1 |
+| `phrases_frozen` | 30/32 | 0 | 18 / 12 | 0 / 0 / 0 | 10 | 2 (0) | 1 |
+| `articles_frozen` | 24/25 | 0 | 16 / 8 → **17 / 7** | 3 / 0 / 0 | 3 | 1 (0) | 3 |
+| `articles_long_20261003` | 186/191 → **188/191** | 0 | 169 / 17 → **174 / 14** | 29 / 0 / 0 → **49 / 0 / 0** | 38 → **18** | 20 (0) → **19 (0)** | 57 |
+| `uthmani_dev` | 6/6 | 0 | 6 / 0 | 0 / 0 / 0 | 0 | 0 (0) | 0 |
+| `uthmani_heldout` | 48/49 | 0 | 45 / 2 | 8 / 0 / 1 | 1 | 0 (0) | 6 |
+
+(The one fix on correct text in `uthmani_heldout` is the known label error `u32`, unchanged.) Most changed rows are a distinctive phrase
+after a lead-in or with its ayah reference moving from «candidate» to «stated» (no change of wording or fix). On the long set, 20 near
+misses with an adjacent ayah reference now get the right source fix before the writer acts (review-only 38 → 18); two missed quotations are
+found («إن الله غفور رحيم», «فصبر جميل», both announced); one formula fragment («وقال حسبنا الله ونعم الوكيل») is no longer suggested. Two
+references read «uncertain» instead of «matched» because their quotation now reads as a «difference» (by design: a reference is not
+confirmed while the wording is in question). Time per long article (local): mean 0.57 → 0.61 s, max 1.15 → 1.22 s.
+
+**What this does not show.** The sets are small, assistant-written and unreviewed; the dev numbers are development data; the held-out
+numbers are one run on 56 quotations, so a difference of a few items is not a rate. Not solved: two- and three-word famous phrases with no
+cue («أضغاث أحلام», «كن فيكون») are still missed by design; an unmarked substitution made of common words («إنهم كانوا يتسابقون في
+الخيرات») is missed; a wrong last word that ties with a neighbouring verse can offer the wrong verse first (HD-017 «… رهين»); ordinary prose
+that is a short Quran run («في كل عام», «كما ربياني صغيرًا») is still shown as optional «possible». No real writer has used it.
