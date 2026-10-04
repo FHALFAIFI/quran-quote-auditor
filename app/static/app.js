@@ -278,6 +278,7 @@ async function loadHealth() {
     MAX_CHARS = h.max_chars || MAX_CHARS;
     AI_MAX_CHARS = h.ai_max_chars || AI_MAX_CHARS;
     aiConfigured = !!h.ai_configured;
+    if (h.accounts_enabled === true) loadAccounts();
     $("limit-note").textContent = arabicCount(MAX_CHARS);
     document.querySelectorAll(".ai-limit").forEach((n) => { n.textContent = arabicCount(AI_MAX_CHARS); });
     // what leaves the page at the next audit, said for this server (the page's default text names the configured case)
@@ -1821,16 +1822,36 @@ function download(name, mime, body) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 const stamp = () => new Date().toISOString().slice(0, 10);
-function exportDecisions() {
+function decisionsRecord() {
   const rows = activeFindings().map((f) => ({
     id: f.id, quote: f.quote, place: f.source ? f.source.label : null, stale: !!f.stale, dismissed: !!dismissed[f.id], reviewed: !!reviewed[f.id],
     changes: (f.changes || []).map((c) => ({ kind: c.kind, optional: c.optional, original: c.original, replacement: c.replacement, decision: decisions[c.id] || null })),
   }));
-  download(`quran-quote-draft-${stamp()}.json`, "application/json", JSON.stringify({
+  return {
     exported_at: new Date().toISOString(), note: "تصدير من مدقق الاقتباسات القرآنية؛ النص والقرارات من متصفحك فقط.",
     audited_at: auditedAt ? new Date(auditedAt * 1000).toISOString() : null, edited_since_audit: edited(),
     original_text: baseText || null, text: lastArticle, revised_text: lastResult ? R.applyApproved(lastArticle, allChanges(), decisions).text : null, findings: rows,
-  }, null, 2));
+  };
+}
+function exportDecisions() {
+  download(`quran-quote-draft-${stamp()}.json`, "application/json", JSON.stringify(decisionsRecord(), null, 2));
+}
+
+// Optional accounts (roadmap Stage 2): only when the server says ACCOUNTS_ENABLED is on does the page load a separate
+// script for it. With the flag off nothing below runs: no account script, no control, no request to an auth service.
+function loadAccounts() {
+  if (window.QQAHost) return;
+  window.QQAHost = {
+    text: () => lastArticle,
+    record: decisionsRecord,
+    auditedText: () => (lastResult ? auditedText : null),
+    open: (text) => { window.QQASuggest?.hide(); setEditorText(text); },
+    clear: resetAll,
+    download,
+  };
+  const s = document.createElement("script");
+  s.src = "/static/account.js";
+  document.head.append(s);
 }
 
 function showDraftBanner() {
