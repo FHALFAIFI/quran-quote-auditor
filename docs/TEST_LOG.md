@@ -1104,3 +1104,22 @@ Branch `pilot-ocr-docs` from `main` @ `05e34d5`; not merged, not deployed. No ch
 - **Synthetic smoke of the scorer (local, not a benchmark):** `eval/ocr/score_ocr.py` on one page made of `app/static/samples/sample-1.txt` ×3 (1,950 characters, 307 words) against a copy with ~8% of words truncated by a script; it ran in 0.6 s, built a 14,672-form word list from the local Quranpedia cache plus that text, and reported plausible rates (letters WER 0.061). Files in the session scratchpad only.
 - **Tests (20:01 +03, macOS, Python 3.14.7):** `pytest -q` **433 passed** (415 before + 18 new in `tests/test_ocr_score.py`); `node --test tests/*.test.mjs` **24 passed**; `git diff --check` clean; every `eval/*.sha256` verifies. Browser suites were not rerun (no file they load changed).
 - **Not done:** any session with a real writer; any OCR page, ground truth or engine run; confirmation of the proposed OCR thresholds by a reviewer.
+
+## 2026-10-04 (21:2x Riyadh) — internal inspection of the pilot tasks (challenge period; NOT a user study)
+
+**What this is.** The assistant (Claude) ran the seven tasks of `docs/WRITER_PILOT.md` with a script (`scripts/walkthrough_shots.mjs`)
+on the integrated code of branch `import-text` (main `aee587c` + file import), on a local AI-off server, at 1366×900 and 390×844, and looked
+at every screenshot. It is an internal inspection by the builder's assistant. It is **not** pilot evidence, has no participant, and does
+not count towards the "Interface sign-off" gate. **Not tested with users.**
+
+| Task | What happened | Observation |
+|---|---|---|
+| 1 Start an article | typed text sits in «مقالك»; the counter shows `٦٣ / ٢٠٬٠٠٠ حرف` | — |
+| 2 Insert a verse suggestion | after «قال تعالى: إن مع العسر» the box offered «يسرا» (الشرح: 6) with the verse line; Tab inserted it | the box sits below the typed line, does not cover it |
+| 3 Audit a long article (LA03, 14,700 characters) | first decision card 0.8 s after «دقّق الاقتباسات» (local; the free host took 25.7 s for the same article, cold source, measured live today); «وجدنا ٢١ اقتباسًا؛ يحتاج ١١ منها إلى قرارك» | — |
+| 4 Settle an uncertain quotation | a boundary card for «وتحسبونه هينا وهو عند الله عظيم» asks whether «منه» belongs to the quotation (the verse has «علم» there) | **finding:** the article gives the reference in words, «وهي الآية الخامسة عشرة من سورة النور», which the reference parser does not read (only digits), so that reference does not help; recorded as a known limit, not fixed tonight |
+| 5 Approve, then undo | «يجزى → يوفى» approved: struck word and source word drawn, undo line «اعتمدتَ «يوفى» مكان «يجزى» … تراجع»; undo restored it | a card that proposes a fix also shows the amber line «مطابقة تقريبية: الموضع المقترح يحتاج إلى تأكيد بشري» — a writer may read it as the tool doubting its own proposal; a question for the pilot, not changed |
+| 6 Final review | «سيُنسخ مقالك بعد تغيير واحد اعتمدتَه», the change in its sentence with «تراجع عنه», one item still pending, the "not a certificate" line | — |
+| 7 Copy | the clipboard held the article with «يوفى» (402 characters) | — |
+
+No defect that blocks a task was found; the reference-in-words gap is listed in `docs/EVALUATION.md` known limits through this entry.
