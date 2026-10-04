@@ -77,8 +77,8 @@ for (const name of ["chromium", "firefox", "webkit"]) {
     check((await page.locator("#article-view mark").count()) === 4, "four quotations are marked");
     await page.click('#finding-3 [data-act="approved"]');
     await page.waitForTimeout(400);
-    const fx = await page.evaluate(() => { const n = document.querySelector("#article-view .fix"); if (!n) return null; const r = n.getBoundingClientRect(), b = getComputedStyle(n, "::before"); return { under: n.textContent, content: b.content, h: parseFloat(b.height), w: r.width }; });
-    check(fx && fx.under === "يجزى" && /يوفى/.test(fx.content) && fx.h > 8 && (await page.inputValue("#article")) === readSample("sample-demo"), `an approved «يوفى» is drawn over «يجزى» and the box is unchanged (${JSON.stringify(fx)})`);
+    const fx = await page.evaluate(() => { const v = document.getElementById("article-view"), n = v.querySelector(".fix"), l = v.querySelector(".fix-to"); if (!n || !l) return null; const r = n.getClientRects()[0], lr = l.getBoundingClientRect(), vr = v.getBoundingClientRect(); return { under: n.textContent, struck: n.querySelector(".fix-del")?.textContent, label: l.textContent, h: Math.round(lr.height), above: lr.top < r.top, inside: lr.left >= vr.left - 1 && lr.right <= vr.right + 1 }; });
+    check(fx && fx.under === "يجزى" && fx.struck === "يجزى" && fx.label === "يوفى" && fx.h > 8 && fx.above && fx.inside && (await page.inputValue("#article")) === readSample("sample-demo"), `an approved «يوفى» is drawn over the struck «يجزى», inside the box, and the box is unchanged (${JSON.stringify(fx)})`);
     await page.evaluate(() => { const ta = document.getElementById("article"); const f = lastResult.findings[3]; const u = W.cpToUnit(ta.value, f.start + 3); ta.focus(); ta.setSelectionRange(u, u); });
     await page.keyboard.type("ز", { delay: 6 });
     await page.waitForTimeout(500);

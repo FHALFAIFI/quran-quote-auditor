@@ -35,7 +35,7 @@ const dm = norm(await page.textContent(`[data-change="${target.change}"] .delta`
 check(dm.includes("الشرح") && dm.includes("٦") && dm.includes("٥"), `the reference change is shown exactly («${dm}»)`);
 await page.locator(`[data-change="${target.change}"] button[data-act="approved"]`).click();
 await page.waitForTimeout(500);
-check(/اعتمدتَ تغيير «الشرح: ٦» إلى «الشرح: ٥»/.test(norm(await page.textContent("#undo-line"))), "the page says exactly what was approved");
+check(/اعتمدتَ «الشرح: ٥» مكان «الشرح: ٦»/.test(norm(await page.textContent("#undo-line"))), "the page says exactly what was approved");
 
 // reject an optional formatting change (it sits in its own folded box, apart from the corrections)
 const optId = await page.evaluate(() => lastResult.findings.flatMap((f) => f.changes).find((c) => c.optional && c.kind === "vocalize").id);

@@ -66,6 +66,17 @@ for (const [tag, vp, mobile] of VPS) {
   await page.screenshot({ path: out("02c-next-piece") });
   await ctx.close();
 
+  // 4 Oct (release): the same suggestion on a screen made short by a phone's keyboard; the typed line must stay in sight beside the box
+  if (mobile) {
+    ({ ctx, page } = await open({ width: vp.width, height: vp.width === 320 ? 360 : 450 }, mobile));
+    await page.click("#article");
+    await page.keyboard.type("قال تعالى: إن الله يأمركم أن تؤدوا الأمانات", { delay: 5 });
+    await page.waitForSelector("#suggest:not([hidden]) .sg-item", { timeout: 60000 }).catch(() => {});
+    await sleep(500);
+    await page.screenshot({ path: out("02d-suggest-keyboard") });
+    await ctx.close();
+  }
+
   ({ ctx, page } = await open(vp, mobile));
   await page.click("#demo-btn");
   await waitCard(page);

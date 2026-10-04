@@ -1,6 +1,8 @@
 // A phrase that may be a quotation does not lead the queue (4 Oct). In the long article LA01 («العلم الذي ينفع») the first open item was the
 // ordinary prose «في كل عام» (an exact but common phrase, tier «possible», code «common»). Such phrases stay marked, listed and reachable; they
-// wait behind the concrete decisions under their own name, and the headline does not count them as quotations found. Detection is unchanged.
+// wait behind the concrete decisions under their own name, and the headline does not count them as quotations found. Since 4 Oct (later) they
+// also look optional: a neutral «تأكيد اختياري» instead of the decisions' amber, no shading in the text (a grey dotted line), their group closed
+// while decisions wait, and a card titled «العبارة» rather than «الاقتباس». Detection is unchanged.
 // AI-off server: no model call.
 //   NODE_PATH=<scratch>/node_modules node scripts/ui_possible_order_e2e.mjs [--shots DIR] [--server URL] [--python PATH]
 import fs from "fs";
@@ -22,20 +24,25 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
 
   const verdict = norm(await page.textContent("#verdict"));
   check(/وجدنا ٢٠ اقتباسًا؛ تحتاج ١٠ منها إلى قرارك/.test(verdict), `the headline counts the 20 quotations, not the 7 phrases («${verdict.slice(0, 60)}»)`);
-  check(/و٧ عبارات تشبه آيات ولم نتأكد أنها اقتباسات، تنتظر تأكيدك/.test(verdict), "and says the 7 phrases apart, unconfirmed");
+  check(/و٧ عبارات تشبه آيات ولم نتأكد أنها اقتباسات؛ تأكيدها اختياري/.test(verdict), "and says the 7 phrases apart, unconfirmed, their confirmation optional");
   const progress = norm(await page.textContent("#panel-progress"));
   check(progress.startsWith("١٠ اقتباسات تنتظر قرارك، و٧ عبارات للتأكيد"), `the panel says the same («${progress}»)`);
   check(/ — [٠-٩]+ من [٠-٩]+$/.test(progress) && !/·/.test(progress), "the position is set off by a dash, not a middle dot (which reads as an Arabic zero beside a digit)");
 
   const first = await page.evaluate(() => { const c = document.querySelector("#current article"); return { id: c.id, quote: c.querySelector(".q-hit")?.textContent, state: c.querySelector(".f-head .state")?.textContent }; });
-  check(first.quote !== "في كل عام" && first.state !== "يحتاج تأكيدك", `the first card is a concrete decision, not «في كل عام» (${first.id}: ${first.state})`);
+  check(first.quote !== "في كل عام" && first.state !== "تأكيد اختياري", `the first card is a concrete decision, not «في كل عام» (${first.id}: ${first.state})`);
   await shot("1-first");
 
   // still there: the mark in the text, the row in its own group, the state word of a possible quotation
-  check((await page.locator('#article-view mark[data-id="1"].need.possible').count()) === 1, "«في كل عام» is still marked in the article (dotted, «possible»)");
+  check((await page.locator('#article-view mark[data-id="1"].need.possible.weak').count()) === 1, "«في كل عام» is still marked in the article (dotted, «possible»)");
+  // lighter than a decision: no ground behind the words, a grey dotted line; a decision keeps its amber ground
+  const looks = await page.evaluate(() => { const g = (sel) => { const m = document.querySelector(sel); return m && getComputedStyle(m).backgroundColor; };
+    return { weak: g('#article-view mark[data-id="1"]'), decision: g("#article-view mark.need:not(.possible)") }; });
+  check(looks.weak === "rgba(0, 0, 0, 0)" && looks.decision && looks.decision !== "rgba(0, 0, 0, 0)", `the phrase has no shading, a decision has (${JSON.stringify(looks)})`);
   const groups = await page.$$eval("#queue summary", (n) => n.map((x) => x.textContent.trim()));
-  check(groups.includes("عبارات للتأكيد: قد تكون اقتباسات (٧)"), `it is listed in its own group (${groups.join(" | ")})`);
-  check(norm(await page.textContent(".q-group.maybe #row-1")).includes("يحتاج تأكيدك"), "its row says «يحتاج تأكيدك»");
+  check(groups.includes("عبارات للتأكيد (اختياري): قد تكون اقتباسات (٧)"), `it is listed in its own group, said to be optional (${groups.join(" | ")})`);
+  check(await page.evaluate(() => !document.querySelector("#queue .q-group.maybe").open), "that group is closed while decisions wait (the decisions' group is open)");
+  check(norm(await page.textContent(".q-group.maybe #row-1")).includes("تأكيد اختياري"), "its row says «تأكيد اختياري», not the decisions' «يحتاج تأكيدك»");
   check((await page.locator("#queue li").count()) === 27, "all 27 findings are still listed");
 
   // «التالي» walks the ten decisions first, then reaches the phrases
@@ -60,7 +67,10 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   await page.locator(mobile ? "#dock-next" : "#next-btn").click().catch(() => {});
   await page.waitForTimeout(300);
   const cur = await page.evaluate(() => { const c = document.querySelector("#current article"); return { id: c.id, state: c.querySelector(".f-head .state")?.textContent }; });
-  check(weakIds.includes(cur.id) && cur.state === "يحتاج تأكيدك", `with the decisions done, «التالي» goes to the phrases (${cur.id})`);
+  check(weakIds.includes(cur.id) && cur.state === "تأكيد اختياري", `with the decisions done, «التالي» goes to the phrases (${cur.id})`);
+  const card = await page.evaluate(() => { const c = document.querySelector("#current article"); return { h: c.querySelector("h3").textContent, note: c.querySelector(".weak-note")?.textContent || "" }; });
+  check(/^العبارة [٠-٩]+$/.test(card.h) && /وقد تكون كلامًا عاديًا.*وإن تركتها نُسخت كما كتبتَها/.test(card.note), `its card is titled «العبارة», not «الاقتباس», and says it may be ordinary prose (${card.h})`);
+  check(await page.evaluate(() => document.querySelector("#queue .q-group.maybe").open), "with no decision left, the phrases' group is open");
   check(norm(await page.textContent("#panel-progress")).startsWith("٧ عبارات للتأكيد"), "the panel now names only the phrases");
   if (mobile) check(norm(await page.textContent("#dock-text")) === "٧ عبارات للتأكيد", "and so does the bottom bar");
   const head = norm(await page.textContent("#final-pending h3"));

@@ -8,12 +8,17 @@
 // approved, the panel moves on to the second, which is approved too → the final check lists both changes in their sentences → copy →
 // the clipboard holds the article with exactly «يجزى»→«يوفى» and «الشرح: 6»→«الشرح: 5». --phone runs it at 390x844 with touch.
 // Prints the deployed build (/api/health "build") so the run can be tied to a commit.
+//   --save-audit FILE   keep the audit answer this run received (the demonstration article's findings; no secret is in it)
+//   --replay FILE       answer the page's audit request with FILE instead of the server: NO audit request reaches the server, so NO
+//                       Groq call is made; the page, its scripts, /api/health and everything else still come from the server. Printed «REPLAYED».
 import { createRequire } from "module";
 import fs from "fs";
 import path from "path";
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
-const args = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const flag = (name) => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : null; };
+const saveAudit = flag("--save-audit"), replay = flag("--replay");
+const args = process.argv.slice(2).filter((a, i, all) => !a.startsWith("--") && !["--save-audit", "--replay"].includes(all[i - 1]));
 const phone = process.argv.includes("--phone");
 const base = (args[0] || "http://localhost:8000").replace(/\/$/, "");
 const shots = args[1] || null;
@@ -28,8 +33,16 @@ const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-let auditData = null;
-page.on("response", async (r) => { if (r.url().endsWith("/api/audit") && r.request().method() === "POST") auditData = await r.json().catch(() => null); });
+let auditData = null, auditsSent = 0;
+if (replay) {
+  const body = fs.readFileSync(replay, "utf8");
+  await page.route("**/api/audit", (r) => (r.request().method() === "POST" ? r.fulfill({ status: 200, contentType: "application/json", body }) : r.continue()));
+  auditData = JSON.parse(body);
+  console.log(`REPLAYED  the audit answer comes from ${replay} (recorded earlier); no audit request is sent to the server, no Groq call`);
+} else {
+  page.on("response", async (r) => { if (r.url().endsWith("/api/audit") && r.request().method() === "POST") { auditData = await r.json().catch(() => null); if (saveAudit && auditData) fs.writeFileSync(saveAudit, JSON.stringify(auditData, null, 1)); console.log(`INFO  audit HTTP ${r.status()}`); } });
+}
+page.on("request", (r) => { if (r.url().endsWith("/api/audit") && r.method() === "POST") auditsSent++; });
 const shot = async (n) => { if (shots) await page.screenshot({ path: path.join(shots, `${phone ? "phone" : "desktop"}-${n}.png`) }); };
 const inView = (sel) => page.evaluate((s) => { const r = document.querySelector(s)?.getBoundingClientRect(); return !!r && r.top >= 0 && r.bottom <= innerHeight + 1 && r.width > 0; }, sel);
 const t0 = Date.now();
@@ -69,6 +82,8 @@ check(n.open === 0, "the audit-method notice is folded");
 //               plainly and say what was still done; it is longer by design, so its length is bounded (<= 200), not waived.
 const mode = auditData?.mode;
 console.log(`INFO  audit mode: ${mode}${mode === "ai_failed" ? ` (ai.http_status ${auditData.ai?.http_status}, outcome ${auditData.ai?.outcome})` : ""}`);
+const ai = auditData?.ai || {};
+console.log(`INFO  ai: outcome=${ai.outcome} responded=${ai.responded} http_status=${ai.http_status ?? "-"} proposed=${ai.proposed} located=${ai.located} discarded=${ai.discarded} added_only=${ai.added_only} also_found=${ai.also_found} overlapped=${ai.overlapped} ai_ms=${ai.elapsed_ms} audit_ms=${auditData?.elapsed_ms}${ai.error ? ` error=${ai.error}` : ""}`);
 check(["ai", "reduced", "ai_failed"].includes(mode), `the audit response reported a known mode («${mode}»)`);
 if (mode === "ai_failed") {
   const warn = norm(await page.textContent("#notices .audit-meta.limited .am-line").catch(() => ""));
@@ -104,6 +119,7 @@ const clip = (await page.evaluate(() => navigator.clipboard.readText())).replace
 check(clip === expected, "the clipboard holds the revised article");
 check((await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 1, "no horizontal overflow");
 check(errors.length === 0, `no console/page errors ${errors.join(" | ")}`);
+check(replay ? auditsSent === 1 : auditsSent === 1, `one audit request${replay ? " (answered from the recording, not sent to the server)" : ""}`);
 await browser.close();
 console.log(failures ? `\nfailures: ${failures}` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

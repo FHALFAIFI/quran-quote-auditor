@@ -277,17 +277,40 @@
     box.style.left = Math.max(8, Math.min(wrapW - w - 8, anchor.x + 24 - w)) + "px";
     box.style.top = anchor.y + anchor.h + 6 + "px";
   }
+  // The line being typed must stay in sight beside the box. Order: under the line, over it, under it after scrolling the page only as far
+  // as needed, then the same without the full verse (a phone with its keyboard open), and last the box scrolls inside itself.
+  const GAP = 6;
   function fit() {
     if (!anchor || box.hidden) return;
+    box.classList.remove("sg-compact");
+    box.style.maxHeight = "";
     const vv = window.visualViewport;
-    const limit = (vv ? vv.offsetTop + vv.height : innerHeight) - 8;
-    const top = (vv ? vv.offsetTop : 0) + 8;
-    const r = box.getBoundingClientRect();
-    if (r.bottom <= limit) return;
-    const edTop = $("editor").getBoundingClientRect().top;
-    const aboveTop = edTop + anchor.y - 6 - r.height;
-    if (aboveTop >= top) { box.style.top = anchor.y - 6 - r.height + "px"; return; }
-    window.scrollBy({ top: r.bottom - limit, behavior: "instant" });
+    let limit = (vv ? vv.offsetTop + vv.height : innerHeight) - 8;
+    // the phone's bottom bar, only where it really is over the visible screen (not behind the keyboard, not in the page flow on a short screen)
+    const dockEl = $("review-dock");
+    if (dockEl && !dockEl.hidden && getComputedStyle(dockEl).position !== "static") { const d = dockEl.getBoundingClientRect(); if (d.height && d.top < limit + 8) limit = Math.min(limit, d.top - 8); }
+    let top = (vv ? vv.offsetTop : 0) + 8;
+    const selBar = $("sel-bar");
+    if (selBar && !selBar.hidden) top = Math.max(top, selBar.getBoundingClientRect().bottom + 4);
+    const line = () => { const t = $("editor").getBoundingClientRect().top + anchor.y; return { top: t, bottom: t + anchor.h }; };
+    const put = (below) => { box.style.top = (below ? anchor.y + anchor.h + GAP : anchor.y - GAP - box.offsetHeight) + "px"; };
+    let l = line();
+    if (l.top < top || l.bottom > limit) { window.scrollBy({ top: l.top - (top + (limit - top) / 4), behavior: "instant" }); l = line(); }
+    for (const compact of [false, true]) {
+      box.classList.toggle("sg-compact", compact);
+      const h = box.offsetHeight;
+      if (h <= limit - l.bottom - GAP) return put(true);
+      if (h <= l.top - GAP - top) return put(false);
+      if (h <= limit - top - anchor.h - GAP) {
+        window.scrollBy({ top: h - (limit - l.bottom - GAP), behavior: "instant" });
+        l = line();
+        if (h <= limit - l.bottom - GAP) return put(true);
+      }
+    }
+    // neither side has room even for the short box: the line at the top of what is visible, the box under it, scrolling inside itself
+    if (l.top > top + 4) { window.scrollBy({ top: l.top - top - 4, behavior: "instant" }); l = line(); }
+    box.style.maxHeight = Math.max(120, Math.floor(limit - l.bottom - GAP)) + "px";
+    put(true);
   }
 
   // ---- events ----------------------------------------------------------------------------------------------------
@@ -328,7 +351,9 @@
     box.addEventListener("mousedown", (e) => e.preventDefault());
     $("complete-btn")?.addEventListener("click", () => { ta.focus({ preventScroll: true }); ask(true); });
     $("sel-complete")?.addEventListener("click", () => { ta.focus({ preventScroll: true }); ask(true); });
-    window.addEventListener("resize", () => { if (state) { place(state.caret); fit(); } });
+    const refit = () => { if (state) { place(state.caret); fit(); } };
+    window.addEventListener("resize", refit);
+    window.visualViewport?.addEventListener("resize", refit);   // a phone's keyboard opening or closing changes only the visual viewport
   }
 
   window.QQASuggest = { hide, ask, get open() { return !!state; }, get prefs() { return prefs; } };

@@ -212,6 +212,7 @@ const pendingList = () => activeFindings().filter((f) => pendingKind(f));
 // so they stay listed, marked and reachable; they only wait behind the concrete decisions instead of leading the queue. No detection rule is changed.
 const isWeak = (f) => { const c = f.detection?.codes || []; return !!f.detection?.unconfirmed && c.includes("common") && !c.includes("approximate"); };
 const weakPending = (f) => pendingKind(f) === "verse" && isWeak(f);
+const itemName = (f) => (weakPending(f) ? "العبارة" : "الاقتباس");   // «العبارة ٣» until the writer confirms it is a quotation
 const mainPendingList = () => pendingList().filter((f) => !weakPending(f));
 const weakPendingList = () => pendingList().filter(weakPending);
 const orderedPending = () => [...mainPendingList(), ...weakPendingList()];
@@ -223,6 +224,8 @@ function stateOf(f) {
   if (f.stale) return [PENDING_TEXT.stale, "stale"];
   if (dismissed[f.id]) return ["استبعدتَه: ليس اقتباسًا", "off"];
   const p = pendingKind(f);
+  // a common phrase that only may be a quotation: an optional confirmation, drawn lighter than a decision (no ground, a grey dotted line)
+  if (p === "verse" && isWeak(f)) return ["تأكيد اختياري", "need possible weak"];
   if (p) return [PENDING_TEXT[p], p === "verse" ? "need possible" : "need"];
   const req = requiredOf(f);
   if (req.length) return req.some((c) => decisions[c.id] === "approved") ? ["اعتمدتَ التصحيح", "done approved"] : ["أبقيتَه كما كتبتَ", "done own"];
@@ -622,8 +625,8 @@ function verdictText(data) {
   const fs = all.filter((f) => f.stale || !weakPending(f));
   const total = fs.length, n = fs.filter((f) => f.needs_review || f.stale).length;
   const found = total === 1 ? "وجدنا اقتباسًا واحدًا" : total === 2 ? "وجدنا اقتباسين" : `وجدنا ${toArabicDigits(total)} ${total <= 10 ? "اقتباسات" : "اقتباسًا"}`;
-  const also = maybe ? countAr(maybe, "وعبارة واحدة تشبه آية ولم نتأكد أنها اقتباس، تنتظر تأكيدك.", "وعبارتان تشبهان آيتين ولم نتأكد أنهما اقتباسان، تنتظران تأكيدك.",
-    "عبارات تشبه آيات ولم نتأكد أنها اقتباسات، تنتظر تأكيدك.", "عبارة تشبه آيات ولم نتأكد أنها اقتباسات، تنتظر تأكيدك.") : null;
+  const also = maybe ? countAr(maybe, "وعبارة واحدة تشبه آية ولم نتأكد أنها اقتباس؛ تأكيدها اختياري.", "وعبارتان تشبهان آيتين ولم نتأكد أنهما اقتباسان؛ تأكيدهما اختياري.",
+    "عبارات تشبه آيات ولم نتأكد أنها اقتباسات؛ تأكيدها اختياري.", "عبارة تشبه آيات ولم نتأكد أنها اقتباسات؛ تأكيدها اختياري.") : null;
   const maybeLine = also && maybe > 2 ? `و${also}` : also;
   if (!total && maybe) return { headline: "لم نجد اقتباسًا مؤكدًا في النص", total, needing: 0, maybe: maybeLine.replace(/^و/, "") };
   if (!total) return { headline: "لم نجد اقتباسات قرآنية في النص", total, needing: 0 };
@@ -666,15 +669,48 @@ async function goToFirstReview() {
 // A highlight layer sits exactly behind the textarea (same font, padding and wrapping, transparent text), so the writer edits a plain
 // textarea with its native Arabic caret, selection and undo, and sees the marks without any contenteditable machinery.
 // An approved correction is not written into the box (the box keeps the writer's own text, which undo, edit tracking and the recheck rely on).
-// It is drawn the way a proofreader marks a page: the source's word, small, above the writer's word; the copied text carries the change.
-const FIX_MAX = 24;   // a longer label is cut with «…» (the box clips what runs past its edge; the card and the copy carry the whole text)
+// It is drawn the way a proofreader marks a page: the writer's words that change are struck through (red, as «قبل» elsewhere), and the
+// source's text stands small above where the change starts; the copied text carries the change. The labels lie in their own layer under the
+// textarea, so the writer's text is always drawn over them, and each is kept inside the box (cut with «…» only if wider than the box).
 function fixLabel(c) {
   const d = deltaParts(c);
-  const t = `${c.start === c.end ? "+ " : ""}${d.prefix}${d.after}`;   // a word to add is drawn at its place, marked «+»
-  return Array.from(t).length > FIX_MAX ? Array.from(t).slice(0, FIX_MAX - 1).join("") + "…" : t;
+  return `${c.start === c.end ? "+ " : ""}${d.prefix}${d.after}`;   // a word to add is drawn at its place, marked «+»
 }
 // the same order as revision.js's plan(), so that of two overlapping changes the box draws the one the copy applies
 const approvedFixes = () => approvedRows().map(({ c }) => c).filter((c) => !c.optional).sort((a, b) => a.start - b.start || a.end - b.end);
+// The writer's words in [c.start, c.end) that the change replaces: those not kept in a longest common run of words with the replacement
+// («ولا تكن في ضيق مما يكيدون» → «ولا تك في ضيق مما يمكرون» strikes «تكن» and «يكيدون», not the words that stay). All of it if none differs.
+function changedWords(c) {
+  const toks = [];
+  for (let i = c.start; i < c.end;) {
+    while (i < c.end && isSpace(ART[i])) i++;
+    const s = i;
+    while (i < c.end && !isSpace(ART[i])) i++;
+    if (i > s) toks.push({ s, e: i, w: cpSlice(s, i), kept: false });
+  }
+  const rep = toArabicDigits(c.replacement || "").trim().split(/\s+/).filter(Boolean);
+  const n = toks.length, m = rep.length;
+  const L = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = toArabicDigits(toks[i].w) === rep[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  for (let i = 0, j = 0; i < n && j < m;) {
+    if (toArabicDigits(toks[i].w) === rep[j]) { toks[i].kept = true; i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  const out = toks.filter((t) => !t.kept);
+  if (!out.length && m > toks.length) return [];   // only words added: nothing of the writer's goes, nothing is struck
+  return out.length ? out : toks;
+}
+function fixSpan(c) {
+  if (c.start === c.end) return el("span", { class: "fix add" });   // an insertion adds no character
+  const kids = [];
+  let p = c.start;
+  for (const t of changedWords(c)) {
+    if (t.s > p) kids.push(cpSlice(p, t.s));
+    kids.push(el("span", { class: "fix-del" }, cpSlice(t.s, t.e)));
+    p = t.e;
+  }
+  if (p < c.end) kids.push(cpSlice(p, c.end));
+  return el("span", { class: "fix" }, kids);
+}
 // [a, b) of the article as text, with each approved correction that lies wholly inside it wrapped in a .fix span
 function withFixes(a, b, fixes) {
   const out = [];
@@ -682,7 +718,9 @@ function withFixes(a, b, fixes) {
   for (const c of fixes) {
     if (c.start < p || c.end > b || (c.start === c.end && c.start === b && b < ART.length)) continue;   // an insertion at a boundary belongs to the segment that starts there
     if (c.start > p) out.push(cpSlice(p, c.start));
-    out.push(el("span", { class: c.start === c.end ? "fix add" : "fix", "data-to": fixLabel(c) }, cpSlice(c.start, c.end)));   // an insertion adds no character
+    const span = fixSpan(c);
+    span.dataset.to = fixLabel(c);
+    out.push(span);
     p = c.end;
   }
   if (p < b) out.push(cpSlice(p, b));
@@ -690,8 +728,10 @@ function withFixes(a, b, fixes) {
 }
 function renderBackdrop() {
   const view = $("article-view");
+  const fixes = lastResult ? approvedFixes() : [];
+  // a drawn correction needs room above its line: the lines open up while one is drawn, and close again when none is (textarea and layer alike)
+  if ($("editor").classList.contains("has-fixes") !== fixes.length > 0) { $("editor").classList.toggle("has-fixes", fixes.length > 0); syncEditorHeight(); }
   if (!lastResult) { view.replaceChildren(); return; }
-  const fixes = approvedFixes();
   const kids = [];
   let pos = 0;
   for (const f of [...activeFindings()].sort((a, b) => a.start - b.start)) {
@@ -703,6 +743,41 @@ function renderBackdrop() {
   }
   kids.push(...withFixes(pos, ART.length, fixes), "​");
   view.replaceChildren(...kids.map((k) => (typeof k === "string" ? document.createTextNode(k) : k)));
+  placeFixLabels();
+}
+// Each label above the start of its change (the right end of its first line, Arabic running right to left), moved sideways if it would
+// cross the box's edge. Its bottom overlaps the top of the line's own type area slightly: the line height leaves the rest of its room.
+function placeFixLabels() {
+  const view = $("article-view");
+  view.querySelector(".fix-layer")?.remove();
+  const spans = [...view.querySelectorAll(".fix")];
+  if (!spans.length) return;
+  const layer = el("div", { class: "fix-layer" });
+  const vr = view.getBoundingClientRect();
+  const cs = getComputedStyle(view);
+  const minX = parseFloat(cs.paddingLeft) / 2, maxX = vr.width - parseFloat(cs.paddingRight) / 2;
+  const em = parseFloat(cs.fontSize);
+  // reads first (one layout), then writes
+  const items = spans.map((s) => { const r = s.getClientRects()[0] || s.getBoundingClientRect(); return { r, label: el("span", { class: "fix-to", text: s.dataset.to }) }; });
+  for (const it of items) { it.label.style.maxWidth = `${Math.floor(maxX - minX)}px`; layer.append(it.label); }
+  view.append(layer);
+  for (const it of items) { it.w = it.label.offsetWidth; it.h = it.label.offsetHeight; }
+  // in reading order on each line (right to left): each label starts at its change, inside the box, left of the label before it on that line
+  items.sort((a, b) => a.r.top - b.r.top || b.r.right - a.r.right);
+  let lineTop = null, floor = maxX;
+  for (const it of items) {
+    if (lineTop === null || Math.abs(it.r.top - lineTop) > 2) { lineTop = it.r.top; floor = maxX; }
+    let right = Math.min(floor, it.r.right - vr.left);
+    let w = it.w;
+    if (right - w < minX) { if (right - minX >= w || floor === maxX) right = Math.min(floor, minX + w); w = Math.min(w, right - minX); }
+    it.left = right - w; it.width = w; floor = it.left - 4;
+  }
+  for (const it of items) {
+    if (it.width < it.w) { it.label.style.maxWidth = `${Math.max(24, Math.floor(it.width))}px`; it.label.classList.add("cut"); }
+    it.label.style.left = `${Math.round(it.left)}px`;
+    it.label.style.top = `${Math.round(it.r.top - vr.top - it.h + em * 0.22)}px`;
+  }
+  for (const it of items) if (it.label.scrollWidth > it.label.clientWidth + 1) it.label.classList.add("cut");
 }
 
 function markCurrent() {
@@ -770,7 +845,7 @@ function onCaretMoved() {
   if (id !== caretId) {
     caretId = id; renderDock();
     const fx = f ? requiredOf(f).filter((c) => decisions[c.id] === "approved").map((c) => `«${fixLabel(c)}»`) : [];
-    if (f) announce(`داخل الاقتباس ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}${fx.length ? `؛ يُكتب ${fx.join(" و")} في النسخة التي تنسخها، ونصّك هنا كما كتبتَه` : ""}. القرار في اللوحة المجاورة.`);   // the marks are drawn behind the text and are not read by a screen reader
+    if (f) announce(`داخل ${itemName(f)} ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}${fx.length ? `؛ يُكتب ${fx.join(" و")} في النسخة التي تنسخها، ونصّك هنا كما كتبتَه` : ""}. القرار في اللوحة المجاورة.`);   // the marks are drawn behind the text and are not read by a screen reader
   }
   if (f && String(f.id) !== String(current)) goTo(f.id, { scroll: null, focus: false, quiet: true });
 }
@@ -795,7 +870,7 @@ function goTo(id, { scroll = "panel", focus = true, keepError = false, quiet = f
   }
   if (focus && card) card.focus({ preventScroll: true });
   const f = findingById(id);
-  if (f && !quiet) announce(`الاقتباس ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}`);
+  if (f && !quiet) announce(`${itemName(f)} ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}`);
 }
 
 // The next quotation after `fromId` that still waits for the writer (wrapping round), in the order of the article: the concrete decisions
@@ -853,10 +928,25 @@ function setDecision(id, value) {
   const undo = () => { if (before) decisions[id] = before; else delete decisions[id]; saveSession(); renderAll(); goTo(f.id, { scroll: "panel" }); };
   if (c.optional) { saveSession(); renderAll(); return; }
   const d = deltaParts(c);
-  const msg = decisions[id] === "approved" ? `اعتمدتَ تغيير «${d.prefix}${d.before}» إلى «${d.prefix}${d.after}» (الاقتباس ${toArabicDigits(f.id)}). يظهر «${d.prefix}${d.after}» فوق ما كتبتَه في المربع، ويُكتب مكانه في النسخة التي تنسخها.`
+  const msg = decisions[id] === "approved" ? `اعتمدتَ «${d.prefix}${d.after}» مكان «${d.prefix}${d.before}» (الاقتباس ${toArabicDigits(f.id)}) في النسخة التي تنسخها؛ نصّك في المربع لم يُمحَ.`
     : decisions[id] === "rejected" ? `أبقيتَ «${d.prefix}${d.before}» كما كتبتَه (الاقتباس ${toArabicDigits(f.id)}).`
     : `ألغيتَ قرارك في الاقتباس ${toArabicDigits(f.id)}.`;
   afterDecision(f, msg, undo);
+}
+
+// «تراجع عنه» in the final review: the approval goes, the writer stays where they are (the next item of the list, or its heading)
+function undoApproval(f, c) {
+  const d = deltaParts(c);
+  const idx = [...document.querySelectorAll('#final-changes [data-act="undo-approval"]')].findIndex((b) => b.dataset.change === c.id);
+  delete decisions[c.id];
+  saveSession();
+  renderAll();
+  // an addition (nothing written there) is not copied as anything: it is simply not added. The undo line is a live region: it is read once.
+  notify(c.start === c.end || !c.original ? `تراجعتَ عن إضافة «${d.prefix}${d.after}» (الاقتباس ${toArabicDigits(f.id)})؛ لن تُضاف إلى النسخة المنسوخة.`
+    : `تراجعتَ عن اعتماد «${d.prefix}${d.after}» (الاقتباس ${toArabicDigits(f.id)})؛ سيُنسخ «${d.prefix}${d.before}» كما كتبتَه.`, () => { decisions[c.id] = "approved"; saveSession(); renderAll(); });
+  const left = [...document.querySelectorAll('#final-changes [data-act="undo-approval"]')];
+  const next = left[Math.min(Math.max(idx, 0), left.length - 1)];
+  if (next) { next.focus({ preventScroll: true }); next.scrollIntoView({ block: "nearest" }); } else $("final-title").focus({ preventScroll: true });
 }
 
 function dismiss(f, on = true) {
@@ -916,6 +1006,7 @@ function goToFinal() {
   $("final-title").focus({ preventScroll: true });
 }
 
+let maybeOpen = null;   // the writer's own choice for the optional group, once they open or close it
 function renderQueue() {
   const fs = allFindings();
   const row = (f) => {
@@ -927,7 +1018,7 @@ function renderQueue() {
       el("span", { class: "row-q", dir: "rtl" }, excerpt(f.quote)),
       el("span", { class: `state ${cls}`, text: dismissed[f.id] ? "استبعدتَه — اضغط للتراجع" : label })));
   };
-  const group = (title, items, open, cls) => (items.length ? el("details", { class: `q-group ${cls}`, open: open ? "" : null },
+  const group = (title, items, open, cls) => (items.length ? el("details", { class: `q-group ${cls}`, open: open ? "" : null, ontoggle: cls === "maybe" ? (e) => { if (e.isTrusted) maybeOpen = e.currentTarget.open; } : null },
     el("summary", {}, `${title} (${toArabicDigits(items.length)})`), el("ul", {}, items.map(row))) : null);
   const stale = fs.filter((f) => f.stale);
   const pend = fs.filter((f) => !f.stale && !dismissed[f.id] && pendingKind(f) && !weakPending(f));
@@ -937,7 +1028,8 @@ function renderQueue() {
   $("queue").replaceChildren(...[
     group("عُدّلت بعد التدقيق", stale, true, "stale"),
     group("تنتظر قرارك", pend, true, "need"),
-    group("عبارات للتأكيد: قد تكون اقتباسات", maybe, true, "maybe"),
+    // closed while decisions wait (they are not one of them), unless it holds the open card or the writer opened it
+    group("عبارات للتأكيد (اختياري): قد تكون اقتباسات", maybe, maybeOpen ?? (pend.length === 0 || maybe.some((f) => String(f.id) === String(current))), "maybe"),
     group("تمت مراجعتها", done, pend.length === 0 || done.length <= 3, "done"),
     group("استبعدتَها", off, true, "off"),
   ].filter(Boolean));
@@ -966,7 +1058,7 @@ function findingCard(f, idx, total) {
   const det = f.detection || {};
   const card = el("article", { class: `card finding ${cls}`, id: `finding-${f.id}`, tabindex: "-1", "aria-labelledby": `fh-${f.id}` },
     el("header", { class: "f-head" },
-      el("h3", { id: `fh-${f.id}`, text: `الاقتباس ${toArabicDigits(f.id)}` }),
+      el("h3", { id: `fh-${f.id}`, text: `${itemName(f)} ${toArabicDigits(f.id)}` }),   // a phrase not yet confirmed is not called a quotation
       el("span", { class: "f-where", text: whereText(f) }),
       el("span", { class: `state ${cls}`, text: label })),
     el("div", { class: "f-ctx" }, el("span", { class: "row-label", text: "في مقالك" }), contextView(f),
@@ -1054,7 +1146,10 @@ function decisionBlock(c, f, secondary) {
       el("button", { type: "button", class: "btn approve", "data-act": "approved", "aria-pressed": String(decisions[c.id] === "approved"), "aria-describedby": firstFix ? `fx-${c.id}` : null, onclick: () => setDecision(c.id, "approved"), text: yes }),
       el("button", { type: "button", class: "btn reject", "data-act": "rejected", "aria-pressed": String(decisions[c.id] === "rejected"), onclick: () => setDecision(c.id, "rejected"), text: no })),
     // until the writer has approved one correction, say where it goes: the box keeps their text
-    firstFix ? el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يظهر ", el("b", { text: `«${d.prefix}${d.after}»` }), " فوق ما كتبتَه في المربع، ويُكتب مكانه في النسخة التي تنسخها.") : null,
+    firstFix ? el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يبقى نصّك في المربع ويظهر ", el("b", { text: `«${d.prefix}${d.after}»` }), " فوقه، ويُكتب مكانه في النسخة التي تنسخها.") : null,
+    // once approved: which text is the writer's, which is copied, and how to take it back
+    decisions[c.id] === "approved" ? el("p", { class: "fix-note" }, "اعتمدتَه: يُكتب ", el("b", { text: `«${d.prefix}${d.after}»` }),
+      c.start === c.end ? " في النسخة المنسوخة، ونصّك في المربع كما هو." : " في النسخة المنسوخة، ونصّك في المربع باقٍ تحته مشطوبًا.", " للتراجع اضغط زر الاعتماد أعلاه مرة أخرى.") : null,
     quoteLevel && (c.quote_before || c.quote_after) ? el("details", { class: "ch-more" }, el("summary", { text: "الاقتباس كاملًا قبل التصحيح وبعده" }),
       el("div", { class: "ch-diff" },
         el("div", {}, el("span", { class: "row-label", text: "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: c.quote_before })),
@@ -1067,6 +1162,7 @@ function verseBlock(f) {
   const cs = f.choices || [];
   const det = f.detection || {};
   const box = el("div", { class: "ask" });
+  if (isWeak(f)) box.append(el("p", { class: "weak-note", text: "عبارة شائعة توافق لفظ آية، وقد تكون كلامًا عاديًا. أكّدها إن قصدتَ الآية؛ وإن تركتها نُسخت كما كتبتَها." }));
   if (cs.length === 1) {
     box.append(el("p", { class: "q-title", text: "هل قصدتَ اقتباس هذه الآية؟" }), choiceView(cs[0], f, false),
       el("div", { class: "actions-row" },
@@ -1498,7 +1594,9 @@ function renderFinal() {
   fill($("final-changes"), rows.length ? el("div", {}, el("h3", { text: "التغييرات التي ستظهر في النص" }),
     el("ul", { class: "change-list" }, rows.map(({ f, c }) => el("li", {}, el("div", { class: "cl-head" },
       el("b", { text: `الاقتباس ${toArabicDigits(f.id)} — ${whereText(f)}` }),
-      el("button", { type: "button", class: "link-btn", onclick: () => goTo(f.id, { scroll: "panel" }), text: "افتحه" })), changeContext(f, c))))) : null);
+      el("span", { class: "cl-acts" },
+        el("button", { type: "button", class: "link-btn", onclick: () => goTo(f.id, { scroll: "panel" }), text: "افتحه" }),
+        el("button", { type: "button", class: "link-btn", "data-act": "undo-approval", "data-change": c.id, "aria-label": `تراجع عن اعتماد «${deltaParts(c).prefix}${deltaParts(c).after}» في الاقتباس ${toArabicDigits(f.id)}`, onclick: () => undoApproval(f, c), text: "تراجع عنه" }))), changeContext(f, c))))) : null);
 
   const open = [...new Map([...pend, ...unresolved].map((f) => [f.id, f])).values()].sort((a, b) => a.start - b.start);
   fill($("final-pending"), open.length ? el("div", { class: "open-box" },
@@ -1562,7 +1660,7 @@ function renderDock() {
   const here = caretId !== null ? findingById(caretId) : null;
   dock.hidden = false;
   // when the caret is inside a highlighted quotation the bar names it and offers to open its decision
-  $("dock-text").textContent = here ? `الاقتباس ${toArabicDigits(here.id)}: ${stateOf(here)[0]}` : openText();
+  $("dock-text").textContent = here ? `${itemName(here)} ${toArabicDigits(here.id)}: ${stateOf(here)[0]}` : openText();
   $("dock-open").hidden = !here;
   const btn = $("dock-next");
   btn.textContent = pend.length ? "التالي" : "المراجعة الأخيرة";
@@ -1593,7 +1691,7 @@ async function copyRevised() {
   try {
     await navigator.clipboard.writeText(text);
     const pend = mainPendingList().length, weak = weakPendingList().length;
-    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${countAr(pend, "اقتباس واحد لم تقرّر فيه فنُسخ كما كتبتَه", "اقتباسان لم تقرّر فيهما فنُسخا كما كتبتَهما", "اقتباسات لم تقرّر فيها فنُسخت كما كتبتَها", "اقتباسًا لم تقرّر فيها فنُسخت كما كتبتَها")}` : ""}${weak ? `، و${countAr(weak, "عبارة واحدة للتأكيد نُسخت كما كتبتَها", "عبارتان للتأكيد نُسختا كما كتبتَهما", "عبارات للتأكيد نُسخت كما كتبتَها", "عبارة للتأكيد نُسخت كما كتبتَها")}` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط؛ وما بقي غير محسوم يحتاج مراجعتك.`;
+    const msg = `نُسخ المقال المعدّل${pend ? `، وبقي ${countAr(pend, "اقتباس واحد لم تقرّر فيه فنُسخ كما كتبتَه", "اقتباسان لم تقرّر فيهما فنُسخا كما كتبتَهما", "اقتباسات لم تقرّر فيها فنُسخت كما كتبتَها", "اقتباسًا لم تقرّر فيها فنُسخت كما كتبتَها")}` : ""}${weak ? `، و${countAr(weak, "عبارة واحدة للتأكيد نُسخت كما كتبتَها", "عبارتان للتأكيد نُسختا كما كتبتَهما", "عبارات للتأكيد نُسخت كما كتبتَها", "عبارة للتأكيد نُسخت كما كتبتَها")}` : ""}. الأداة فحصت الاقتباسات القرآنية التي رُصدت فقط${pend || unresolvedNow().some((f) => !weakPending(f)) ? "؛ وما بقي غير محسوم يحتاج مراجعتك" : ""}.`;
     copyFeedback($("copy-btn"), $("copy-note"), msg, true);
     announce(msg);
   } catch {
@@ -1799,10 +1897,13 @@ document.addEventListener("DOMContentLoaded", () => {
   $("draft-export-json").addEventListener("click", exportDecisions);
   $("draft-auto").addEventListener("change", (e) => { if (e.target.checked) writeDraft(true); else { const d = readDraft(); if (d) writeDraft(false); } });
   window.addEventListener("beforeprint", () => { if (lastResult) { flushDerived(); buildRecord(); } });
-  window.addEventListener("resize", () => { syncDockHeight(); syncEditorHeight(); updateFinalInView(); });
+  window.addEventListener("resize", () => { syncDockHeight(); syncEditorHeight(); placeFixLabels(); updateFinalInView(); });
   window.addEventListener("scroll", onScrollForDock, { passive: true });
   if (window.ResizeObserver) new ResizeObserver(syncDockHeight).observe($("review-dock"));
-  document.fonts?.ready.then(() => { syncEditorHeight(); });
+  // the editor can change width without a window resize (the review panel opens beside it): the drawn corrections follow their words
+  let editorW = 0;
+  if (window.ResizeObserver) new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width); if (w !== editorW) { editorW = w; syncEditorHeight(); placeFixLabels(); } }).observe($("editor"));
+  document.fonts?.ready.then(() => { syncEditorHeight(); placeFixLabels(); });
 
   const saved = loadSession();
   if (saved) {

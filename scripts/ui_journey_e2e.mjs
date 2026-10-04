@@ -89,7 +89,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await page.keyboard.press("Enter");
   await page.waitForTimeout(1200);
   check(await page.evaluate(() => document.activeElement?.id === "finding-4"), "after the decision the panel moves on to item 4 and focus follows");
-  check(/اعتمدتَ تغيير «يجزى» إلى «يوفى»/.test(norm(await page.textContent("#undo-line"))) && (await page.locator("#undo-line button").count()) === 1, "it says what was done, with «تراجع»");
+  check(/اعتمدتَ «يوفى» مكان «يجزى»/.test(norm(await page.textContent("#undo-line"))) && (await page.locator("#undo-line button").count()) === 1, "it says what was done, with «تراجع»");
   check(norm(await page.textContent("#panel-progress")).startsWith("اقتباس واحد ينتظر قرارك"), "one quotation is left");
   check((await page.inputValue("#revised-text")).replace(/\r\n?/g, "\n") === demo.replace("يجزى", "يوفى"), "after one decision only «يجزى»→«يوفى» changed");
   const d4 = await page.evaluate(() => ["#finding-4 .d-pre", "#finding-4 .d-before", "#finding-4 .d-after"].map((s) => document.querySelector(s)?.textContent.trim()));

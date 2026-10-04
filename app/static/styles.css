@@ -110,20 +110,26 @@ textarea.ed-text:focus { outline: 3px solid var(--accent); outline-offset: -4px;
 .backdrop mark.need { background: var(--need-bg); box-shadow: inset 0 -2px 0 var(--need-line); }
 /* a possible quotation: lighter, with a dotted line (a pattern, not only a color) */
 .backdrop mark.need.possible { background: #fdf7e8; box-shadow: none; text-decoration: underline dotted var(--need-line); text-decoration-thickness: 2px; text-underline-offset: 7px; }
+/* a common phrase that only may be a quotation (an optional confirmation): no ground, a grey dotted line */
+.backdrop mark.need.possible.weak { background: transparent; text-decoration-color: #7d869c; }
 .backdrop mark.done { background: var(--done-bg); box-shadow: inset 0 -2px 0 var(--done-line); }
 /* the writer's own decision (kept as written, or reviewed by hand) is not drawn as a match */
 .backdrop mark.done.own { background: var(--off-bg); box-shadow: inset 0 -2px 0 var(--off-line); }
 /* an approved correction: the writer's decision (grey ground), the source's word to come (a green rule); the box still holds what was written */
 .backdrop mark.done.approved { background: var(--off-bg); box-shadow: inset 0 -2px 0 var(--done-line); }
-/* the source's word above the writer's, like a proofreader's correction; visible though the backdrop's own text is transparent */
-.backdrop .fix { position: relative; }
-.backdrop .fix::before {
-  content: attr(data-to); position: absolute; inset-inline-start: 0; bottom: calc(100% - .32em);
-  font-family: "Noto Naskh Arabic", serif; font-size: .74em; line-height: 1.25; font-weight: 600; white-space: nowrap;
-  color: var(--done); background: var(--surface); padding: 0 4px; border-radius: 3px; box-shadow: 0 0 0 1px var(--done-line);
+/* an approved correction, drawn like a proofreader's: the writer's words that change struck through in the «before» red, the source's text
+   small above where the change starts (.fix-to, placed by placeFixLabels in a layer under the textarea, so the writer's text is drawn over it) */
+.backdrop .fix-del { text-decoration: line-through var(--old) 1.5px; }
+.backdrop .fix.add { position: relative; }
+.backdrop .fix.add::after { content: ""; position: absolute; top: 0; bottom: 0; inset-inline-start: -1px; border-inline-start: 2px solid var(--done-line); }
+.fix-layer { position: absolute; inset: 0; pointer-events: none; }
+.editor.has-fixes .ed-text { line-height: 2.4; }
+.fix-to {
+  position: absolute; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: "Noto Naskh Arabic", serif; font-size: .68em; line-height: 1.2; font-weight: 600;
+  color: var(--done); background: var(--surface); padding: 0 5px; border-radius: 3px; box-shadow: 0 0 0 1px var(--done-line);
 }
-/* a word to add has no characters under it: its label stands at the place, with a thin rule marking where it goes */
-.backdrop .fix.add { outline: 1px solid var(--done-line); }
+.weak-note { margin: 0; font-size: .88rem; color: var(--ink-2); line-height: 1.7; }
 .fix-note { margin: 0; font-size: .86rem; color: var(--ink-2); line-height: 1.7; }
 .fix-note b { color: var(--done); font-weight: 600; }
 .backdrop mark.stale { background: var(--stale-bg); text-decoration: underline dashed var(--stale-line); text-decoration-thickness: 1.5px; text-underline-offset: 6px; }
@@ -239,6 +245,7 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
 .state.need { background: var(--need-bg); color: var(--need); }
 .state.done { background: var(--done-bg); color: var(--done); }
 .state.need.possible { background: transparent; box-shadow: inset 0 0 0 1px var(--need-line); border-radius: 3px; }
+.state.need.possible.weak { color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--off-line); }
 .state.done.own { background: var(--off-bg); color: var(--off); }
 .state.done.approved { background: var(--off-bg); color: var(--done); box-shadow: inset 0 -2px 0 var(--done-line); }
 .state.stale { background: var(--stale-bg); color: var(--stale); }
@@ -335,7 +342,7 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
 /* the list of all quotations: one line each, the open ones first */
 .queue { display: grid; gap: 2px; margin-top: 6px; border-top: 1px solid var(--line); padding-top: 9px; }
 .q-group > summary { font-weight: 500; color: var(--ink-2); font-size: .88rem; padding: 4px 0; }
-.q-group.need > summary, .q-group.maybe > summary { color: var(--need); }
+.q-group.need > summary { color: var(--need); }
 .q-group.stale > summary { color: var(--stale); }
 .q-group ul { list-style: none; margin: 3px 0 8px; padding: 0; display: grid; gap: 0; }
 .row { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 10px; align-items: center; text-align: start; background: transparent; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; padding: 5px 4px; min-height: 44px; cursor: pointer; font-weight: 400; }
@@ -355,6 +362,7 @@ summary { cursor: pointer; color: var(--accent); min-height: 24px; }
 .final h3 { margin-bottom: 6px; }
 .change-list, .open-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .change-list li { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.cl-acts { display: inline-flex; gap: 4px 14px; flex-wrap: wrap; }
 .cl-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: .9rem; }
 .final .ctx { margin-top: 2px; }
 del, ins { unicode-bidi: isolate; border-radius: 4px; padding: 0 3px; text-decoration: none; }
@@ -459,6 +467,8 @@ ins { background: var(--done-bg); color: var(--done); border-bottom: 2px solid v
      reaches «التالي» with Shift+Tab from the card instead of tabbing through the queue to the end of the page */
   .panel-nav:not(:focus-within) { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .source-meta a { padding: 10px 2px; }
+  /* the undo actions a writer taps on a phone: taller than the 24 px minimum */
+  .cl-acts .link-btn, #undo-line .link-btn { min-height: 36px; padding-inline: 6px; }
 }
 
 /* ---- print record ---- */
@@ -514,6 +524,9 @@ textarea.revised-text:focus { outline: 3px solid var(--accent); outline-offset: 
 .sg-next .quran { color: var(--ink); font-size: 1.15rem; line-height: 1.6; }
 .sg-msg { margin: 0; line-height: 1.7; }
 .suggest .sg-close { white-space: nowrap; }
+/* little room beside the line (a phone with its keyboard open): the words to insert, the reference and the buttons, without the full verse */
+.suggest.sg-compact .sg-verse, .suggest.sg-compact .sg-keys { display: none; }
+.suggest.sg-compact { overflow-y: auto; overscroll-behavior: contain; }
 @media (max-width: 900px) {
   /* a phone has no Tab key: the box keeps the caret's place (under its line, full width), its buttons 44 px high */
   .sg-keys, .kbd { display: none; }
