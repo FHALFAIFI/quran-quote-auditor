@@ -745,3 +745,80 @@ numbers are one run on 56 quotations, so a difference of a few items is not a ra
 cue («أضغاث أحلام», «كن فيكون») are still missed by design; an unmarked substitution made of common words («إنهم كانوا يتسابقون في
 الخيرات») is missed; a wrong last word that ties with a neighbouring verse can offer the wrong verse first (HD-017 «… رهين»); ordinary prose
 that is a short Quran run («في كل عام», «كما ربياني صغيرًا») is still shown as optional «possible». No real writer has used it.
+
+
+## The model's measured contribution and failures (4 Oct 2026 evening, challenge period)
+
+**Why.** Since `47f224e` every audit of an article up to 6,000 characters sends it to the model automatically, so the model has to earn
+that transfer. Earlier evidence was anecdotal (live demo calls: `added_only = 0`; occasional HTTP 429).
+
+### 1. Failures, simulated (no network)
+
+`tests/test_provider_failures.py` with a fake Groq (`tests/fake_groq.py`), released in PR #3 (`d65befa`): 429 rate limit (minute and
+day), 429 request too large, timeout, connection failure, 500/502/503, 401, malformed JSON, truncated output, empty answer, 400
+`json_validate_failed`, an unexpected client error, an answer with nothing, an answer with spans not in the article. Every case ends in
+the same complete source-based audit as `AI_PROVIDER=none`, one request per audit, none during the cooldown, one after it, and nothing
+leaked to `/api/health` or the logs. Six defects were fixed (details in `docs/TEST_LOG.md`), among them a cooldown skip reported as a
+failure and a traceback that could put article text in the server log.
+
+### 2. Contribution, paired (same articles, same code, with and without the model's answer)
+
+Method (`eval/ai_record.py`, `eval/ai_contribution.py`): each article was sent to Groq **once** through the production adapter
+(`qwen/qwen3.8-27b`, prompt v2, `reasoning_effort: none`, 800 output tokens reserved, calls 65 s apart, stop after two consecutive 429s); the
+answer was stored in a private evidence folder outside the repository; the audit was then run in-process twice on the current code
+(`070263b`'s detection): without a model, and with a stand-in provider that returns exactly the recorded answer. Sample: every article of the
+labelled sets that the service would send to the model (≤ 6,000 characters): the four demonstration samples, `cases` (14), `heldout` (4),
+`articles_frozen` (5), `phrases_frozen` (49) — 76 articles, 21,423 characters. These are author-written evaluation sets, not real articles.
+
+| | Result |
+|---|---|
+| Groq calls | 76: **75 HTTP 200**, **1 HTTP 400** (`json_validate_failed`, «Failed to generate JSON» — the first 400 whose body was kept; a model structured-output failure) |
+| Latency (answered calls) | median 428 ms, max 1,619 ms; 47,967 tokens in all (median 551 per call) |
+| Answers with no proposal | 56 of 75 |
+| Proposals / found in the article / discarded | 54 / 53 / 1 |
+| Proposals the source search had also found (same span) | 50 |
+| Proposals overlapping a deterministic finding (kept as evidence only) | 2 |
+| **Findings only the model proposed** | **1**: «ادعوني أستجيب لكم» (`cases` c12), a real misquotation; shown «possible», no replacement |
+| False «possible» items added by the model | **0** |
+| Deterministic findings changed by the model (harm check) | **0** |
+
+So on these sets the model added **one real quotation in 21,423 characters (≈ 0.5 per 10,000)** and nothing false. The roadmap's rule
+(§1.5, fixed before this run) keeps the model on by default only at ≥ 2 true additions and ≤ 1 false addition per 10,000 characters: **the
+rule is not met**. The roadmap's consequence would be to switch the model off on the server (`AI_PROVIDER=none`) and say so on `/privacy`.
+**That was not done**: the owner asked to decide it. Recorded for the decision: the model costs one transfer of each short article to Groq;
+it found one quotation the search missed and harmed nothing; when it fails the audit is complete without it.
+
+### 3. Live probes (one labelled call per released code increment)
+
+| Build | When (Riyadh) | Result |
+|---|---|---|
+| `aee587c` (harness + detection + hardening) | 21:17:12 | **HTTP 429**, 240 ms, «Request too large … output tokens per minute (OTPM): Limit 1000, Requested 1556»; outcome failed; page showed the full source audit and the calm failure line (24 journey checks PASS). A local call had been made less than a minute earlier on the same Groq organisation, so this one may be the minute window. |
+| `91568af` (+ import) | 21:33:40 | **HTTP 429**, 234 ms, same message, «Requested 2834»; no local call in the 4 minutes before. Not explained by spacing. |
+
+Both live calls failed while 75 local calls with an 800-token reservation succeeded, so the service's own configuration is the first thing
+to check (`GROQ_MAX_COMPLETION_TOKENS` on Render; `/api/health` reports it as `ai_max_completion_tokens` from this release on).
+Live probes were stopped after these two (rule: no retry after repeated 429s).
+
+### 4. A narrower role, prototyped (not in the product): triage of «possible» phrases
+
+`eval/ai_triage_experiment.py`. For each «possible» item the current code shows, the model sees only the sentence around it (≤ 280
+characters, never the whole article) and answers quote / prose / unsure. It never sees or writes verse text and decides nothing; the
+decision rule was written into the script **before any call**: worth building only if it says "prose" for at least half of the items that
+are not quotations and for at most one in ten of the real quotations.
+
+| Run | Items (real quotation / prose) | "prose" for prose items | "prose" for real quotations (the harmful error) | Rule |
+|---|---|---|---|---|
+| 1: `articles_frozen` + `articles_long_20261003` (12 calls, 21:17–21:29) | 19 / 20 | **17 of 20** | **1 of 19** | passes |
+| 2: `hard_quotes_dev` + `hard_quotes_heldout` (64 calls, 21:35–22:43; rule and prompt unchanged) | 65 / 6 | **5 of 6** | **4 of 65** | passes |
+| Both | 84 / 26 | 22 of 26 (85%) | 5 of 84 (6%; Wilson 95% upper bound ≈ 13%) | — |
+
+All 76 calls answered HTTP 200 (300 output tokens reserved); no "unsure" answers. Results: `eval/results/ai-triage-20261004-213000-existing-sets.json`,
+`…-224349-hard-sets-confirmation.json`; raw answers in the private evidence folder.
+
+**What this does and does not show.** On two small runs the model separated the writer's own prose from recited verses well enough to pass the rule fixed in advance,
+which the extraction role (section 2) does not. But: the sets are author-written and unreviewed; 26 prose items and 84 quotations are too
+few (the upper bound of the harmful rate is above the 10% bar); and its errors fall on the items that matter most — two clear recitations
+(«واصبر لحكم الله فإنك بأعيننا» after «وتردد:», «إنما نطعمكم لوجه الله …») were called prose, and most of the real items are near-miss
+misquotations, which a demotion would push out of the main decision flow. It would also be a new transfer: sentences of articles of any
+length would go to Groq. **Not built into the product.** If the owner wants it, the safe shape is an ordering hint for exact, common
+phrases only (never for near misses), the item always visible, after a larger held-out check written by someone else.

@@ -74,6 +74,8 @@ Work and tests:
 
 ### 1.5 Measured incremental value of the model
 
+- **Status (4 Oct, challenge period):** measured on 76 short labelled articles (21,423 characters) with a paired replay: **1 true additional quotation, 0 false additions, 0 changed findings — about 0.5 per 10,000 characters, below the rule below.** The switch-off the rule calls for was **not** made: the owner decides (`docs/EVALUATION.md`, «The model's measured contribution»). A narrower role (triage of «possible» phrases from the surrounding sentence) passed its pre-registered rule on two small runs but is not built (same section). The hard-quotation sets are being recorded for a larger sample.
+
 In every audit so far the model proposed nothing that the deterministic path had not already found (`ai.added_only = 0`). Since `47f224e` the model is attempted on every short audit, so it is sent text on every audit. That has to be justified.
 
 - **Work:** run set C and the long sets twice, once with the model off and once on (same code, one run each, results kept). For every finding, record `ai_role`: only, also or overlap. Count true quotations found **only** by the model, and false «possible» items added **only** by the model.

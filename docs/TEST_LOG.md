@@ -1123,3 +1123,23 @@ not count towards the "Interface sign-off" gate. **Not tested with users.**
 | 7 Copy | the clipboard held the article with «يوفى» (402 characters) | — |
 
 No defect that blocks a task was found; the reference-in-words gap was fixed (PR #8).
+
+## 2026-10-04 (evening, Riyadh) — real Groq calls tonight: ledger (challenge period)
+
+Every call below went to Groq (`qwen/qwen3.8-27b`) from this laptop through the project's code, except the two live probes, which the
+deployed service made. Raw answers, timings, usage and rate-limit headers are in a private evidence folder outside the repository; only
+aggregates are published (`docs/EVALUATION.md`, «The model's measured contribution and failures»).
+
+| What | When | Calls | Outcome |
+|---|---|---|---|
+| Extraction answers for the paired replay (`eval/ai_record.py`, 800 tokens reserved, 65 s apart) | 19:54–21:16 | 76 | 75 × 200; 1 × 400 `json_validate_failed` (phrases_frozen f41) |
+| Live probe on `aee587c` (`scripts/live_smoke.mjs --save-audit`, one audit) | 21:17:12 | 1 | 429 OTPM «Requested 1556» (a local call < 1 min earlier) |
+| Triage prototype, run 1 (300 tokens reserved) | 21:17–21:29 | 12 | 12 × 200 |
+| Live probe on `91568af` | 21:33:40 | 1 | 429 OTPM «Requested 2834» (no local call in the previous 4 min) |
+| Triage prototype, run 2 (rule unchanged) | 21:35–22:43 | 64 | 64 × 200 |
+| Extraction answers for the two hard-quotation sets | from 22:44 | (running) | (recorded in a later entry) |
+
+Both live probes: the page showed the complete source-based audit and the calm failure line; `live_smoke` 24 PASS, 0 FAIL each time. The
+service's cooldown (≥ 120 s after a 429) applied. **Live probes were then stopped** (no retry after repeated 429s). The difference between the
+local calls (all 200 at 800 reserved) and the two live calls suggests the service's own reservation setting; it cannot be read from here,
+so `/api/health` now reports `ai_max_completion_tokens`.
