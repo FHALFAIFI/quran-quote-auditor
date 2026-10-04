@@ -46,13 +46,22 @@ def _ornate_pairs(article: str) -> list[tuple[int, int]]:
 
     Pairing in order (rather than by a fixed opener) handles texts that type
     ﴿…﴾ as well as ﴾…﴿, without matching the gap *between* two quotations.
+
+    A run of the same bracket typed twice («﴿﴿ … ﴾﴾») counts as one bracket: read one by one it would put the pairing out of
+    step, and the gap between two quotations would become one long "quotation". A pair never spans a blank line.
     """
     pairs: list[tuple[int, int]] = []
     open_pos, open_ch = -1, ""
+    prev = ""
     for i, ch in enumerate(article):
         if ch not in _ORNATE:
+            if not ch.isspace():
+                prev = ""
             continue
-        if open_pos >= 0 and ch != open_ch and i - open_pos <= 1500:
+        if ch == prev:
+            continue  # the same bracket repeated: still the one already seen
+        prev = ch
+        if open_pos >= 0 and ch != open_ch and i - open_pos <= 1500 and "\n\n" not in article[open_pos:i]:
             pairs.append((open_pos + 1, i))
             open_pos, open_ch = -1, ""
         else:
