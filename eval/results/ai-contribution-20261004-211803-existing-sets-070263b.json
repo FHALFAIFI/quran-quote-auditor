@@ -1,0 +1,783 @@
+{
+ "tag": "existing-sets-070263b",
+ "evidence_dir_name": "ai-20261004",
+ "totals": {
+  "calls": 76,
+  "answered": 75,
+  "proposed": 54,
+  "located": 53,
+  "discarded": 1,
+  "also_found": 50,
+  "overlapped": 2,
+  "empty_answers": 56,
+  "chars": 21423,
+  "added_only": 1,
+  "true_additional_quotation": 1,
+  "call_failed": 1,
+  "failed_http_400": 1,
+  "harms": 0
+ },
+ "per_set": {
+  "samples": {
+   "calls": 4,
+   "answered": 4,
+   "proposed": 16,
+   "located": 16,
+   "discarded": 0,
+   "also_found": 16,
+   "overlapped": 0,
+   "empty_answers": 1,
+   "chars": 2089
+  },
+  "cases": {
+   "calls": 14,
+   "answered": 14,
+   "proposed": 21,
+   "located": 21,
+   "discarded": 0,
+   "also_found": 20,
+   "overlapped": 0,
+   "empty_answers": 4,
+   "chars": 2235,
+   "added_only": 1,
+   "true_additional_quotation": 1
+  },
+  "heldout": {
+   "calls": 4,
+   "answered": 4,
+   "proposed": 2,
+   "located": 2,
+   "discarded": 0,
+   "also_found": 1,
+   "overlapped": 1,
+   "empty_answers": 3,
+   "chars": 439
+  },
+  "articles_frozen": {
+   "calls": 5,
+   "answered": 5,
+   "proposed": 11,
+   "located": 11,
+   "discarded": 0,
+   "also_found": 10,
+   "overlapped": 1,
+   "empty_answers": 4,
+   "chars": 12959
+  },
+  "phrases_frozen": {
+   "calls": 49,
+   "answered": 48,
+   "proposed": 4,
+   "located": 3,
+   "discarded": 1,
+   "also_found": 3,
+   "overlapped": 0,
+   "empty_answers": 44,
+   "chars": 3701,
+   "call_failed": 1,
+   "failed_http_400": 1
+  }
+ },
+ "model_only_findings": [
+  {
+   "article": "cases/c12-unmarked-long-and-error",
+   "quote": "ادعوني أستجيب لكم",
+   "kind": "true_additional_quotation",
+   "tier": "possible",
+   "codes": [
+    "ai_only",
+    "approximate"
+   ],
+   "basis": null,
+   "wording": "difference",
+   "changes": []
+  }
+ ],
+ "harms": [],
+ "calls": [
+  {
+   "id": "samples/sample-1",
+   "outcome": "ok",
+   "elapsed_ms": 951,
+   "at": "2026-10-04T16:54:45+00:00",
+   "http_status": 200,
+   "tokens": 929,
+   "error_body_type": null
+  },
+  {
+   "id": "samples/sample-2",
+   "outcome": "ok",
+   "elapsed_ms": 878,
+   "at": "2026-10-04T16:55:51+00:00",
+   "http_status": 200,
+   "tokens": 943,
+   "error_body_type": null
+  },
+  {
+   "id": "samples/sample-3",
+   "outcome": "ok",
+   "elapsed_ms": 624,
+   "at": "2026-10-04T16:56:57+00:00",
+   "http_status": 200,
+   "tokens": 662,
+   "error_body_type": null
+  },
+  {
+   "id": "samples/sample-demo",
+   "outcome": "ok",
+   "elapsed_ms": 1619,
+   "at": "2026-10-04T16:58:03+00:00",
+   "http_status": 200,
+   "tokens": 910,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c01-marked-correct",
+   "outcome": "ok",
+   "elapsed_ms": 857,
+   "at": "2026-10-04T16:59:09+00:00",
+   "http_status": 200,
+   "tokens": 667,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c02-multi-verse",
+   "outcome": "ok",
+   "elapsed_ms": 1049,
+   "at": "2026-10-04T17:00:15+00:00",
+   "http_status": 200,
+   "tokens": 680,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c03-wording-errors",
+   "outcome": "ok",
+   "elapsed_ms": 892,
+   "at": "2026-10-04T17:01:21+00:00",
+   "http_status": 200,
+   "tokens": 636,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c04-wording-error-grammar",
+   "outcome": "ok",
+   "elapsed_ms": 875,
+   "at": "2026-10-04T17:02:27+00:00",
+   "http_status": 200,
+   "tokens": 624,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c05-diacritics-errors",
+   "outcome": "ok",
+   "elapsed_ms": 554,
+   "at": "2026-10-04T17:03:33+00:00",
+   "http_status": 200,
+   "tokens": 621,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c06-repeated-with-ref",
+   "outcome": "ok",
+   "elapsed_ms": 1540,
+   "at": "2026-10-04T17:04:39+00:00",
+   "http_status": 200,
+   "tokens": 687,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c07-repeated-without-ref",
+   "outcome": "ok",
+   "elapsed_ms": 742,
+   "at": "2026-10-04T17:05:45+00:00",
+   "http_status": 200,
+   "tokens": 604,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c08-missing-refs",
+   "outcome": "ok",
+   "elapsed_ms": 555,
+   "at": "2026-10-04T17:06:51+00:00",
+   "http_status": 200,
+   "tokens": 599,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c09-incorrect-refs",
+   "outcome": "ok",
+   "elapsed_ms": 502,
+   "at": "2026-10-04T17:07:57+00:00",
+   "http_status": 200,
+   "tokens": 679,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c10-repeated-wrong-surah-and-partial",
+   "outcome": "ok",
+   "elapsed_ms": 334,
+   "at": "2026-10-04T17:09:02+00:00",
+   "http_status": 200,
+   "tokens": 572,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c11-unmarked-short",
+   "outcome": "ok",
+   "elapsed_ms": 397,
+   "at": "2026-10-04T17:10:07+00:00",
+   "http_status": 200,
+   "tokens": 566,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c12-unmarked-long-and-error",
+   "outcome": "ok",
+   "elapsed_ms": 489,
+   "at": "2026-10-04T17:11:13+00:00",
+   "http_status": 200,
+   "tokens": 618,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c13-negatives",
+   "outcome": "ok",
+   "elapsed_ms": 302,
+   "at": "2026-10-04T17:12:18+00:00",
+   "http_status": 200,
+   "tokens": 585,
+   "error_body_type": null
+  },
+  {
+   "id": "cases/c14-mixed",
+   "outcome": "ok",
+   "elapsed_ms": 450,
+   "at": "2026-10-04T17:13:24+00:00",
+   "http_status": 200,
+   "tokens": 647,
+   "error_body_type": null
+  },
+  {
+   "id": "heldout/h01-unmarked-short",
+   "outcome": "ok",
+   "elapsed_ms": 399,
+   "at": "2026-10-04T17:14:29+00:00",
+   "http_status": 200,
+   "tokens": 590,
+   "error_body_type": null
+  },
+  {
+   "id": "heldout/h02-unmarked-short",
+   "outcome": "ok",
+   "elapsed_ms": 306,
+   "at": "2026-10-04T17:15:34+00:00",
+   "http_status": 200,
+   "tokens": 561,
+   "error_body_type": null
+  },
+  {
+   "id": "heldout/h03-negatives-and-unmarked",
+   "outcome": "ok",
+   "elapsed_ms": 460,
+   "at": "2026-10-04T17:16:40+00:00",
+   "http_status": 200,
+   "tokens": 571,
+   "error_body_type": null
+  },
+  {
+   "id": "heldout/h04-marked-and-hadith",
+   "outcome": "ok",
+   "elapsed_ms": 385,
+   "at": "2026-10-04T17:17:45+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "articles_frozen/L1-patience-near-limit",
+   "outcome": "ok",
+   "elapsed_ms": 1233,
+   "at": "2026-10-04T17:18:51+00:00",
+   "http_status": 200,
+   "tokens": 2716,
+   "error_body_type": null
+  },
+  {
+   "id": "articles_frozen/L2-orphans-incomplete-and-wrong",
+   "outcome": "ok",
+   "elapsed_ms": 397,
+   "at": "2026-10-04T17:19:57+00:00",
+   "http_status": 200,
+   "tokens": 1376,
+   "error_body_type": null
+  },
+  {
+   "id": "articles_frozen/L3-social-post-mixed-direction",
+   "outcome": "ok",
+   "elapsed_ms": 446,
+   "at": "2026-10-04T17:21:02+00:00",
+   "http_status": 200,
+   "tokens": 703,
+   "error_body_type": null
+  },
+  {
+   "id": "articles_frozen/L4-governance-resembling-prose",
+   "outcome": "ok",
+   "elapsed_ms": 564,
+   "at": "2026-10-04T17:22:08+00:00",
+   "http_status": 200,
+   "tokens": 1328,
+   "error_body_type": null
+  },
+  {
+   "id": "articles_frozen/L5-ordinary-prose-no-quotation",
+   "outcome": "ok",
+   "elapsed_ms": 421,
+   "at": "2026-10-04T17:23:13+00:00",
+   "http_status": 200,
+   "tokens": 1032,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f01-exact",
+   "outcome": "ok",
+   "elapsed_ms": 469,
+   "at": "2026-10-04T17:24:19+00:00",
+   "http_status": 200,
+   "tokens": 542,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f02-exact",
+   "outcome": "ok",
+   "elapsed_ms": 417,
+   "at": "2026-10-04T17:25:24+00:00",
+   "http_status": 200,
+   "tokens": 551,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f03-exact",
+   "outcome": "ok",
+   "elapsed_ms": 537,
+   "at": "2026-10-04T17:26:30+00:00",
+   "http_status": 200,
+   "tokens": 543,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f04-exact",
+   "outcome": "ok",
+   "elapsed_ms": 309,
+   "at": "2026-10-04T17:27:35+00:00",
+   "http_status": 200,
+   "tokens": 537,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f05-exact",
+   "outcome": "ok",
+   "elapsed_ms": 289,
+   "at": "2026-10-04T17:28:41+00:00",
+   "http_status": 200,
+   "tokens": 557,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f06-exact",
+   "outcome": "ok",
+   "elapsed_ms": 278,
+   "at": "2026-10-04T17:29:46+00:00",
+   "http_status": 200,
+   "tokens": 545,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f07-exact-vocalized",
+   "outcome": "ok",
+   "elapsed_ms": 403,
+   "at": "2026-10-04T17:30:51+00:00",
+   "http_status": 200,
+   "tokens": 585,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f08-exact",
+   "outcome": "ok",
+   "elapsed_ms": 352,
+   "at": "2026-10-04T17:31:57+00:00",
+   "http_status": 200,
+   "tokens": 548,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f09-exact",
+   "outcome": "ok",
+   "elapsed_ms": 380,
+   "at": "2026-10-04T17:33:02+00:00",
+   "http_status": 200,
+   "tokens": 542,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f10-exact",
+   "outcome": "ok",
+   "elapsed_ms": 429,
+   "at": "2026-10-04T17:34:07+00:00",
+   "http_status": 200,
+   "tokens": 550,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f11-exact",
+   "outcome": "ok",
+   "elapsed_ms": 434,
+   "at": "2026-10-04T17:35:13+00:00",
+   "http_status": 200,
+   "tokens": 542,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f12-exact",
+   "outcome": "ok",
+   "elapsed_ms": 354,
+   "at": "2026-10-04T17:36:18+00:00",
+   "http_status": 200,
+   "tokens": 562,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f13-exact",
+   "outcome": "ok",
+   "elapsed_ms": 414,
+   "at": "2026-10-04T17:37:24+00:00",
+   "http_status": 200,
+   "tokens": 550,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f14-exact",
+   "outcome": "ok",
+   "elapsed_ms": 541,
+   "at": "2026-10-04T17:38:29+00:00",
+   "http_status": 200,
+   "tokens": 542,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f15-exact-vocalized",
+   "outcome": "ok",
+   "elapsed_ms": 428,
+   "at": "2026-10-04T17:39:35+00:00",
+   "http_status": 200,
+   "tokens": 579,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f16-exact",
+   "outcome": "ok",
+   "elapsed_ms": 398,
+   "at": "2026-10-04T17:40:40+00:00",
+   "http_status": 200,
+   "tokens": 541,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f17-exact",
+   "outcome": "ok",
+   "elapsed_ms": 452,
+   "at": "2026-10-04T17:41:45+00:00",
+   "http_status": 200,
+   "tokens": 542,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f18-exact",
+   "outcome": "ok",
+   "elapsed_ms": 455,
+   "at": "2026-10-04T17:42:51+00:00",
+   "http_status": 200,
+   "tokens": 550,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f19-exact",
+   "outcome": "ok",
+   "elapsed_ms": 397,
+   "at": "2026-10-04T17:43:56+00:00",
+   "http_status": 200,
+   "tokens": 543,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f20-exact",
+   "outcome": "ok",
+   "elapsed_ms": 471,
+   "at": "2026-10-04T17:45:02+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f21-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 1057,
+   "at": "2026-10-04T17:46:07+00:00",
+   "http_status": 200,
+   "tokens": 545,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f22-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 457,
+   "at": "2026-10-04T17:47:13+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f23-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 513,
+   "at": "2026-10-04T17:48:19+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f24-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 672,
+   "at": "2026-10-04T17:49:24+00:00",
+   "http_status": 200,
+   "tokens": 551,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f25-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 475,
+   "at": "2026-10-04T17:50:30+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f26-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 464,
+   "at": "2026-10-04T17:51:35+00:00",
+   "http_status": 200,
+   "tokens": 583,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f27-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 405,
+   "at": "2026-10-04T17:52:41+00:00",
+   "http_status": 200,
+   "tokens": 541,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f28-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 418,
+   "at": "2026-10-04T17:53:46+00:00",
+   "http_status": 200,
+   "tokens": 551,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f29-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 587,
+   "at": "2026-10-04T17:54:52+00:00",
+   "http_status": 200,
+   "tokens": 547,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f30-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 332,
+   "at": "2026-10-04T17:55:57+00:00",
+   "http_status": 200,
+   "tokens": 547,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f31-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 353,
+   "at": "2026-10-04T17:57:03+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f32-misquote",
+   "outcome": "ok",
+   "elapsed_ms": 337,
+   "at": "2026-10-04T17:58:08+00:00",
+   "http_status": 200,
+   "tokens": 543,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f33-hadith",
+   "outcome": "ok",
+   "elapsed_ms": 340,
+   "at": "2026-10-04T17:59:13+00:00",
+   "http_status": 200,
+   "tokens": 552,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f34-hadith-overlap",
+   "outcome": "ok",
+   "elapsed_ms": 316,
+   "at": "2026-10-04T18:00:19+00:00",
+   "http_status": 200,
+   "tokens": 543,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f35-dua",
+   "outcome": "ok",
+   "elapsed_ms": 391,
+   "at": "2026-10-04T18:01:24+00:00",
+   "http_status": 200,
+   "tokens": 561,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f36-proverbs",
+   "outcome": "ok",
+   "elapsed_ms": 452,
+   "at": "2026-10-04T18:02:30+00:00",
+   "http_status": 200,
+   "tokens": 555,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f37-ordinary",
+   "outcome": "ok",
+   "elapsed_ms": 722,
+   "at": "2026-10-04T18:03:35+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f38-ordinary",
+   "outcome": "ok",
+   "elapsed_ms": 351,
+   "at": "2026-10-04T18:04:41+00:00",
+   "http_status": 200,
+   "tokens": 539,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f39-maxims",
+   "outcome": "ok",
+   "elapsed_ms": 313,
+   "at": "2026-10-04T18:05:46+00:00",
+   "http_status": 200,
+   "tokens": 551,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f40-sayings",
+   "outcome": "ok",
+   "elapsed_ms": 358,
+   "at": "2026-10-04T18:06:51+00:00",
+   "http_status": 200,
+   "tokens": 551,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f41-hadith",
+   "outcome": "failed",
+   "elapsed_ms": 451,
+   "at": "2026-10-04T18:07:57+00:00",
+   "http_status": 400,
+   "tokens": null,
+   "error_body_type": "invalid_request_error"
+  },
+  {
+   "id": "phrases_frozen/f42-dua",
+   "outcome": "ok",
+   "elapsed_ms": 415,
+   "at": "2026-10-04T18:09:02+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f43-ordinary-religious",
+   "outcome": "ok",
+   "elapsed_ms": 409,
+   "at": "2026-10-04T18:10:08+00:00",
+   "http_status": 200,
+   "tokens": 545,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f44-ordinary-religious",
+   "outcome": "ok",
+   "elapsed_ms": 310,
+   "at": "2026-10-04T18:11:13+00:00",
+   "http_status": 200,
+   "tokens": 547,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f45-formula",
+   "outcome": "ok",
+   "elapsed_ms": 357,
+   "at": "2026-10-04T18:12:18+00:00",
+   "http_status": 200,
+   "tokens": 539,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f46-formula",
+   "outcome": "ok",
+   "elapsed_ms": 365,
+   "at": "2026-10-04T18:13:24+00:00",
+   "http_status": 200,
+   "tokens": 537,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f47-formula",
+   "outcome": "ok",
+   "elapsed_ms": 421,
+   "at": "2026-10-04T18:14:29+00:00",
+   "http_status": 200,
+   "tokens": 534,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f48-formula",
+   "outcome": "ok",
+   "elapsed_ms": 378,
+   "at": "2026-10-04T18:15:35+00:00",
+   "http_status": 200,
+   "tokens": 546,
+   "error_body_type": null
+  },
+  {
+   "id": "phrases_frozen/f49-formula",
+   "outcome": "ok",
+   "elapsed_ms": 519,
+   "at": "2026-10-04T18:16:40+00:00",
+   "http_status": 200,
+   "tokens": 534,
+   "error_body_type": null
+  }
+ ]
+}

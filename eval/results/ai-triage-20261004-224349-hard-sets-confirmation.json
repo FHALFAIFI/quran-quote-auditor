@@ -1,0 +1,38 @@
+{
+ "prompt": "triage-v1",
+ "calls": {
+  "ok_200": 64
+ },
+ "confusion": {
+  "prose->prose": 5,
+  "prose->quote": 1,
+  "quote->prose": 4,
+  "quote->quote": 61
+ },
+ "decision_rule": {
+  "prose_items": 6,
+  "prose_said_prose": 5,
+  "quote_items": 65,
+  "quote_said_prose": 4,
+  "passes": true
+ },
+ "by_code": {
+  "common": {
+   "quote->quote": 8,
+   "prose->prose": 5,
+   "quote->prose": 2
+  },
+  "approximate": {
+   "quote->quote": 52,
+   "quote->prose": 2,
+   "prose->quote": 1
+  },
+  "cue": {
+   "quote->quote": 1
+  },
+  "non_quran_cue": {
+   "quote->quote": 3,
+   "prose->prose": 2
+  }
+ }
+}
