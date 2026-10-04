@@ -887,3 +887,29 @@ No High finding. Medium, all fixed: the undo message of an optional addition sai
 - **Phone-width live journey** (390×844, touch, `--phone --replay` with the answer saved above): the page, scripts and `/api/health` from the live service; the audit request was answered from the saved file and **not sent to the server**. All checks passed; `ai_last_call` afterwards was still the 08:11:44 call, so no second Groq call was made.
 - **No other live audit was made.** `scripts/live_workspace.mjs` was not run live: since `47f224e` every audit of a short article attempts the model, so it would have made more Groq calls.
 - **Media (git-ignored `submission/`).** Stills (`submission/build/stills_release.mjs`) and the captions-only video (`submission/build/record_release.mjs`) were taken on the live service with the demonstration audit **replayed** from the 08:11 answer (0 audits sent; said on slide 7 and the video's end card). Take 1 was rejected: the recorder enlarged the page with CSS `zoom`, and inside a CSS-zoomed element the drawn correction (placed from `getBoundingClientRect`) landed a line too low; the app is not affected by browser zoom, and the take was re-recorded at 1024×576 scaled to 1280×720 without CSS zoom. Take 2 was rejected: the caption covered decision 1's buttons for a few seconds before that decision was described, and the end card's last line read ambiguously in RTL. Take 3: 105.0 s, 1280×720, no audio, decoded without error, frames inspected.
+
+## 2026-10-04 (evening, Riyadh) — hard quotations: retrieval anchored on the writer's cues (challenge period)
+
+Branch `hard-quotations` (from `main` @ `05e34d5`; code `365b78d`, `b8d866b`). Fallback only: **no Groq call** was made for this work.
+Write-up, tables and disclosure of what was tuned on what: `docs/EVALUATION.md`, section «Hard quotations».
+
+- **Baseline first.** The seven frozen detection sets rerun on the unchanged `05e34d5` (`eval/results/fallback-20261004-1951*-challenge-baseline-05e34d5-*`):
+  rows identical to the 4 Oct release runs (`eval/compare_runs.py`, new: compares two result files row by row, timings ignored).
+- **Diagnostic set** `eval/hard_quotes_{dev,heldout}_20261004.json` (assistant-authored development data, frozen by SHA-256 in `e296825`;
+  the validator prints `labels OK`). New scorer `eval/run_hard_quotes.py` (recall, false possibilities, wrong «matched», correction safety
+  before and after a simulated confirmation, reported apart).
+- **Held-out split: one run**, `eval/results/hard-20261004-202752-…-heldout-only-run-b8d866b.json`; the same split on `05e34d5` for comparison
+  (`…-heldout-baseline-05e34d5.json`). Dev runs kept: `…-baseline-05e34d5`, `…-cue-v4` (before the bracket fix), `…-final-b8d866b`.
+- **Seven sets after** (`…-cue-final-*`): 0 misquotations «matched», 0 wrong fixes, 0 new fixes on correct text, 0 new false suggestions,
+  on every set; long set detected 186 → 188, right fixes 29 → 49; 71 changed rows in all, listed by `compare_runs.py`.
+- **pytest** 431 passed (415 + 16 in `tests/test_cues.py`; `test_ai_overlap` gained the new method in its priority table; one model-only
+  grading test now also switches the cue retrieval off, since its premise is "the source search found nothing").
+- **Browser suites** (local AI-off servers, code `365b78d` plus the later changes in progress — rerun on the release head below): ui_e2e 27,
+  ui_journey_e2e 167, ui_final_qa 141 (the same 141 checks on `05e34d5`), ui_phrase_e2e 38, ui_boundary_e2e 46, ui_long_e2e 91,
+  ui_counts_e2e 17, ui_approved_e2e 146, ui_uthmani_e2e 32, ui_workspace_e2e 137, ui_suggest_e2e 200, ui_suggest_place_e2e 80, ui_dock_e2e 34,
+  ui_async_navigation_e2e 5, ui_model_notices_e2e 52, ui_a11y_check 54, ui_crossbrowser 87 — 0 failures.
+  **ui_possible_order_e2e: 15 failures**, all pinned counts of `LA01` (20 quotations and 7 optional phrases): the retrieval now reads two of
+  those phrases («أفلا يتدبرون القرآن», «واتقوا الله ويعلمكم الله») as quotations the writer announced, so LA01 has 22 and 5. The expected
+  numbers were updated with a comment; the behaviour the script tests (optional phrases after the decisions, «في كل عام» first and optional)
+  is unchanged.
+- **Demo samples:** one finding changes tier (a lead-in quotation, «candidate» → «stated»); nothing else.
