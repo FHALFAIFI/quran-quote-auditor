@@ -176,6 +176,8 @@ def test_uvicorn_access_and_error_logs_have_no_article_text(tmp_path):
     assert '"POST /api/audit HTTP/1.1" 200' in log
     assert '"POST /api/audit HTTP/1.1" 413' in log
     assert "unhandled error on /api/audit: ValueError" in log
-    assert "Exception in ASGI application" in log  # uvicorn's traceback for the 500 is there, with the text removed
+    # Since the provider-harness release (d65befa) an unexpected error is answered inside the app, so uvicorn writes no traceback
+    # at all; the scrubber remains the second guard for any other record.
+    assert "Exception in ASGI application" not in log and "Traceback" not in log
     assert MARK not in log
     assert "%D8%A7%D8%AE%D8%AA%D8%A8%D8%A7%D8%B1%D9%8A%D8%A9" not in log.upper()  # the mark, percent-encoded
