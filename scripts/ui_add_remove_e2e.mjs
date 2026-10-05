@@ -29,6 +29,14 @@ for (const [name, viewport, mobile] of VIEWPORTS) {
   check(/^أبقيتَ «هو» كما كتبتَه \(الاقتباس ٢\)/.test(norm(await page.textContent("#undo-line"))), `${name}: keeping the extra word says so`);
   await page.locator('[data-change="2-wording"] button[data-act="approved"]').click();
   check(/^اعتمدتَ حذف «هو» \(الاقتباس ٢\)/.test(norm(await page.textContent("#undo-line"))), `${name}: the line says the word is removed`);
+  const card2 = norm(await page.locator("#finding-2").innerText());
+  check(/اعتمدتَه: تُحذف «هو» من النسخة المنسوخة/.test(card2) && !/«»/.test(card2), `${name}: the approved removal's note names the word, no empty «»`);
+  check(await page.evaluate(() => [...document.querySelectorAll("#article-view .fix-to")].every((l) => l.textContent.trim() !== "")), `${name}: no empty label is drawn above the removed word`);
+  // the caret inside the removal: the screen-reader line names what happens, with no empty «»
+  await page.evaluate(() => { const t = document.querySelector("#article"); const i = t.value.indexOf("هو مع"); t.focus(); t.setSelectionRange(i + 1, i + 1); t.dispatchEvent(new Event("select")); document.dispatchEvent(new Event("selectionchange")); });
+  await page.waitForTimeout(400);
+  const said = await page.textContent("#sr-live");
+  check(!/«»/.test(said || ""), `${name}: the caret announcement has no empty «» («${norm(said).slice(0, 90)}»)`);
   await page.evaluate(() => { document.querySelector("#final").hidden = false; });
   await page.click("#copy-btn");
   const copied = await page.evaluate(() => navigator.clipboard.readText());

@@ -849,7 +849,7 @@ function renderBackdrop() {
 function placeFixLabels() {
   const view = $("article-view");
   view.querySelector(".fix-layer")?.remove();
-  const spans = [...view.querySelectorAll(".fix")];
+  const spans = [...view.querySelectorAll(".fix")].filter((s) => s.dataset.to);   // a removed word is only struck: nothing to draw above it
   if (!spans.length) return;
   const layer = el("div", { class: "fix-layer" });
   const vr = view.getBoundingClientRect();
@@ -943,8 +943,11 @@ function onCaretMoved() {
   const id = f ? f.id : null;
   if (id !== caretId) {
     caretId = id; renderDock();
-    const fx = f ? requiredOf(f).filter((c) => decisions[c.id] === "approved").map((c) => `«${fixLabel(c)}»`) : [];
-    if (f) announce(`داخل ${itemName(f)} ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}${fx.length ? `؛ يُكتب ${fx.join(" و")} في النسخة التي تنسخها، ونصّك هنا كما كتبتَه` : ""}. القرار في اللوحة المجاورة.`);   // the marks are drawn behind the text and are not read by a screen reader
+    const ok = f ? requiredOf(f).filter((c) => decisions[c.id] === "approved") : [];
+    const fx = ok.filter((c) => !drops(c)).map((c) => `«${fixLabel(c)}»`), gone = ok.filter(drops).map((c) => `«${deltaParts(c).before}»`);
+    const said = fx.length ? `يُكتب ${fx.join(" و")} في النسخة التي تنسخها${gone.length ? ` وتُحذف منها ${gone.join(" و")}` : ""}`
+      : gone.length ? `تُحذف ${gone.join(" و")} من النسخة التي تنسخها` : "";
+    if (f) announce(`داخل ${itemName(f)} ${toArabicDigits(f.id)} من ${toArabicDigits(allFindings().length)}: ${stateOf(f)[0]}${said ? `؛ ${said}، ونصّك هنا كما كتبتَه` : ""}. القرار في اللوحة المجاورة.`);   // the marks are drawn behind the text and are not read by a screen reader
   }
   if (f && String(f.id) !== String(current)) goTo(f.id, { scroll: null, focus: false, quiet: true });
 }
@@ -1255,8 +1258,10 @@ function decisionBlock(c, f, secondary) {
       : el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يبقى نصّك في المربع ويظهر ", el("b", { text: `«${d.prefix}${d.after}»` }),
         adds(c) ? " فوق موضعه، ويُضاف في النسخة التي تنسخها." : " فوقه، ويُكتب مكانه في النسخة التي تنسخها.")) : null,
     // once approved: which text is the writer's, which is copied, and how to take it back
-    decisions[c.id] === "approved" ? el("p", { class: "fix-note" }, "اعتمدتَه: يُكتب ", el("b", { text: `«${d.prefix}${d.after}»` }),
-      c.start === c.end ? " في النسخة المنسوخة، ونصّك في المربع كما هو." : " في النسخة المنسوخة، ونصّك في المربع باقٍ تحته مشطوبًا.", " للتراجع اضغط زر الاعتماد أعلاه مرة أخرى.") : null,
+    decisions[c.id] === "approved" ? (drops(c) ? el("p", { class: "fix-note" }, "اعتمدتَه: تُحذف ", el("b", { text: `«${d.before}»` }),
+      " من النسخة المنسوخة، ونصّك في المربع باقٍ مشطوبًا.", " للتراجع اضغط زر الاعتماد أعلاه مرة أخرى.")
+      : el("p", { class: "fix-note" }, "اعتمدتَه: يُكتب ", el("b", { text: `«${d.prefix}${d.after}»` }),
+        c.start === c.end ? " في النسخة المنسوخة، ونصّك في المربع كما هو." : " في النسخة المنسوخة، ونصّك في المربع باقٍ تحته مشطوبًا.", " للتراجع اضغط زر الاعتماد أعلاه مرة أخرى.")) : null,
     quoteLevel && (c.quote_before || c.quote_after) ? el("details", { class: "ch-more" }, el("summary", { text: "الاقتباس كاملًا قبل التصحيح وبعده" }),
       el("div", { class: "ch-diff" },
         el("div", {}, el("span", { class: "row-label", text: "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: c.quote_before })),
