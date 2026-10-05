@@ -1,5 +1,5 @@
 {
- "_source": "Quranpedia API v1, Hafs mushaf (id 1): https://api.quranpedia.net/v1/mushafs/1 — retrieved 2026-09-28. Small excerpt used only as an offline test fixture; the app itself always loads the live, corrected text. Credit: Quranpedia.net (https://quranpedia.net).",
+ "_source": "Quranpedia API v1, Hafs mushaf (id 1): https://api.quranpedia.net/v1/mushafs/1 — retrieved 2026-09-28. Small excerpt used only as an offline test fixture; the app itself always loads the live, corrected text. Credit: Quranpedia.net (https://quranpedia.net). Version: all 36 verses are identical to Quranpedia's official dump mushafs-1 (Hafs), version 2026-10-05 (its license.version), checked 2026-10-05; republished in part under the Quranpedia.net Data License (https://quranpedia.net/dumps/LICENSE.md, version 2026-10-03), which asks for the credit, a link and the version.",
  "ayahs": [
   {
    "surah": 1,

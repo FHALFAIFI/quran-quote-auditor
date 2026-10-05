@@ -1,6 +1,6 @@
 # Sources, licences and attribution record
 
-Last reviewed: 2026-10-03 (pre-challenge work; the writing workspace of 3 Oct added a suggestion endpoint, three trust pages and three evaluation files, with no new text source — see the end of §1; result-file notices corrected on 3 Oct; earlier review 2026-10-02, Groq provider live on Render; licence and secret review before the repository was made public; §1b written on 2026-10-02 from Tanzil's own files).
+Last reviewed: 2026-10-05 (§1c: the Quranpedia excerpts settled by Quranpedia's own data licence, challenge period). Before that: 2026-10-03 (pre-challenge work; the writing workspace of 3 Oct added a suggestion endpoint, three trust pages and three evaluation files, with no new text source — see the end of §1; result-file notices corrected on 3 Oct; earlier review 2026-10-02, Groq provider live on Render; licence and secret review before the repository was made public; §1b written on 2026-10-02 from Tanzil's own files).
 
 ## 1. Quran text — Quranpedia (authoritative source)
 
@@ -19,7 +19,20 @@ Last reviewed: 2026-10-03 (pre-challenge work; the writing workspace of 3 Oct ad
 Every suggested word is a word of the proposed verse in that index (`tests/test_suggest_full.py` checks this property). The three evaluation files added that day contain, as test inputs, short excerpts cut from the Quranpedia text by
 coordinates (no bulk corpus file): `eval/suggest_cases_20261003.json`, `eval/suggest_cases_b_20261003.json`, `eval/articles_long_20261003.json` (+ builders under `eval/`). Their provenance and the fact that no specialist has reviewed their labels are in
 `docs/EVALUATION.md`. Whether those excerpts in a public repository sit comfortably with Quranpedia's "do not mirror" policy is the same **open question** as for the 36-verse fixture and the older sets; I have not asked Quranpedia and do not claim it is settled.
-The pages `/sources`, `/privacy`, `/limitations` (verified against the code on 3 Oct 2026) state what is fetched, sent and stored; the privacy page also says the fonts come from Google, whose terms apply to that request.
+The pages `/sources`, `/privacy`, `/limitations` (verified against the code on 3 Oct 2026) state what is fetched, sent and stored; the privacy page said then that the fonts came from Google; since 4 Oct 2026 they are self-hosted (§3) and the page says so.
+
+## 1c. The committed Quranpedia excerpts — settled by Quranpedia's data licence (5 Oct 2026, challenge period)
+
+§1 above left an **open question**: whether the 36-verse fixture and the short Quranpedia excerpts in `eval/` sit with the API policy's
+«don't freeze a copy». Quranpedia now publishes official, versioned dumps with a written licence, and that licence answers it:
+
+| Item | Detail |
+|---|---|
+| Licence | **Quranpedia.net Data License**, version 2026-10-03, `https://quranpedia.net/dumps/LICENSE.md` (read 5 Oct 2026). «Free to use inside apps, websites, bots, and research tools — no attribution required». «Republishing this data — in full or in part — as a downloadable database or dataset requires: (1) crediting Quranpedia.net as the source with a link, and (2) stating this dump's version.» «The content is continuously corrected … distributing outdated Quranic text is the distributor's responsibility.» The API policy page (`https://quranpedia.net/api-docs`, read the same day) points to these dumps instead of scraping. |
+| Dump compared | `https://quranpedia.net/dumps/mushafs-1.json.gz` (مصحف حفص, schema `/v1/mushafs/1`), downloaded 5 Oct 2026, SHA-256 `862dddfa8e1c2cd85fae818bdc70096cf689aa0e60e5403a0df5acab186cb139`, `license.version` **2026-10-05** inside the file (the site's `manifest.json` still listed version 2026-10-02 with another checksum; the file's own field is what is cited). Not committed. |
+| Result | All **36 verses** of `tests/fixtures/hafs_subset.json` are identical to that dump (leading BOM and surrounding spaces aside), and the whole local copy the evaluation validators read (6,236 verses, fetched from the API on 5 Oct 2026) is identical to it verse for verse. The six Quranpedia validators (`eval/validate_articles.py`, `validate_articles_long_20261003.py`, `validate_hard_quotes_20261004.py`, `validate_labels.py`, `validate_phrases.py`, `validate_suggest_cases.py`) all answer «labels OK» against that copy. |
+| What changed | The fixture's `_source` now states the credit, the link, the licence and the version (2026-10-05), as the licence asks. The excerpts inside the frozen `eval/` sets are not edited (their checksums are part of the protocol); this section is their version statement: **Quran text excerpts in `eval/` and `tests/`: Quranpedia.net (https://quranpedia.net), Hafs mushaf, dump version 2026-10-05.** |
+| Still open | Keeping the excerpts current: if Quranpedia corrects one of these verses, the excerpt is stale until re-checked (re-run the validators against a fresh copy). Hand-edited **Tanzil** inputs (§1b) are a separate question this licence does not answer; they are test data only, never served as Quran text. No one at Quranpedia or Tanzil was contacted. |
 
 ## 1b. Uthmani-script texts (used only to build and check the Uthmani matching rules; not read by the running app)
 
