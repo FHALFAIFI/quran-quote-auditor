@@ -280,7 +280,12 @@
   // The line being typed must stay in sight beside the box. Order: under the line, over it, under it after scrolling the page only as far
   // as needed, then the same without the full verse (a phone with its keyboard open), and last the box scrolls inside itself.
   const GAP = 6;
+  let fittedH = 0;   // the box's height when it was last placed (see the ResizeObserver in init)
   function fit() {
+    fitBox();
+    fittedH = box.hidden ? 0 : box.offsetHeight;
+  }
+  function fitBox() {
     if (!anchor || box.hidden) return;
     box.classList.remove("sg-compact");
     box.style.maxHeight = "";
@@ -302,7 +307,8 @@
       if (h <= limit - l.bottom - GAP) return put(true);
       if (h <= l.top - GAP - top) return put(false);
       if (h <= limit - top - anchor.h - GAP) {
-        window.scrollBy({ top: h - (limit - l.bottom - GAP), behavior: "instant" });
+        // whole pixels, rounded up: the page scrolls by integers, and a fraction short (131 of 131.16) made the verse fold away on 320 px
+        window.scrollBy({ top: Math.ceil(h - (limit - l.bottom - GAP)), behavior: "instant" });
         l = line();
         if (h <= limit - l.bottom - GAP) return put(true);
       }
@@ -353,6 +359,9 @@
     $("sel-complete")?.addEventListener("click", () => { ta.focus({ preventScroll: true }); ask(true); });
     const refit = () => { if (state) { place(state.caret); fit(); } };
     window.addEventListener("resize", refit);
+    // The box can grow after it was placed, e.g. when the Quran font's subset for the verse arrives a moment later: placed above the line
+    // at its smaller height, it then covered the line being typed (320 px, after an audit; found 5 Oct). Place it again at its new size.
+    if (window.ResizeObserver) new ResizeObserver(() => { if (state && !box.hidden && Math.abs(box.offsetHeight - fittedH) > 1) fit(); }).observe(box);
     window.visualViewport?.addEventListener("resize", refit);   // a phone's keyboard opening or closing changes only the visual viewport
   }
 
