@@ -80,7 +80,7 @@ jobs:
       - name: Playwright (outside the project; not a dependency of the app)
         run: |
           mkdir -p .ci-node && cd .ci-node
-          npm init -y > /dev/null
+          echo '{"name": "ci-browser-tools", "private": true}' > package.json
           npm install --no-audit --no-fund playwright@1.63.0 axe-core@4.13.0
           npx playwright install --with-deps chromium firefox webkit
       - name: Quran text = the 36-verse test excerpt
