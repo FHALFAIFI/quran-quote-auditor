@@ -314,3 +314,19 @@ def test_postgrest_cross_user_conflict_and_deletion(live):
     # the requests the server sent to the fake's PostgREST all carried a user's own token, never the service key
     rest = [x for x in state["requests"] if x["path"].startswith("/rest/v1/drafts") or x["path"].startswith("/rest/v1/preferences")]
     assert rest and all(x["auth"] == "user" for x in rest)
+
+
+def test_postgrest_deletion_without_the_service_key_still_removes_every_row(live, monkeypatch):
+    """Without SUPABASE_SERVICE_ROLE_KEY the auth user cannot be deleted (the answer says so), so no cascade helps: the
+    server's own deletes must remove every draft AND the preferences row."""
+    main, ctx, client, fake, (a, ha), (b, hb) = live
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    for i in range(3):
+        client.post("/api/account/drafts", json={"body": f"{SECRET} {i}"}, headers=ha)
+    client.put("/api/account/preferences", json={"suggest_on": False, "distinct_on": True}, headers=ha)
+    client.put("/api/account/preferences", json={"suggest_on": True, "distinct_on": True}, headers=hb)
+    r = client.delete("/api/account", headers=ha)
+    assert r.json() == {"deleted_drafts": 3, "auth_user_deleted": False}
+    assert not fake.STATE["drafts"].get(a) and a not in fake.STATE["prefs"] and b in fake.STATE["prefs"]
+    assert a in fake.STATE["users"].values()          # the auth user remains: the owner must delete it (see the checklist)
+    assert client.get("/api/account/export", headers=ha).status_code == 401
