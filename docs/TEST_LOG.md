@@ -1184,3 +1184,46 @@ ui_approved_e2e 148, ui_uthmani_e2e 34, ui_workspace_e2e 139, ui_suggest_e2e 202
 ui_async_navigation_e2e 7, ui_model_notices_e2e 80, ui_a11y_check 56 (axe 0 violations, trust pages included), ui_crossbrowser 89,
 ui_selfhost_e2e 45, ui_import_e2e 591 in Chromium, 591 in Firefox, 591 in WebKit — **3,285 checks, 0 failures, 0 skipped**. Every suite also
 fails on any CSP violation or any request to another host. Not covered: real phones, Safari itself, screen readers, real writers.
+
+## 2026-10-05 (06:10–07:30 Riyadh) — the running release checked, and four defects fixed (challenge period)
+
+**Starting state, verified (not taken from the previous report).** `main` = `origin/main` = `8278476`, working tree clean; PRs #3, #5–#11
+merged, #4 draft. Live `/api/health`: build `8278476`, `ai_max_completion_tokens` 800, model configured. The 11 files under `app/static`
+(fonts and samples aside) served by Render are byte-identical to `main`; `/`, `/sources`, `/privacy`, `/limitations` answer 200.
+Every `eval/*.sha256` (8) verifies. The seven frozen sets and the two hard-quotation sets rerun on `8278476` give the 4 Oct results
+(`compare_runs.py`: identical; the long set differs from `cue-final` only by PR #8's LA03 row, identical to the `ordinals` run).
+
+**Internal inspection (not a user study).** An article with a marked verse and reference, a lead-in quotation with one wrong word
+(«ولا تحسبن الله غافلا عما يفعل الظالمون»), a quotation with a missing word and its reference («… اصبروا وصابروا واتقوا الله …
+(آل عمران: 200)»), a reference written in words («(سورة الشرح، الآية السادسة)») and ordinary prose («في كل عام نجتمع …») was pasted,
+imported as TXT and as DOCX (LibreOffice), edited, audited, confirmed, approved, undone, reviewed, copied, edited again and rechecked, at
+1366, 390 and 320 px on a local AI-off server (Playwright, scratch script). Live, without any model call: verse suggestion while typing
+and «أدرج» at the three widths, and an 8,382-character article (`LA04`, over the 6,000-character model limit) audited in 8.4–9.4 s,
+the page saying the model was not asked; `/api/health` `ai_recent.calls` stayed 0. What was found:
+
+1. **The intended verse was not offered** (`HD-017` «كل نفس بما كسبت رهين» → المدثر 38). Four places tie on whole words; the three-place
+   cut in `verifier.fuzzy_candidates` dropped the phrase search's own place. Fix: on a tie, the place whose differing word is spelt
+   like the writer's comes first (`docs/EVALUATION.md`). `tests/test_verse_ties.py` (3; the ordering test fails on `8278476`).
+2. **«أبقِ «—»»** on a correction that adds a word the writer left out («ورابطوا»), and **«غيّر إلى «»»** on one that removes a word
+   the writer added («هو»). Now «أضف «ورابطوا»» / «لا تُضِف شيئًا» and «احذف «هو»» / «أبقِ «هو»», with matching lines after the decision.
+3. Found while reviewing fix 2: an approved removal's note said «اعتمدتَه: يُكتب «» …», the caret announcement «يُكتب «» …», and an empty
+   label was drawn above the struck word. New `scripts/ui_add_remove_e2e.mjs` (11 checks per width at 1366, 390 and 320 px, plus the CSP and other-host checks: 35) fails 27 of them on `8278476`.
+4. **A soft hyphen inside a word** (U+00AD, common in text pasted from web pages) turned a correct quotation into a «difference»
+   (probe of ten invisible characters; bidi marks, ZWJ/ZWNJ, NBSP and tatweel were already ignored). U+00AD, U+2060 and U+034F are now
+   ignored like them. `tests/test_arabic.py` (1; fails on `8278476`).
+
+Checked and **not changed**: short phrases with no cue («أضغاث أحلام», «خلق عظيم») are not shown, by design — selected by hand,
+«افحص المحدَّد» lists يوسف 44 / الأنبياء 5 for the first and القلم 4 for the second; an unmarked substitution of common words
+(«إنهم كانوا يتسابقون في الخيرات») is not found unless selected (then it gets the source's «يسارعون» for approval); «في كل عام» stays an
+optional «possible» item. Recheck after an edit kept the decision on the unchanged quotation («حُفظ ١ من قراراتك»).
+
+**First failure while gating.** `ui_approved_e2e` failed 3 checks (one per width): it required the old note for an added word
+(«ويظهر «رب» فوقه، ويُكتب مكانه»), which fix 2 changed on purpose (an addition replaces nothing: «فوق موضعه، ويُضاف …»). The check
+now requires the new wording; its intent (the card says where the word will appear) is unchanged.
+
+**Sets after the fixes** (fallback, no model): `HD-017` is the only changed row of nine detection sets; the two suggestion sets are
+identical apart from timings; every safety count unchanged.
+
+**Gate on `4d40e4b`** (07:05–07:40 Riyadh, a clean worktree of the commit; local AI-off servers; macOS, Python 3.14.7, Node 24, Playwright
+1.63): pytest **535 passed** (531 + 4 new); node **70 pass**; browser suites ui_a11y_check 56, ui_add_remove_e2e 35, ui_approved_e2e 148, ui_async_navigation_e2e 7, ui_boundary_e2e 48, ui_counts_e2e 19, ui_crossbrowser 89, ui_dock_e2e 36, ui_e2e 29, ui_final_qa 143, ui_import_e2e 591, ui_journey_e2e 169, ui_long_e2e 93, ui_model_notices_e2e 80, ui_phrase_e2e 38, ui_possible_order_e2e 55, ui_selfhost_e2e 45, ui_suggest_e2e 202, ui_suggest_place_e2e 82, ui_uthmani_e2e 34, ui_workspace_e2e 139, ui_import_e2e-firefox 591, ui_import_e2e-webkit 591 — **3,320 checks, 0 failures, 0 skipped**
+(every suite also fails on a CSP violation or a request to another host). Not covered: real phones, Safari itself, screen readers, real writers.

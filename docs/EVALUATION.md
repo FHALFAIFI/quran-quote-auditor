@@ -841,3 +841,36 @@ few (the upper bound of the harmful rate is above the 10% bar); and its errors f
 misquotations, which a demotion would push out of the main decision flow. It would also be a new transfer: sentences of articles of any
 length would go to Groq. **Not built into the product.** If the owner wants it, the safe shape is an ordering hint for exact, common
 phrases only (never for near misses), the item always visible, after a larger held-out check written by someone else.
+
+
+## Which verse is offered first when several places align equally well (5 Oct 2026, challenge period, fallback only, no Groq)
+
+**Defect (development set).** `HD-017` «كل نفس بما كسبت رهين» (the writer meant المدثر 38, «… رهينة») was found, but the gold verse was not
+among its choices: الرعد 33, غافر 17 and الجاثية 22 were. The phrase search had aligned it with المدثر 38 and passed that place to the
+verifier as a hint, but `verifier.fuzzy_candidates` keeps the three most similar places, and all four tie at a whole-word similarity of
+0.8 (four shared words, one differing word each). The hint was added last, so the cut dropped it.
+
+**Rule (general, not keyed to the case).** When places tie on whole-word similarity, the one whose differing words are spelt like the
+writer's (letter similarity ≥ 0.75, the phrase search's own near-match threshold) comes first. Nothing else changes: no span, tier,
+verdict or reference, and a tie still blocks any automatic proposal (the runner-up is as similar, so the 0.1 margin rule is not met).
+New `tests/test_verse_ties.py` (3 tests; the ordering test fails on the old code).
+
+**Disclosure.** The rule was written after reading the dev split's results (`HD-017` is a dev item) and after the held-out split and the
+seven frozen sets had already been run on 4 Oct; the held-out split was not consulted to write it and was rerun only as a regression
+check (identical).
+
+| Set (fallback, labels and checksums unchanged) | Rows changed vs `8278476` |
+|---|---|
+| `cases`, `heldout`, `phrases_frozen`, `articles_frozen`, `articles_long_20261003`, `uthmani_dev`, `uthmani_heldout` | **0** (identical) |
+| `hard_quotes_heldout_20261004` | **0** (identical) |
+| `hard_quotes_dev_20261004` | **1**: `HD-017` gold verse now offered (first) → detected; dev 73 → **74 / 81**, required 71 → 72 / 74; after a simulated confirmation, misquotes right fix 33 → 34, wrong fix 0 → 0 |
+
+False «possible» items, fixes before confirmation and every safety count are unchanged on all nine sets (the rule cannot add a span).
+Result files: `eval/results/*-base-8278476*` (before), `*-ties-v1*` (after); `python eval/compare_runs.py <before> <after>`.
+
+Still not solved, by design: two- and three-word phrases with no cue («كن فيكون», «أضغاث أحلام», «خلق عظيم») are not shown — select
+them and press «افحص المحدَّد»; an unmarked substitution of common words («إنهم كانوا يتسابقون في الخيرات», `HD-L02`) is missed, since
+admitting it would admit ordinary prose of the same weight; a common phrase that matches a verse exactly («في كل عام») stays an optional
+«possible» item. `HD-022` «وصينا الإنسان بوالديه حسنا» is labelled الأحقاف 15 («… إحسانا», two differences); the tool offers العنكبوت 8
+(«ووصينا الإنسان بوالديه حسنا», one difference) — reported here as a label question for the human reviewer, not changed.
+
