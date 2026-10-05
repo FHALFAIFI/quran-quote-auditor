@@ -108,6 +108,17 @@ Node.js built-in test runner for `tests/revision.test.mjs`.
 | Licence | CC BY-SA 4.0 (Wikipedia contributors). |
 | Use | Read locally to count how often the phrase search reports something in ordinary prose (`docs/EVALUATION.md`). The text is **not committed, not redistributed and not used at runtime**; only aggregate counts and a few short phrases quoted in the evaluation appear in the repository. |
 
+## 4c. Word frequencies of ordinary Arabic — wordfreq (used at runtime, as a derived table)
+
+| Item | Detail |
+|---|---|
+| Source | `wordfreq` 3.1.1 by Robyn Speer (https://github.com/rspeer/wordfreq), language `ar`, Zipf scale. Its data come from several corpora (Wikipedia, subtitles, news, books, web text) and are licensed **CC BY-SA 4.0**; the code is Apache-2.0. |
+| What is in the repository | `app/data/prose_zipf.tsv`: one line per folded word of the Quran text with its highest Zipf value (two decimals). Built offline by `eval/build_prose_zipf.py`; `wordfreq` is not an app dependency. The file carries its own attribution and is licensed **CC BY-SA 4.0**, unlike the MIT-licensed code. |
+| Use | `app/phrases.find_pairs` (5 Oct 2026): an exact two-word Quran pair is offered as an optional confirmation only if one word is rare in ordinary Arabic (`docs/EVALUATION.md`, «Unmarked two-word quotations»). |
+
+A second local Wikipedia sample (259 random lead sections, 201,218 characters, fetched 5 Oct 2026, same licence and same rules as 4b) was
+used for the same measurement; it is not committed.
+
 ## 5. Project code
 
 MIT licence (see `LICENSE`). Development was assisted by Claude Code, an AI coding

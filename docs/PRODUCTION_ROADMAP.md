@@ -33,7 +33,7 @@ Every evaluation set so far was written by the same AI-assisted workflow as the 
 
 Known gaps (`docs/EVALUATION.md`):
 
-- short repeated phrases are missed («وبالوالدين إحسانا», «فاستبقوا الخيرات»);
+- unmarked two-word quotations: since 5 Oct a pair with a word rare in ordinary Arabic is offered as an optional confirmation (held-out 18/36, 1 false item per 25,261 characters; `docs/EVALUATION.md`); pairs of everyday words («خلق عظيم», «مودة ورحمة») and near-misses are still missed;
 - on 5 Oct a bounded quotation with the correct ayah reference, one wrong word and one missing word gained a source-backed, reviewable correction (see `tests/test_corrections.py`); the nine saved evaluation sets had identical rows to the prior release;
 - an unmarked near-miss gets no replacement until its boundary is settled;
 - ordinary prose that matches a verse exactly is shown as «possible» about once per 6,800 characters. On 4 Oct, «في كل عام» (the first open item of `LA01`) was diagnosed: tier «possible», code `common`. On the two labelled article sets (`articles_frozen`, `articles_long_20261003`) an exact-but-common «possible» item is a real quotation 11 times in 26 (`eval/possible_tier_composition.py`). Draft PR #2 changed only where these appear (after the concrete decisions, as «عبارات للتأكيد») and how they are counted; **it did not change detection and does not reduce this noise**.

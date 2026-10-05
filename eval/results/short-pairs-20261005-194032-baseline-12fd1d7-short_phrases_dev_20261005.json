@@ -1,0 +1,181 @@
+{
+ "tag": "baseline-12fd1d7",
+ "params": {
+  "baseline": "12fd1d7 (no pair search)"
+ },
+ "set": "short_phrases_dev_20261005",
+ "articles": 30,
+ "chars": 30035,
+ "two_word_quotes": 40,
+ "found_by_any_finding": 0,
+ "found_by_pair": 0,
+ "pairs_on_quotes": 0,
+ "pairs_on_allusions": 0,
+ "pairs_false": 0,
+ "false_per_10k": 0.0,
+ "missed": [
+  [
+   "A01-birr-alwalidayn",
+   "وبالوالدين إحسانًا"
+  ],
+  [
+   "A01-birr-alwalidayn",
+   "قولا كريما"
+  ],
+  [
+   "A01-birr-alwalidayn",
+   "جناح الذل"
+  ],
+  [
+   "A02-social-media-noise",
+   "وتنسون أنفسكم"
+  ],
+  [
+   "A03-condolence-whatsapp",
+   "فصبر جميل"
+  ],
+  [
+   "A04-ecommerce-trust",
+   "الكيل والميزان"
+  ],
+  [
+   "A04-ecommerce-trust",
+   "الناس أشياءهم"
+  ],
+  [
+   "A04-ecommerce-trust",
+   "لومة لائم"
+  ],
+  [
+   "A05-national-team",
+   "وتذهب ريحكم"
+  ],
+  [
+   "A06-teenager-talk",
+   "قولًا لينًا"
+  ],
+  [
+   "A07-honey-health",
+   "ولا تسرفوا"
+  ],
+  [
+   "A08-knowledge-essay",
+   "أهل الذكر"
+  ],
+  [
+   "A10-wedding-speech",
+   "ليسكن إليها"
+  ],
+  [
+   "A10-wedding-speech",
+   "الرحمن ودا"
+  ],
+  [
+   "A11-ramadan-baskets",
+   "بالمن والأذى"
+  ],
+  [
+   "A12-five-things-i-stopped",
+   "الا وسعها"
+  ],
+  [
+   "A12-five-things-i-stopped",
+   "فاستبقوا الخيرات"
+  ],
+  [
+   "A12-five-things-i-stopped",
+   "معيشة ضنكا"
+  ],
+  [
+   "A13-oman-mountains",
+   "وتحمل أثقالكم"
+  ],
+  [
+   "A15-corruption-column",
+   "وزهق الباطل"
+  ],
+  [
+   "A16-wasted-banquets",
+   "إخوان الشياطين"
+  ],
+  [
+   "A16-wasted-banquets",
+   "ملوما محسورا"
+  ],
+  [
+   "A16-wasted-banquets",
+   "متاع الغرور"
+  ],
+  [
+   "A17-graduation-speech",
+   "مدخل صدق"
+  ],
+  [
+   "A17-graduation-speech",
+   "مخرج صدق"
+  ],
+  [
+   "A19-eid-greeting",
+   "فبذلك فليفرحوا"
+  ],
+  [
+   "A19-eid-greeting",
+   "تطمئن القلوب"
+  ],
+  [
+   "A20-to-my-mother",
+   "ربياني صغيرا"
+  ],
+  [
+   "A20-to-my-mother",
+   "وبرا بوالدتي"
+  ],
+  [
+   "A23-forgiveness-sermon",
+   "والكاظمين الغيظ"
+  ],
+  [
+   "A23-forgiveness-sermon",
+   "خذ العفو"
+  ],
+  [
+   "A24-kids-sleep-screens",
+   "لتسكنوا فيه"
+  ],
+  [
+   "A24-kids-sleep-screens",
+   "والنهار مبصرا"
+  ],
+  [
+   "A27-after-divorce",
+   "والصلح خير"
+  ],
+  [
+   "A27-after-divorce",
+   "تسريح بإحسان"
+  ],
+  [
+   "A27-after-divorce",
+   "أقرب للتقوى"
+  ],
+  [
+   "A28-time-essay",
+   "الشمس ضياء"
+  ],
+  [
+   "A30-exam-message",
+   "احسن عملا"
+  ],
+  [
+   "A30-exam-message",
+   "واصطبر عليها"
+  ],
+  [
+   "A30-exam-message",
+   "وقل اعملوا"
+  ]
+ ],
+ "false_items": [],
+ "allusion_items": [],
+ "true_items": []
+}

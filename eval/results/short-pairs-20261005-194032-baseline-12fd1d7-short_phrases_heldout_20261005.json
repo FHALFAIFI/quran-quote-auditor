@@ -1,0 +1,141 @@
+{
+ "tag": "baseline-12fd1d7",
+ "params": {
+  "baseline": "12fd1d7 (no pair search)"
+ },
+ "set": "short_phrases_heldout_20261005",
+ "articles": 30,
+ "chars": 25261,
+ "two_word_quotes": 36,
+ "found_by_any_finding": 6,
+ "found_by_pair": 0,
+ "pairs_on_quotes": 0,
+ "pairs_on_allusions": 0,
+ "pairs_false": 0,
+ "false_per_10k": 0.0,
+ "missed": [
+  [
+   "B01-friday-brotherhood",
+   "رحماء بينهم"
+  ],
+  [
+   "B02-condolence-elder",
+   "أضحك وأبكى"
+  ],
+  [
+   "B02-condolence-elder",
+   "صبرا جميلا"
+  ],
+  [
+   "B02-condolence-elder",
+   "راضية مرضية"
+  ],
+  [
+   "B03-hiring-lessons",
+   "شورى بينهم"
+  ],
+  [
+   "B04-exam-whatsapp",
+   "بردا وسلاما"
+  ],
+  [
+   "B04-exam-whatsapp",
+   "وأفوض أمري"
+  ],
+  [
+   "B05-match-defence",
+   "بنيان مرصوص"
+  ],
+  [
+   "B05-match-defence",
+   "كعصف مأكول"
+  ],
+  [
+   "B06-groom-father",
+   "مودة ورحمة"
+  ],
+  [
+   "B06-groom-father",
+   "قرة أعين"
+  ],
+  [
+   "B10-time-essay",
+   "لفي خسر"
+  ],
+  [
+   "B11-before-ramadan",
+   "ألم يأن"
+  ],
+  [
+   "B11-before-ramadan",
+   "توبة نصوحا"
+  ],
+  [
+   "B11-before-ramadan",
+   "تتجافى جنوبهم"
+  ],
+  [
+   "B12-rumours",
+   "فاسق بنبأ"
+  ],
+  [
+   "B12-rumours",
+   "بهتان عظيم"
+  ],
+  [
+   "B14-night-anxiety",
+   "النفس المطمئنة"
+  ],
+  [
+   "B15-shopping-culture",
+   "ألهاكم التكاثر"
+  ],
+  [
+   "B15-shopping-culture",
+   "حبا جما"
+  ],
+  [
+   "B17-my-role-model",
+   "رحمة للعالمين"
+  ],
+  [
+   "B17-my-role-model",
+   "خلق عظيم"
+  ],
+  [
+   "B18-zakat-telegram",
+   "للسائل والمحروم"
+  ],
+  [
+   "B19-to-my-mother",
+   "كالعرجون القديم"
+  ],
+  [
+   "B20-small-business",
+   "ويل للمطففين"
+  ],
+  [
+   "B21-reading-project",
+   "يحمل أسفارا"
+  ],
+  [
+   "B22-summit",
+   "وقلوبهم شتى"
+  ],
+  [
+   "B22-summit",
+   "كبر مقتا"
+  ],
+  [
+   "B23-turning-forty",
+   "فرغت فانصب"
+  ],
+  [
+   "B24-mina-notes",
+   "ضاحكة مستبشرة"
+  ]
+ ],
+ "false_items": [],
+ "allusion_items": [],
+ "true_items": []
+}

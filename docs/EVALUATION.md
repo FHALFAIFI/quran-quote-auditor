@@ -874,3 +874,57 @@ admitting it would admit ordinary prose of the same weight; a common phrase that
 «possible» item. `HD-022` «وصينا الإنسان بوالديه حسنا» is labelled الأحقاف 15 («… إحسانا», two differences); the tool offers العنكبوت 8
 («ووصينا الإنسان بوالديه حسنا», one difference) — reported here as a label question for the human reviewer, not changed.
 
+
+## Unmarked two-word quotations (5 Oct 2026, challenge period, fallback only, no Groq)
+
+Protocol written before the held-out split existed: `docs/SHORT_PHRASE_PROTOCOL_20261005.md` (`12fd1d7`). Writer feedback had asked for
+short unmarked quotations; the phrase search needs three words, and a Windows trial earlier that day that surfaced every rare two-word
+pair also surfaced ordinary prose («جملة واحدة», «الأموال والأولاد», «حياة طيبة»).
+
+**Rule (`app/phrases.find_pairs`, frozen in `eb00ae0` before the held-out run).** An exact two-word Quran pair becomes a «possible» item
+with code `pair` (the optional group «عبارات للتأكيد», no replacement until the writer picks a verse) when one word's frequency in
+ordinary Arabic is at most Zipf **3.2**, the other's at most **6.0**, the pair is in at most **4** ayahs, contains or is contained in no
+formula, follows no hadith/du'a/proverb cue and overlaps nothing the three-word search reported or suppressed. Frequencies: `wordfreq`
+3.1.1 (`SOURCES.md` §4c). `audit.attach_references` serves pairs after every other finding, so a pair never takes a reference written for
+the quotation next to it.
+
+**Data.** Two new splits, each written **blind** by a separate assistant subagent that was not allowed to read this repository (labels:
+`quote` = deliberate unmarked quotation, `allusion` = undecidable, `ordinary`, `marked`): development **A**
+(`eval/short_phrases_dev_20261005.json`, quotations from surahs 1–20, 30 articles, 30,035 characters, 40 two-word quotations) and held-out
+**B** (`eval/short_phrases_heldout_20261005.json`, surahs 21–114, 30 articles, 25,261 characters, 36 two-word quotations), frozen by
+`.sha256` in `20670ce` before it was opened. Real prose: 259 random Arabic Wikipedia lead sections (201,218 characters, local only), split
+by page id: even half for development, odd half held out.
+
+**What was looked at before the thresholds were fixed** (disclosed): the earlier sets and set A, with the even Wikipedia half; a sweep of
+the two Zipf limits (2.8–4.5 and 5.0–6.1) and the ayah limit (2–6). The chosen point is the highest recall on A with no false item on A or
+on Wikipedia; from 3.4 «الأموال والأولاد» appears, from 3.5 also «ليلا ونهارا», «اثنتي عشرة». First development run also exposed a reference
+regression (a pair took «في سورة آل عمران» from the quotation after it, `LA07`), fixed before freezing.
+
+**Held-out run (once, `eb00ae0`; `eval/results/short-pairs-20261005-194015-heldout-eb00ae0-*.json`).**
+
+| | Before (`12fd1d7`) | After (`eb00ae0`) | Rule |
+|---|---|---|---|
+| B: two-word quotations found by a «pair» item | 0 / 36 | **18 / 36 (50 %)** | ≥ 50 % — met, at the limit |
+| B: two-word quotations found by any finding | 6 / 36 | 24 / 36 | — |
+| B: false «pair» items | 0 | **1** in 25,261 characters (0.40 per 10,000): «سرا وعلانية» (gold prices; labelled ordinary) | ≤ 1.5 |
+| B: over an `allusion` | 0 | 2 («هباء منثورا», «شيئا مذكورا») | counted apart |
+| Wikipedia, odd half: false «pair» items | 0 | **1** in 99,124 characters (0.10 per 10,000): «ورعد وبرق» | ≤ 1.0 |
+
+Development, same commit: A 0 → 23 / 40, no false item; Wikipedia even half (102,094 characters) none.
+
+**Missed on B (12):** «صبرا جميلا», «راضية مرضية», «شورى بينهم», «بردا وسلاما», «وأفوض أمري», «مودة ورحمة», «قرة أعين», «لفي خسر»,
+«ألم يأن», «حبا جما», «رحمة للعالمين», «خلق عظيم» — pairs of everyday words, or (from 4 ayahs up) repeated pairs. A writer still selects them
+and presses «افحص المحدَّد».
+
+**Safety on the nine saved sets** (`fallback-…-pairs-eb00ae0-*`, `hard-…-pairs-eb00ae0.json` against the patch commit, itself identical to
+`ties-v1`): no new false «matched» wording, no new automatic fix, no removed finding. Changed rows: newly found two-word quotations
+(«وبالوالدين إحسانا» L2, «وعاشروهن بالمعروف» LA05, «فاستبقوا الخيرات» LA07 — its footnote reference `[1]` is not attached, so the scorer
+grades the reference «wrong»; hard-dev «أحسن الخالقين», «والعاقبة للمتقين», «أضغاث أحلام»); `detected_by` gains `phrase` where a pair lies
+inside a marked quotation (L1, LA09, c03); «فصبر جميل» (LA04) is credited to the phrase search instead of the cue path (same span and tier).
+Added optional items counted false by the scorer: long set 7 («الكيل والميزان», «والأبصار والأفئدة», «يعجب الزرّاع», «والجار الجنب»,
+«والصاحب بالجنب», «وإذا قلتم», «يحب التوابين» — Quranic echoes in sermon-style prose), Uthmani held-out 1 («فمن اتقى», the writer's
+paraphrase after a quotation). Seven other sets unchanged.
+
+**Limits.** Both splits were written by assistants, not by writers, and were not reviewed by a person; recall met the rule exactly (18/36),
+so a different sample could fall below it; the Wikipedia sample shares a source with `wordfreq`, which may favour it; one run each. This is
+development evidence for an optional suggestion, not a detection rate.
