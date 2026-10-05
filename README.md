@@ -31,7 +31,7 @@ and lets you approve them one by one while the article stays on the page and edi
 | **The exact benefit for the editor** | One review list for the whole article: each quotation next to the source verse, the exact word or reference that differs, and a plain statement of what is *not* settled. Every proposed change waits for the editor's approval; the revised text is copied only after that, with a printable record of what was changed and where the source is. |
 | **What AI does, and what stays source-based or human** | A language model may *propose where* quotations are. All Quran text, references, verdicts and corrections come from Quranpedia's Hafs text through deterministic code. The editor approves or rejects each change and resolves everything marked uncertain. |
 | **Evidence for each claim** | Small, author-written labelled sets and dated end-to-end logs (below, [docs/EVALUATION.md](docs/EVALUATION.md), [docs/TEST_LOG.md](docs/TEST_LOG.md)). No independent evaluation, no user study, no measured time saving. |
-| **Resources to continue** | [docs/PILOT.md](docs/PILOT.md): a proposed pilot with one content team, what would be measured, what it costs to host and call the model, and what is still unknown. No partner, user, funding or organisation exists today. |
+| **Resources to continue** | [docs/PILOT_PROPOSAL.md](docs/PILOT_PROPOSAL.md): a proposed pilot with one content team, what would be measured, what it costs to host and call the model, and what is still unknown. No partner, user, funding or organisation exists today. |
 
 Value innovation, kept to four moves: **remove** unapproved automatic changes; **reduce** repeated manual checking (not measured, so no time-saving figure is claimed); **raise** source visibility and honesty about uncertainty (each verse links to Quranpedia; «غير محسوم» and «يحتاج مراجعة» are first-class states); **create** an approval-based path from the original text to a revised text and a review record.
 
@@ -268,6 +268,11 @@ that match the Quran, so **some short unmarked quotations can still be missed**;
 
 ### Tests
 
+**CI** (`.github/workflows/ci.yml`, every pull request and push to `main`): pytest on Python 3.12 and 3.14, the Node tests, `scripts/e2e_check.py --excerpt`
+eleven Chromium suites at 1366/390/320 px and the import suite in Firefox and WebKit, with no secret and no live service: `AI_PROVIDER=none`, Quranpedia and Groq blocked in `/etc/hosts`, and the
+server's Quran text written from the 36-verse test excerpt by `scripts/ci_fixture_cache.py`. Suites that need the whole text run locally before a release
+([docs/PILOT.md](docs/PILOT.md) «Release gate»).
+
 ```bash
 python -m pytest -q                      # 415 tests offline (a 36-verse excerpt in tests/fixtures/), including the Node tests of the revision engine if node is installed;
                                          # tests/test_phrases_full.py also runs against the real text if a local copy is cached (else skipped)
@@ -276,6 +281,7 @@ node --test tests/import.test.mjs        # file import (.txt/.docx): 35 fixtures
 
 # browser end-to-end (Playwright installed in any scratch dir, not a project dependency)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_journey_e2e.mjs --shots ./shots   # the judge's first journey at 1366, 390 and 320 px: starts its own server with AI off
+NODE_PATH=/path/to/scratch/node_modules node scripts/ui_pilot_journey_e2e.mjs --shots ./shots   # the pilot writer's whole journey (demo, reload before an audit, suggestion, TXT/DOCX, decisions, edit + reload, recheck, exact copy, report link) at 1366/390/320 px; its verses are all in the test excerpt
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_e2e.mjs --shots ./shots   # editor workflow, record, XSS, reload (own AI-off server; --server URL for yours)
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_long_e2e.mjs --shots ./shots   # 5,809-character article, review sequence, keyboard focus vs the bottom bar, 320 px, URLs in Arabic text, slow/failed server, no findings, model failed
 NODE_PATH=/path/to/scratch/node_modules node scripts/ui_suggest_e2e.mjs --shots ./shots   # verse suggestion while typing: when it speaks, Tab/click/tap, Esc, correction, several verses, stale answers, RTL insertion, IME, 390/320 px
@@ -408,7 +414,8 @@ scripts/measure_length.py audit time / memory / response size at 6,000-20,000 ch
 scripts/ui_suggest_e2e.mjs, scripts/ui_workspace_e2e.mjs Playwright checks of suggestion while typing, and of editing, stale decisions, recheck, drafts and a long article
 docs/LABEL_REVIEW.md checklist for a human reviewer of the evaluation labels
 docs/CONTINUATION.md plan for 4–6 October and beyond (incl. the X use case)
-docs/PILOT.md       proposed pilot, operating costs, unknowns (nothing of it has happened)
+docs/PILOT.md       writer pilot (5 Oct): tester task, expected results, privacy, reporting, metrics, live checks, rollback
+docs/PILOT_PROPOSAL.md  proposed team pilot, operating costs, unknowns (2 Oct; nothing of it has happened)
 docs/EVALUATION.md   labelled evaluation: method, fallback results, limits
 docs/TEST_LOG.md     dated end-to-end observations (local + live)
 docs/RENDER_DEPLOY.md Render settings, deploy steps and checks (the live demo's host)

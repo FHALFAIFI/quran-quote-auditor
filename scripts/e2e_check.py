@@ -2,6 +2,7 @@
 
     python scripts/e2e_check.py http://localhost:8000
     python scripts/e2e_check.py https://<app>.vercel.app
+    python scripts/e2e_check.py http://127.0.0.1:8000 --excerpt   # a server holding only the 36-verse test excerpt (CI)
 
 Runs the three sample articles and a few error cases, then prints what the
 app returned. It reports observations only; it is not an accuracy evaluation.
@@ -17,6 +18,7 @@ from pathlib import Path
 
 import httpx
 
+EXCERPT = False  # set by --excerpt
 SAMPLES = Path(__file__).resolve().parent.parent / "app" / "static" / "samples"
 
 
@@ -99,11 +101,14 @@ def main(base: str) -> int:
         failures += not ok
         print(f"  article of exactly {limit} characters, beyond model limit: HTTP {r.status_code} {'OK' if ok else 'FAIL'}")
         print("\n=== verse suggestion and trust pages")
-        r = c.post(f"{base}/api/suggest", json={"before": "قال تعالى: وما خلقت الجن والإنس إلا", "request_id": 5})
+        # --excerpt: the server holds only the 36-verse test excerpt (CI), so the probe uses a verse that is in it
+        before, want = ("قال تعالى: ﴿هل يستوي الذين يعلمون", "والذين لا يعلمون") if EXCERPT else ("قال تعالى: وما خلقت الجن والإنس إلا", "ليعبدون")
+        r = c.post(f"{base}/api/suggest", json={"before": before, "request_id": 5})
         j = r.json()
-        ok = r.status_code == 200 and j["request_id"] == 5 and j["status"] == "suggest" and j["choices"][0]["to_text"] == "ليعبدون"
+        first = (j.get("choices") or [{}])[0].get("to_text")
+        ok = r.status_code == 200 and j.get("request_id") == 5 and j.get("status") == "suggest" and first == want
         failures += not ok
-        print(f"  /api/suggest: HTTP {r.status_code} status={j.get('status')} first={j.get('choices', [{}])[0].get('to_text')} {'OK' if ok else 'FAIL'}")
+        print(f"  /api/suggest: HTTP {r.status_code} status={j.get('status')} first={first} {'OK' if ok else 'FAIL'}")
         r = c.post(f"{base}/api/suggest", json={"before": "ا" * 5000})
         failures += r.status_code != 422
         print(f"  /api/suggest with 5000 characters: HTTP {r.status_code} (expected 422)")
@@ -124,4 +129,6 @@ def main(base: str) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"))
+    EXCERPT = "--excerpt" in sys.argv
+    args = [a for a in sys.argv[1:] if a != "--excerpt"]
+    sys.exit(main(args[0] if args else "http://localhost:8000"))
