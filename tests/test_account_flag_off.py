@@ -38,7 +38,7 @@ def test_health_keys_only_gain_the_flag():
 
     keys = set(TestClient(main.app).get("/api/health").json())
     assert keys == {"status", "mode", "ai_configured", "provider", "provider_name", "ai_selection", "ai_last_call", "max_chars",
-                    "ai_max_chars", "build", "source", "accounts_enabled"}
+                    "ai_max_chars", "ai_max_completion_tokens", "build", "source", "source_ok", "ai_recent", "accounts_enabled"}
 
 
 def test_guest_page_has_no_account_code():
