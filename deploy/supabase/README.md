@@ -1,9 +1,11 @@
 # Optional accounts on Supabase — owner's steps (roadmap Stage 2)
 
 **Status (4 Oct 2026, challenge period):** the code is on the unmerged branch `accounts-flag`, behind `ACCOUNTS_ENABLED`
-(off by default). **No Supabase project exists. Nothing here has been run against the real service.** The SQL in
-`001_drafts.sql` has been reviewed, not executed; Row-Level Security is therefore untested. Every local test ran against
-in-memory stores or a local fake (`scripts/fake_supabase.py`).
+(off by default). **No Supabase project exists. Nothing here has been run against the real service.** Every local test ran
+against in-memory stores or a local fake (`scripts/fake_supabase.py`). **Update 5 Oct (review, branch
+`accounts-flag-review-20261005`):** `001_drafts.sql` was executed in a **local Postgres 16 emulation of Supabase auth — not
+Supabase** (`tests/test_account_rls_pg.py`); that run found and fixed missing REVOKEs (authenticated kept TRUNCATE). What the
+emulation cannot show, and what must therefore be run on the owner's project, is listed in `INTEGRATION_CHECKLIST.md`.
 
 Do not turn the flag on in production until every decision in the last section is made and every live check below passes.
 
@@ -63,7 +65,7 @@ in `docs/TEST_LOG.md` with the date, the commit and the result.
 | # | Check | Local evidence so far (not a substitute) | Live status |
 |---|---|---|---|
 | 1 | Guest unchanged: `ui_journey_e2e`, `ui_final_qa`, `ui_a11y_check` pass with the flag on and no sign-in; the network log shows no auth request | the suites pass locally with the flag on; `ui_account_e2e` checks the guest network log against the fake | **NOT RUN** |
-| 2 | Cross-user isolation through the API (ids guessed, `user_id` swapped in body and query, replay after sign-out and deletion) **and directly against Postgres with RLS** (B's token on A's rows; the anon key alone) | API: `tests/test_account_api.py` with MemoryStore. RLS: **none** (no database) | **NOT RUN** |
+| 2 | Cross-user isolation through the API (ids guessed, `user_id` swapped in body and query, replay after sign-out and deletion) **and directly against Postgres with RLS** (B's token on A's rows; the anon key alone) | API: `tests/test_account_api.py`, `tests/test_account_negative.py` (MemoryStore; PostgrestStore against the local fake). RLS: `tests/test_account_rls_pg.py` in a local Postgres emulation of Supabase auth (not Supabase) | **NOT RUN** |
 | 3 | Expired, wrong-audience, wrong-issuer, `alg:none`, tampered tokens refused | `tests/test_account_tokens.py` with local keys | **NOT RUN** |
 | 4 | Expiry mid-edit keeps the text and shows the refusal; "sign out everywhere" ends a second browser's session within the token lifetime | expiry: `ui_account_e2e` against the fake. "Sign out everywhere" is **not built** (see roadmap status) | **NOT RUN** |
 | 5 | Nothing uploaded until «احفظ في حسابي» (network log) | `ui_account_e2e` against the fake | **NOT RUN** |
