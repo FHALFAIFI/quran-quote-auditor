@@ -1279,3 +1279,62 @@ byte-identical to the commit. **Live journey** `scripts/live_feedback.mjs` (new)
 «غيّر إلى «يوفى الصابرون أجرهم»» with الزمر ١٠; approving left the draft as written; the copy held exactly the source correction; «فاستبقوا
 الخيرات» was an optional pair; «حياة طيبة» was not listed; `/roadmap` and `/sources` served the new copy. The 390 and 320 px runs **replayed**
 that answer (no request reached the server). No other live audit was made.
+
+## 2026-10-05 (21:00–22:40 Riyadh) — pilot readiness: the writer journey run before any change, one data-loss fix, report path, CI (challenge period)
+
+**Starting state, verified.** `origin/main` = `26e32bf`; live `/api/health` `build` `26e32bf…`, `ai_configured` true, `ai_max_completion_tokens`
+800, `ai_last_call` `never_called`, source not yet loaded (fresh instance). Only open PR: draft #4 (accounts, not to merge). Unpushed local work
+left untouched: `ai-role-decision` (`a6fb433`, docs), and the agent branches `hardening-20261005`, `accounts-flag-review-20261005`,
+`ocr-harness-20261005`, `pdf-import-20261005` (each 15 commits behind `main`). Tag `pre-challenge-baseline` → `532e965` (unchanged). No CI existed.
+
+**Journey before changes** (synthetic articles only; a scratch Playwright script at 1366, 390 and 320 px against a fresh AI-off server
+from a clean checkout of `26e32bf`; a first run had hit a stale server left on port 8765 by an earlier session and was repeated): demo;
+a new article with a verse suggestion; TXT and DOCX (textutil) import; an article with a correct marked verse, a wrong word («يفعل»→«يعمل»,
+إبراهيم 42), an omitted word («ورابطوا», آل عمران 200), a wrong reference (الحجرات 12→10), an unmarked quotation (الطلاق 3) and prose
+(«في كل عام», optional); approve, reject, undo, edit after the audit, reload, recheck, final review, copy, saved draft in a new tab.
+**One failure:** a text typed (or pasted) and not audited yet was **gone after a reload** at all three widths, while `/privacy` says the
+article stays in `sessionStorage` across a reload (every input wrote it; the page ignored an entry without a result). Not failures: a
+390 px copy that lacked «ورابطوا» — my script's Ctrl+End does nothing on a phone, so the typed paragraph landed inside quotation 3's
+reference and the app correctly made that approval stale. Also found: no way to report a problem from the product; `docs/PILOT.md` was
+the 2 Oct partnership proposal; `scripts/e2e_check.py` crashed (IndexError) when a suggestion had no choices; SOURCES.md said the main
+footer credits Tanzil for the demo verse, and it did not. 0 CSP violations, 0 requests to other hosts.
+
+**Fix and its test.** Before any audit the text is written to the tab's session at once on each input and restored on load («استُعيد نصك
+من هذه الجلسة. لم يُدقَّق بعد.»), no audit started; «مسح» still clears it. Writing at once rather than on the 250 ms timer matters:
+with the timer, `ui_suggest_e2e` failed 1 check because its reset cleared the session and reloaded inside the 250 ms, and the old text came
+back. `ui_workspace_e2e` «a saved draft is offered on the next visit» now clears the tab session before reloading (a next visit is a new
+tab; a reload of the same tab now restores the text by itself) — intent unchanged. New `scripts/ui_pilot_journey_e2e.mjs` (161 checks,
+every verse in the 36-verse excerpt): against a server from `26e32bf` it fails exactly the 24 checks of this release (reload ×2 per width,
+report link ×5 per width, `/roadmap` pilot limits ×1 per width) and passes the other 137.
+
+**Evaluation** (fallback, no model; `app/*.py` unchanged): `cases`, `heldout`, `phrases_frozen`, `articles_frozen`,
+`articles_long_20261003`, `uthmani_dev`, `uthmani_heldout` vs `pairs-eb00ae0`: `compare_runs.py` exit 0 (no changed row); both
+hard-quotation sets identical to `pairs-eb00ae0`; both suggestion sets identical to `fix-v2` apart from `ran_at`; two-word dev and held-out
+identical to their recorded runs (the held-out set rerun only as a regression check of the frozen rule; nothing tuned). No new false
+«matched», no wrong automatic fix. Result files tagged `pilot-ready`.
+
+**Gate on `10c87ab`** (local worktree, AI-off servers with the whole text; macOS, Python 3.14.7, Node 24.16, Playwright 1.63, axe-core
+4.13): pytest **551 passed**; node **70 pass**; `e2e_check.py` 0 failures; ui_add_remove_e2e 35, ui_approved_e2e 148, ui_async_navigation_e2e
+7, ui_boundary_e2e 48, ui_counts_e2e 19, ui_crossbrowser 89, ui_dock_e2e 36, ui_e2e 29, ui_feedback_e2e 20, ui_final_qa 143, ui_import_e2e
+591, ui_journey_e2e 169, ui_long_e2e 93, ui_model_notices_e2e 80 (model answers simulated), ui_pair_e2e 38, ui_phrase_e2e 38,
+ui_pilot_journey_e2e 161, ui_possible_order_e2e 55, ui_selfhost_e2e 50, ui_suggest_e2e 202, ui_suggest_place_e2e 82, ui_uthmani_e2e 34,
+ui_workspace_e2e 139, ui_import_e2e Firefox 591 and WebKit 591 — **0 failures**. `ui_a11y_check` stalled in the four-at-a-time run after
+46 passing checks (no failure; killed after it waited on one page) and passed **59/59** (0 axe violations) when rerun alone. Total
+**3,488 + 59 = 3,547 checks, 0 failures**. Baseline on `26e32bf` before any change: the same 25 runs (without the new suite) passed with 0
+failures (`ui_suggest_e2e` and `ui_workspace_e2e` counted from a rerun on a clean checkout, because their first run overlapped my edits). Screenshots of the changed states looked at by eye at 1366 and 320 px (the `/roadmap` pilot section, the footer links, the
+restored-text line): no overlap or sideways scroll.
+
+**CI** (GitHub Actions, PR #14, run `37358344313`, ubuntu-24.04): pytest **460 passed, 91 skipped** on Python 3.12.14 and on 3.14 (the
+skipped tests need the whole text), node 70, reduced-mode server answering from the excerpt (`loaded_from: disk`, 36 verses),
+`e2e_check.py --excerpt` 0 failures, and ui_pilot_journey_e2e 161, ui_journey_e2e 169, ui_e2e 29, ui_counts_e2e 19, ui_dock_e2e 36,
+ui_feedback_e2e 20, ui_model_notices_e2e 80, ui_long_e2e 93, ui_selfhost_e2e 50, ui_workspace_e2e 139, ui_import_e2e 591 (Chromium),
+591 (Firefox), 591 (WebKit) — 0 failures. The first CI run failed at setup (`npm init` refused the folder name `.ci-node`; fixed in `bd2c0ff`).
+
+**Fresh public clone** (`26e32bf`, Homebrew Python 3.14.7, no `.env`, empty cache): `pip install -r requirements-dev.txt` OK, pytest 460
+passed / 91 skipped, `uvicorn` starts in reduced mode and serves `/`. (macOS's own Python 3.9 cannot install the pinned FastAPI; the README
+already requires 3.12+.) **Secrets:** gitleaks over 176 commits and the working tree: one finding, the deliberate fake key sentinel in
+`tests/fake_groq.py`. No submission media, PDF, PPTX or `.env` is tracked.
+
+**Rights.** Quranpedia's data licence (version 2026-10-03) and dump `mushafs-1` (version 2026-10-05) were read and downloaded; the 36
+fixture verses and the whole validator copy are identical to that dump; the six Quranpedia validators print «labels OK». SOURCES.md §1c.
+Nobody was contacted.
