@@ -1237,3 +1237,31 @@ The interface now shortens the first-screen explanation and review cards, keepin
 Offline checks: full pytest **539 passed**; correction tests 34 passed. An initial Windows run had four setup errors because parametrized malformed-JSON test IDs exceeded the temporary-path limit; after assigning short, descriptive IDs all cases passed. The seven saved fallback evaluation sets and two hard-quotation sets were rerun and their rows were identical to their prior `ties-v1` runs (the Windows `cases_file` path metadata differed). The new screenshot case is covered by regression tests, not those labelled sets. API checks had 0 failures. The first-journey, long-article, approved-correction, model-notice and new screenshot-case browser suites passed at their tested desktop and phone widths; the model-answer states in the notice suite were simulated, not real Groq calls. Accessibility checks found zero axe violations in the tested states, including `/roadmap`.
 
 Exploratory two-word search was **not released**. In the frozen and long articles it found desired unmarked phrases, but also surfaced ordinary prose such as «جملة واحدة», «الأموال والأولاد» and «حياة طيبة». Increasing rarity thresholds would miss «فاستبقوا الخيرات». The remaining short-phrase gap needs a labelled precision study and careful contextual triage before enabling broad automatic detection.
+
+## 2026-10-05 (evening, macOS) — the feedback branch finished: patch applied, review fixes, two-word quotations, gate
+
+**Patch.** `0001-…two-edit-v.patch` (pasted into the session; its 22 post-image blob hashes all equal the patch's `index` lines) applied with
+`git am --3way` on `ee3f7a2` as `8230f11` (GitHub `main` had not moved). On this Mac: pytest 539 passed; the seven fallback sets and two
+hard sets identical to `ties-v1` (`base12fd`, timings ignored). The Windows run had not included two suites, and both failed here:
+`ui_add_remove_e2e` (3: the shorter approved note no longer named a removed word — fixed in `8e68ab3`) and `ui_suggest_place_e2e`
+(3, at 320 px: the suggestion box was placed while 338 px tall and then grew to 372 px, covering the typed line after an audit; and a
+131.16 px scroll moved 131, so the full verse was folded away — fixed in `7a6edc6`; `main` passed only because the font subset was
+already loaded and the editor sat 0.6 px higher).
+
+**Review of the copy.** `/sources` and `/roadmap` had said the model was chosen for speed; the 30 Sep record (`docs/EVALUATION.md`,
+«Choice») says it gained one quotation on each small set where gpt-oss-120b did not, was faster, and kept the safety counts at zero. Both
+pages now say so, use the exact id `qwen/qwen3.8-27b`, and give the 9 failed calls of 195 next to the 1 true addition in 54,056
+characters. `/roadmap` no longer says the draft stays in the browser unless audited (suggestions send up to 700 characters).
+
+**Two-word quotations.** Protocol `docs/SHORT_PHRASE_PROTOCOL_20261005.md`; result and every changed row in `docs/EVALUATION.md`
+(«Unmarked two-word quotations»). No Groq call was made by this branch.
+
+**Gate on `e767e8a`** (clean detached worktree, local AI-off servers; Python 3.14.7 venv, Node 24, Playwright 1.63): pytest **550 passed**
+(539 + 11 `tests/test_pairs.py`); node **70 pass**; `e2e_check.py` 0 failures (includes `/roadmap`); browser suites ui_a11y_check 59,
+ui_add_remove_e2e 35, ui_approved_e2e 148, ui_async_navigation_e2e 7, ui_boundary_e2e 48, ui_counts_e2e 19, ui_crossbrowser 89,
+ui_dock_e2e 36, ui_e2e 29, ui_feedback_e2e 20, ui_final_qa 143, ui_import_e2e 591, ui_journey_e2e 169, ui_long_e2e 93,
+ui_model_notices_e2e 80 (model states simulated), ui_pair_e2e 38 (new), ui_phrase_e2e 38, ui_possible_order_e2e 55, ui_selfhost_e2e 50,
+ui_suggest_e2e 202, ui_suggest_place_e2e 82, ui_uthmani_e2e 34, ui_workspace_e2e 139 — **2,204 checks, 0 failures**; `ui_screens` photographed
+65 states at 1366, 390 and 320 px, looked at by eye (first screen, correction card, approved word in the box, long-article phrases,
+trust pages, `/roadmap`): no overlap or sideways scroll seen; one bidi glitch («بـgpt-oss-120b» on `/sources`) fixed after the gate.
+Not covered: real phones, Safari itself, screen readers, real writers.
