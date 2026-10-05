@@ -280,7 +280,24 @@ def fuzzy_candidates(index: QuranIndex, qf: list[str], extra: list[Span] | None 
         k = (al.span.surah, al.span.p0, al.span.p1)
         if k not in best or best[k].similarity < al.similarity:
             best[k] = al
-    return sorted(best.values(), key=lambda a: -a.similarity)[:limit]
+    # Whole-word similarity ties often (one word differs in each place); then the place whose differing word is spelt like the
+    # writer's comes first: «كل نفس بما كسبت رهين» is المدثر 38 («رهينة»), not الرعد 33, whose next word is «وجعلوا».
+    return sorted(best.values(), key=lambda a: (-a.similarity, -_near_pairs(index, qf, a)))[:limit]
+
+
+NEAR_RATIO = 0.75  # letter similarity of a misspelt or inflected word (the phrase search's SOFT_RATIO)
+
+
+def _near_pairs(index: QuranIndex, qf: list[str], al: Alignment) -> int:
+    """Substituted words of an alignment that are near in spelling to the source word they replace."""
+    stream = index.streams[al.span.surah]
+    words = [stream[p][0] for p in range(al.span.p0, al.span.p1)]
+    n = 0
+    for tag, i1, i2, j1, j2 in al.ops:
+        if tag == "replace":
+            n += sum(1 for a, b in zip(qf[i1:i2], words[j1:j2])
+                     if len(a) >= 3 and len(b) >= 3 and SequenceMatcher(None, a, b, autojunk=False).ratio() >= NEAR_RATIO)
+    return n
 
 
 def diff_ops(quote_words: list[str], source_words: list[str], opcodes) -> list[dict]:

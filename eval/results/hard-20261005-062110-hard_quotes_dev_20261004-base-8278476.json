@@ -1,0 +1,3240 @@
+{
+ "summary": {
+  "cases_file": "eval/hard_quotes_dev_20261004.json",
+  "tag": "base-8278476",
+  "articles": 71,
+  "characters": 20438,
+  "gold": 81,
+  "1_recall": {
+   "detected_with_gold_verse_offered": "73/81",
+   "required": "71/74",
+   "desirable": "2/7",
+   "found_but_gold_verse_not_offered": 2,
+   "by_error": {
+    "extra_word": "2/2",
+    "none": "34/39",
+    "omission": "9/9",
+    "substitution": "12/13",
+    "two_errors": "2/3",
+    "wrong_first": "6/6",
+    "wrong_last": "8/9"
+   },
+   "by_context": {
+    "brackets": "11/11",
+    "footnote_ref": "3/3",
+    "lead_in": "12/12",
+    "none": "35/43",
+    "quotation_marks": "10/10",
+    "reference_ayah": "18/18",
+    "reference_surah": "1/1",
+    "uthmani": "3/3"
+   },
+   "tiers_of_detected": {
+    "possible": 36,
+    "candidate": 18,
+    "stated": 21
+   },
+   "span_exact": 69
+  },
+  "2_false_possibilities": {
+   "on_negatives": 2,
+   "on_negatives_presented_confirmed": 0,
+   "on_negatives_by_kind": {
+    "hard_negative": 2
+   },
+   "on_unlabelled_text": 1,
+   "on_unlabelled_presented_confirmed": 0,
+   "per_10k_chars": 1.47
+  },
+  "3_wrong_matched": {
+   "misquotations_detected": 41,
+   "reported_matched": 0,
+   "wording_of_misquotations": {
+    "difference": 34,
+    "uncertain": 7
+   },
+   "wording_of_correct_quotes": {
+    "matched": 21,
+    "uncertain": 13
+   }
+  },
+  "4_correction_safety": {
+   "before_confirmation": {
+    "fix_on_correct_quote": 0,
+    "reference_fix_on_correct_reference": 0,
+    "wrong_fix": 0,
+    "right_fix": 3,
+    "fix_where_label_forbids": 1,
+    "words_or_refs_not_from_chosen_verse": 0,
+    "changes_on_negatives_or_unlabelled": 0
+   },
+   "after_simulated_confirmation": {
+    "simulated": 53,
+    "misquotes_right_fix": 33,
+    "misquotes_wrong_fix": 0,
+    "misquotes_no_fix": 6,
+    "correct_quotes_given_a_fix": 0,
+    "words_not_from_chosen_verse": 0,
+    "actions": {
+     "1": 47,
+     "2": 6
+    },
+    "not_settleable_gold_verse_not_offered": 2
+   }
+  }
+ },
+ "rows": [
+  {
+   "case": "HD-001-sub",
+   "quote": "وعسى أن تكرهوا أمرا وهو خير لكم",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    130,
+    161
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-002-sub",
+   "quote": "واصبر لحكم الله فإنك بأعيننا",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    102,
+    130
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-003-sub",
+   "quote": "وأما ما ينفع الناس فيبقى في الأرض",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    141,
+    174
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate",
+    "non_quran_cue"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-004-sub",
+   "quote": "ونحن أقرب إليكم من حبل الوريد",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    120,
+    149
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "uncertain",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-005-sub",
+   "quote": "بفضل الله وبرحمته فلذلك فليفرحوا",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    124,
+    156
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-006-sub",
+   "quote": "ولا تهنوا ولا تيأسوا وأنتم الأعلون",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    88,
+    122
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-007-omission",
+   "quote": "من ذا يقرض الله قرضا حسنا",
+   "error": "omission",
+   "context": [
+    "none"
+   ],
+   "detect": "desirable",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    105,
+    130
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-008-omission",
+   "quote": "لو أنزلنا القرآن على جبل لرأيته خاشعا",
+   "error": "omission",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    90,
+    127
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-009-omission",
+   "quote": "أحسب الناس أن يتركوا يقولوا آمنا",
+   "error": "omission",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    123,
+    155
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-010-omission",
+   "quote": "وإذا قرئ القرآن فاستمعوا وأنصتوا لعلكم ترحمون",
+   "error": "omission",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    111,
+    156
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-011-omission",
+   "quote": "وما بكم نعمة فمن الله",
+   "error": "omission",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    79,
+    100
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-012-wrong-first",
+   "quote": "لقد أفلح من تزكى",
+   "error": "wrong_first",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    131,
+    143
+   ],
+   "span_exact": false,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "common"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "uncertain",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 2,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-013-wrong-first",
+   "quote": "ولقد خلقنا الإنسان في أحسن تقويم",
+   "error": "wrong_first",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    95,
+    127
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-014-wrong-first",
+   "quote": "أفلا يعلم من خلق وهو اللطيف الخبير",
+   "error": "wrong_first",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    90,
+    124
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-015-wrong-first",
+   "quote": "وقل لن يصيبنا إلا ما كتب الله لنا",
+   "error": "wrong_first",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    127,
+    156
+   ],
+   "span_exact": false,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "uncertain",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 2,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-016-wrong-last",
+   "quote": "وما أرسلناك إلا رحمة للناس",
+   "error": "wrong_last",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    67,
+    87
+   ],
+   "span_exact": false,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "common"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 2,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-017-wrong-last",
+   "quote": "كل نفس بما كسبت رهين",
+   "error": "wrong_last",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    83,
+    103
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": false,
+   "detected": false,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": false,
+    "why": "gold verse not offered"
+   }
+  },
+  {
+   "case": "HD-018-wrong-last",
+   "quote": "وإذا مرضت فهو يشفيني",
+   "error": "wrong_last",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    166,
+    186
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-019-wrong-last",
+   "quote": "إن الإنسان لربه لكفور",
+   "error": "wrong_last",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    96,
+    111
+   ],
+   "span_exact": false,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "common"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 2,
+    "wording": "difference",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-020-extra",
+   "quote": "فاتقوا الله قدر ما استطعتم",
+   "error": "extra_word",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    64,
+    90
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-021-extra",
+   "quote": "وقل قد جاء الحق وزهق الباطل",
+   "error": "extra_word",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    74,
+    101
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-022-two-errors",
+   "quote": "وصينا الإنسان بوالديه حسنا",
+   "error": "two_errors",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    99,
+    125
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": false,
+   "detected": false,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": false,
+    "why": "gold verse not offered"
+   }
+  },
+  {
+   "case": "HD-023-two-errors",
+   "quote": "أولئك يبدل الله سيئاتهم بحسنات",
+   "error": "two_errors",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    100,
+    130
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-024-partial",
+   "quote": "ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    63,
+    119
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-025-partial",
+   "quote": "الله نور السماوات والأرض",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    104,
+    128
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "common"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-026-partial",
+   "quote": "وعنده مفاتح الغيب لا يعلمها إلا هو",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    118,
+    152
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-027-partial",
+   "quote": "ربنا لا تزغ قلوبنا بعد إذ هديتنا",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    63,
+    95
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-028-partial",
+   "quote": "وما هذه الحياة الدنيا إلا لهو ولعب",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    104,
+    138
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-029-partial",
+   "quote": "ومن يعظم شعائر الله فإنها من تقوى القلوب",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    83,
+    123
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-030-lead",
+   "quote": "إنا نحن نزلنا الذكر وإنا له لحافظون",
+   "error": "none",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    125,
+    160
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "phrase",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-031-lead",
+   "quote": "ألم تر كيف جعل الله مثلا كلمة طيبة كشجرة طيبة",
+   "error": "substitution",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    67,
+    112
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-032-lead",
+   "quote": "أطيعوا الله والرسول وأولي الأمر منكم",
+   "error": "two_errors",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    99,
+    135
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-033-lead",
+   "quote": "لكيلا تأسوا على ما فاتكم ولا تفرحوا بما أعطاكم",
+   "error": "wrong_last",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    128,
+    167
+   ],
+   "span_exact": false,
+   "tier": "stated",
+   "kind": "phrase",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 2,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-034-lead",
+   "quote": "وإنا لا نضيع أجر من أحسن عملا",
+   "error": "wrong_first",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    120,
+    149
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-035-lead",
+   "quote": "إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ",
+   "error": "none",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    85,
+    142
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "phrase",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-036-ref",
+   "quote": "كتاب أنزلناه إليك مبارك ليدبروا آياته وليتذكر أولو الألباب",
+   "error": "none",
+   "context": [
+    "reference_ayah"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    85,
+    143
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "phrase",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "matched",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-037-ref",
+   "quote": "إنك لا تهدي من تحب ولكن الله يهدي من يشاء",
+   "error": "substitution",
+   "context": [
+    "reference_ayah"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    106,
+    147
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "phrase",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "uncertain",
+   "wrong_matched": false,
+   "fix": "ok",
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": true,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-038-ref",
+   "quote": "إن الله يحب الذين يقاتلون في سبيله صفا كأنهم بنيان مرصوص",
+   "error": "none",
+   "context": [
+    "reference_ayah"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    95,
+    151
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "incorrect",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": "ok",
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-039-ref",
+   "quote": "ليس كمثله شيء وهو السميع العليم",
+   "error": "wrong_last",
+   "context": [
+    "reference_ayah"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    108,
+    139
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "cue",
+   "codes": [
+    "approximate",
+    "non_quran_cue",
+    "cue"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "uncertain",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-040-ref",
+   "quote": "ومن أعرض عن ذكري فإن له معيشة ضنكا",
+   "error": "none",
+   "context": [
+    "reference_surah"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    127,
+    161
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "matched",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-041-ref",
+   "quote": "يا أيها الإنسان ما غرك بربك الكريم",
+   "error": "none",
+   "context": [
+    "reference_ayah"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    106,
+    140
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "incorrect",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": "ok",
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-042-quotes",
+   "quote": "إنما أشكو همي وحزني إلى الله",
+   "error": "substitution",
+   "context": [
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    113,
+    141
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-043-quotes",
+   "quote": "يا أيها الإنسان إنك كادح إلى ربك كدحا فملاقيه",
+   "error": "none",
+   "context": [
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    76,
+    121
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-044-quotes",
+   "quote": "ربنا ظلمنا أنفسنا وإن لم تغفر وترحمنا لنكونن من الخاسرين",
+   "error": "omission",
+   "context": [
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    79,
+    135
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-045-quotes",
+   "quote": "اللهم أفرغ علينا صبرا وثبت أقدامنا",
+   "error": "wrong_first",
+   "context": [
+    "reference_ayah",
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    97,
+    131
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "uncertain",
+   "wrong_matched": false,
+   "fix": "ok",
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-046-brackets",
+   "quote": "وَقُلْ رَبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ وَأَخْرِجْنِي مُخْرَجَ صِدْقٍ",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    115,
+    185
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "matched",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-047-brackets",
+   "quote": "وأنزلنا الحديد فيه بأس عظيم ومنافع للناس",
+   "error": "substitution",
+   "context": [
+    "lead_in",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    77,
+    117
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": "ok",
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-048-brackets",
+   "quote": "ربنا ما خلقت باطلا سبحانك فقنا عذاب النار",
+   "error": "omission",
+   "context": [
+    "reference_ayah",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    94,
+    135
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "uncertain",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-049-brackets",
+   "quote": "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ",
+   "error": "none",
+   "context": [
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    75,
+    107
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-050-uthmani",
+   "quote": "يَا أَيَّتُهَا ٱلنَّفۡسُ ٱلۡمُطۡمَئِنَّةُ ٱرۡجِعِي إِلَىٰ رَبِّكِ رَاضِيَةً مَرۡضِيَّةً",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "brackets",
+    "uthmani"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    91,
+    178
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "matched",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-051-uthmani",
+   "quote": "يُرِيدُ ٱللَّهُ ٱلۡيُسۡرَ وَلَا يُرِيدُ بِكُمُ ٱلۡعُسۡرَ",
+   "error": "omission",
+   "context": [
+    "lead_in",
+    "uthmani"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    89,
+    145
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-052-uthmani",
+   "quote": "إِلَيۡهِ يَصۡعَدُ ٱلۡكَلَامُ ٱلطَّيِّبُ وَٱلۡعَمَلُ ٱلصَّالِحُ يَرۡفَعُهُ",
+   "error": "substitution",
+   "context": [
+    "quotation_marks",
+    "uthmani"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    76,
+    149
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "uncertain",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-053-famous",
+   "quote": "أحسن الخالقين",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "desirable",
+   "wording_label": "correct",
+   "found": false,
+   "detected": false
+  },
+  {
+   "case": "HD-054-famous",
+   "quote": "والعاقبة للمتقين",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "desirable",
+   "wording_label": "correct",
+   "found": false,
+   "detected": false
+  },
+  {
+   "case": "HD-055-famous",
+   "quote": "أضغاث أحلام",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "desirable",
+   "wording_label": "correct",
+   "found": false,
+   "detected": false
+  },
+  {
+   "case": "HD-056-famous",
+   "quote": "على صراط مستقيم",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "desirable",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    63,
+    78
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "common"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-057-famous",
+   "quote": "خلق عظيم",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "desirable",
+   "wording_label": "correct",
+   "found": false,
+   "detected": false
+  },
+  {
+   "case": "HD-058-famous",
+   "quote": "كن فيكون",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "desirable",
+   "wording_label": "correct",
+   "found": false,
+   "detected": false
+  },
+  {
+   "case": "HD-L01-gratitude",
+   "quote": "وَإِنْ تَعُدُّوا نِعْمَةَ اللَّهِ لَا تُحْصُوهَا",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    599,
+    647
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "matched",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-L01-gratitude",
+   "quote": "وقليل من عبادي الشكور",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "footnote_ref"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    791,
+    812
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-L01-gratitude",
+   "quote": "وآتاكم من كل ما سألتموه",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1202,
+    1225
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L01-gratitude",
+   "quote": "ولكن أكثر الناس لا يشكرون",
+   "error": "none",
+   "context": [
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1460,
+    1485
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L01-gratitude",
+   "quote": "إِنَّا هَدَيْنَاهُ السَّبِيلَ إِمَّا شَاكِرًا وَإِمَّا كَفُورًا",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1670,
+    1733
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "incorrect",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": "ok",
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-L01-gratitude",
+   "quote": "كلوا من طيبات ما رزقناكم واشكروا الله",
+   "error": "wrong_last",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    1955,
+    1992
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L01-gratitude",
+   "quote": "وإن تعدوا نعمة الله لا تحصوها",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    2599,
+    2628
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "non_quran_cue"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "وَجَعَلْنَا اللَّيْلَ لِبَاسًا وَجَعَلْنَا النَّهَارَ مَعَاشًا",
+   "error": "none",
+   "context": [
+    "lead_in",
+    "reference_ayah",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    333,
+    395
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "matched",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "أفحسبتم أنما خلقناكم عبثا",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    699,
+    724
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "أَنِّي لَا أُضِيعُ عَمَلَ عَامِلٍ مِنْكُمْ",
+   "error": "none",
+   "context": [
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    997,
+    1039
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "phrase",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "أني لا أضيع عمل عامل منكم",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1188,
+    1213
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "وأن سعيه سوف يرى",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "footnote_ref"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1335,
+    1351
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "وعجلت إليك رب لترضى",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1499,
+    1518
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "incorrect",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": "ok",
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "إنهم كانوا يتسابقون في الخيرات",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": false,
+   "detected": false
+  },
+  {
+   "case": "HD-L02-time-work",
+   "quote": "وما تقدموا من خير تجدوه عند الله",
+   "error": "omission",
+   "context": [
+    "lead_in",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    1829,
+    1861
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "وصاحبهما في الدنيا بالمعروف",
+   "error": "wrong_last",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    804,
+    822
+   ],
+   "span_exact": false,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "common"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 2,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "رب اغفر لي ولوالدي",
+   "error": "none",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    976,
+    994
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "رَبِّ اغْفِرْ لِي وَلِوَالِدَيَّ",
+   "error": "none",
+   "context": [
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1082,
+    1114
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled"
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "ربنا اغفر لي ولوالدي وللمؤمنين يوم يقوم الحساب",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "quotation_marks"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1164,
+    1210
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "matched",
+   "reference": "matched",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "والذين آمنوا واتبعتهم ذريتهم بإيمان ألحقنا بهم ذريتهم",
+   "error": "none",
+   "context": [
+    "lead_in"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1394,
+    1447
+   ],
+   "span_exact": true,
+   "tier": "candidate",
+   "kind": "phrase",
+   "codes": [
+    "candidate"
+   ],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "uncertain",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "وبرا بوالديه ولم يكن جبارا شقيا",
+   "error": "wrong_last",
+   "context": [
+    "reference_ayah",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    1621,
+    1652
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "uncertain",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "يا بني إني رأيت في المنام أني أذبحك فانظر ماذا ترى",
+   "error": "substitution",
+   "context": [
+    "none"
+   ],
+   "detect": "required",
+   "wording_label": "wording_error",
+   "found": true,
+   "span": [
+    1803,
+    1853
+   ],
+   "span_exact": true,
+   "tier": "possible",
+   "kind": "phrase",
+   "codes": [
+    "approximate"
+   ],
+   "unconfirmed": true,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "difference",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": "settled",
+   "end_boundary": "settled",
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "difference",
+    "fix": "ok",
+    "false_fix": false,
+    "source_problems": []
+   }
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ الَّتِي أَنْعَمْتَ عَلَيَّ وَعَلَىٰ وَالِدَيَّ وَأَنْ أَعْمَلَ صَالِحًا تَرْضَاهُ",
+   "error": "none",
+   "context": [
+    "reference_ayah",
+    "footnote_ref",
+    "brackets"
+   ],
+   "detect": "required",
+   "wording_label": "correct",
+   "found": true,
+   "span": [
+    1996,
+    2120
+   ],
+   "span_exact": true,
+   "tier": "stated",
+   "kind": "marked",
+   "codes": [],
+   "unconfirmed": false,
+   "verse_offered": true,
+   "detected": true,
+   "wording": "uncertain",
+   "reference": "missing",
+   "wrong_matched": false,
+   "fix": null,
+   "false_fix": false,
+   "false_reference_fix": false,
+   "reference_fix": null,
+   "forbidden_fix": false,
+   "source_problems": [],
+   "start_boundary": null,
+   "end_boundary": null,
+   "confirm": {
+    "possible": true,
+    "actions": 1,
+    "wording": "matched",
+    "fix": null,
+    "false_fix": false,
+    "source_problems": []
+   }
+  }
+ ],
+ "negative_hits": [
+  {
+   "case": "HD-N03-common-runs",
+   "quote": "في كل عام",
+   "tier": "possible",
+   "codes": [
+    "common"
+   ],
+   "confirmed": false,
+   "wording": "uncertain",
+   "changes": [],
+   "negative": "في كل عام",
+   "neg_kind": "hard_negative"
+  },
+  {
+   "case": "HD-L03-family",
+   "quote": "كما ربياني صغيرًا",
+   "tier": "possible",
+   "codes": [
+    "non_quran_cue",
+    "common"
+   ],
+   "confirmed": false,
+   "wording": "uncertain",
+   "changes": [],
+   "negative": "اللهم ارحم والديّ كما ربياني صغيرًا",
+   "neg_kind": "hard_negative"
+  }
+ ],
+ "extra_findings": [
+  {
+   "case": "HD-L02-time-work",
+   "quote": "الحمد لله الذي",
+   "tier": "possible",
+   "codes": [
+    "common"
+   ],
+   "confirmed": false,
+   "wording": "uncertain",
+   "changes": []
+  }
+ ]
+}
