@@ -1,0 +1,1940 @@
+{
+ "set": "suggest_cases_b_20261003.json",
+ "sha256": "9eac2ed68a1fb840b6c3184c638ab004adb0dec9db7d762394da6e4a6b67c998 (matches suggest_cases_b_20261003.sha256)",
+ "tag": "fix-v2",
+ "ran_at": "20261005-063553",
+ "summary": {
+  "cases": 129,
+  "detection": {
+   "expected_suggest": 76,
+   "hit": 69,
+   "hit_pct": 90.8,
+   "missed": 5,
+   "wrong_words": 2,
+   "wrong_place": 0
+  },
+  "false_suggestions_on_none_cases": {
+   "cases": 39,
+   "false": 0,
+   "false_pct": 0.0,
+   "ids": []
+  },
+  "ambiguity": {
+   "cases": 14,
+   "ok_none": 3,
+   "ok_choices": 11,
+   "false_confident": 0,
+   "wrong_place": 0,
+   "ids_false_confident": []
+  },
+  "correction_quality": {
+   "cases": 22,
+   "hit": 19,
+   "hit_pct": 86.4,
+   "missed": 3,
+   "wrong_words": 0,
+   "wrong_place": 0,
+   "presented_as_exact": 0
+  },
+  "wrong_place_suggestions_anywhere": 0,
+  "by_category": {
+   "after_closed_quotation": {
+    "ok": 5
+   },
+   "ambiguous_opening": {
+    "ok_choices": 8,
+    "ok_none": 2
+   },
+   "complete_verse": {
+    "ok": 4
+   },
+   "cue_continue": {
+    "hit": 18,
+    "wrong_words": 2,
+    "missed": 2
+   },
+   "cue_non_quran_hadith_dua_proverb": {
+    "ok": 8
+   },
+   "distinct_long_prefix": {
+    "hit": 6
+   },
+   "everyday_no_cue": {
+    "ok": 16
+   },
+   "explicit_one_word": {
+    "ok": 3
+   },
+   "explicit_short_prefix": {
+    "hit": 6
+   },
+   "missing_word_insert": {
+    "hit": 7,
+    "missed": 1
+   },
+   "no_distinct_same_prefix": {
+    "ok": 3
+   },
+   "opener_continue": {
+    "hit": 12
+   },
+   "partial_word": {
+    "hit": 8
+   },
+   "repeated_verses": {
+    "ok_choices": 3,
+    "ok_none": 1
+   },
+   "wrong_word_replace": {
+    "hit": 12,
+    "missed": 2
+   }
+  },
+  "lookup_ms": {
+   "median": 1.44,
+   "p95": 2.71,
+   "max": 13.49
+  }
+ },
+ "rows": [
+  {
+   "id": "SG-001",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "المائدة: 8",
+    "to": "وَلَا يَجْرِمَنَّكُمْ شَنَآنُ قَوْمٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-002",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "البقرة: 286",
+    "to": "لها ما كسبت"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-003",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "القصص: 77",
+    "to": "الدَّارَ الْآخِرَةَ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-004",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "سبأ: 28",
+    "to": "للناس بشيرا ونذيرا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-005",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "ق: 16",
+    "to": "مَا تُوَسْوِسُ بِهِ نَفْسُهُ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-006",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "فصلت: 34",
+    "to": "السيئة"
+   },
+   "verdict": "wrong_words",
+   "why": {
+    "kind_ok": true,
+    "cert_ok": true,
+    "place_ok": true
+   }
+  },
+  {
+   "id": "SG-007",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "المجادلة: 11",
+    "to": "فِي الْمَجَالِسِ فَافْسَحُوا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-008",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "ص: 29",
+    "to": "لِيَدَّبَّرُوا آيَاتِهِ وَلِيَتَذَكَّرَ أُولُو الْأَلْبَابِ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-009",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "missed"
+  },
+  {
+   "id": "SG-010",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "missed"
+  },
+  {
+   "id": "SG-011",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الرعد: 11",
+    "to": "وَمِنْ خَلْفِهِ يَحْفَظُونَهُ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-012",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "النحل: 125",
+    "to": "ربك بالحكمة والموعظة الحسنة"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-013",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الإسراء: 36",
+    "to": "لَكَ بِهِ عِلْمٌ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-014",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "آل عمران: 159",
+    "to": "لهم"
+   },
+   "verdict": "wrong_words",
+   "why": {
+    "kind_ok": true,
+    "cert_ok": true,
+    "place_ok": true
+   }
+  },
+  {
+   "id": "SG-015",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الفرقان: 74",
+    "to": "أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-016",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "لقمان: 18",
+    "to": "ولا تمش في الأرض مرحا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-017",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الحشر: 18",
+    "to": "مَا قَدَّمَتْ لِغَدٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-018",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "البقرة: 274",
+    "to": "والنهار سرا وعلانية فلهم"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-019",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الجمعة: 9",
+    "to": "مِنْ يَوْمِ الْجُمُعَةِ فَاسْعَوْا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-020",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الكهف: 46",
+    "to": "وَالْبَاقِيَاتُ الصَّالِحَاتُ خَيْرٌ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-021",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "العنكبوت: 45",
+    "to": "إِنَّ الصَّلَاةَ تَنْهَىٰ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-022",
+   "category": "cue_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "فاطر: 29",
+    "to": "وَأَنْفَقُوا مِمَّا رَزَقْنَاهُمْ سِرًّا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-023",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الأعراف: 199",
+    "to": "بالعرف وأعرض عن الجاهلين"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-024",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "آل عمران: 133",
+    "to": "رَبِّكُمْ وَجَنَّةٍ عَرْضُهَا السَّمَاوَاتُ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-025",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الأنعام: 162",
+    "to": "وَمَمَاتِي لِلَّهِ رَبِّ الْعَالَمِينَ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-026",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "التوبة: 119",
+    "to": "مع الصادقين"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-027",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "يونس: 57",
+    "to": "مِنْ رَبِّكُمْ وَشِفَاءٌ لِمَا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-028",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "هود: 112",
+    "to": "ومن تاب معك"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-029",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "إبراهيم: 40",
+    "to": "وَمِنْ ذُرِّيَّتِي"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-030",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الإسراء: 70",
+    "to": "في البر والبحر ورزقناهم"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-031",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "مريم: 96",
+    "to": "لَهُمُ الرَّحْمَٰنُ وُدًّا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-032",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الحج: 77",
+    "to": "واسجدوا واعبدوا ربكم وافعلوا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-033",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الزمر: 10",
+    "to": "اتَّقُوا رَبَّكُمْ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-034",
+   "category": "opener_continue",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الطور: 21",
+    "to": "بإيمان ألحقنا بهم ذريتهم"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-035",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "الرعد: 11",
+    "to": "يغيروا ما بأنفسهم"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-036",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "الطلاق: 2",
+    "to": "بِمَعْرُوفٍ أَوْ فَارِقُوهُنَّ بِمَعْرُوفٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-037",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "آل عمران: 102",
+    "to": "تقاته ولا تموتن"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-038",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "فاطر: 10",
+    "to": "يصعد الكلم الطيب"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-039",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "الفرقان: 74",
+    "to": "أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-040",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "الأعراف: 31",
+    "to": "مسجد وكلوا واشربوا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-041",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "النحل: 125",
+    "to": "الْحَسَنَةِ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-042",
+   "category": "partial_word",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "complete_word",
+    "certainty": "exact",
+    "label": "آل عمران: 185",
+    "to": "توفون أجوركم يوم القيامة"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-043",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "القصص: 77",
+    "to": "اللَّهُ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-044",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "فصلت: 34",
+    "to": "ولا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-045",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "ق: 16",
+    "to": "توسوس"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-046",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "الصف: 2",
+    "to": "تَقُولُونَ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-047",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "too_short",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "missed"
+  },
+  {
+   "id": "SG-048",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "يوسف: 87",
+    "to": "فَتَحَسَّسُوا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-049",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "الأنعام: 162",
+    "to": "ونسكي"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-050",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "الزمر: 10",
+    "to": "الَّذِينَ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-051",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "البقرة: 263",
+    "to": "من"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-052",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "الزلزلة: 7",
+    "to": "ذَرَّةٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-053",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "البقرة: 185",
+    "to": "هدى"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-054",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "النساء: 29",
+    "to": "بَيْنَكُمْ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-055",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "missed"
+  },
+  {
+   "id": "SG-056",
+   "category": "wrong_word_replace",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "replace",
+    "certainty": "probable",
+    "label": "التين: 4",
+    "to": "تقويم"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-057",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "insert",
+    "certainty": "probable",
+    "label": "القصص: 77",
+    "to": "الله"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-058",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "insert",
+    "certainty": "probable",
+    "label": "ق: 16",
+    "to": "مَا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-059",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "insert",
+    "certainty": "probable",
+    "label": "الأعراف: 31",
+    "to": "عند كل"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-060",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "insert",
+    "certainty": "probable",
+    "label": "الطلاق: 2",
+    "to": "بِمَعْرُوفٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-061",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "no_match",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "missed"
+  },
+  {
+   "id": "SG-062",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "insert",
+    "certainty": "probable",
+    "label": "البقرة: 208",
+    "to": "فِي السِّلْمِ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-063",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "insert",
+    "certainty": "probable",
+    "label": "الإسراء: 36",
+    "to": "لك"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-064",
+   "category": "missing_word_insert",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "insert",
+    "certainty": "probable",
+    "label": "آل عمران: 159",
+    "to": "لِنْتَ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-065",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 3,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الروم: 60",
+    "to": "وَلَا يَسْتَخِفَّنَّكَ الَّذِينَ لَا يُوقِنُونَ"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-066",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 4,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "النساء: 134",
+    "to": "ثواب الدنيا فعند الله"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-067",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 3,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الحجر: 26",
+    "to": "مِنْ صَلْصَالٍ مِنْ حَمَإٍ مَسْنُونٍ"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-068",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "too_common",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok_none"
+  },
+  {
+   "id": "SG-069",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 3,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الحجر: 11",
+    "to": "رَسُولٍ إِلَّا كَانُوا بِهِ يَسْتَهْزِئُونَ"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-070",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok_none"
+  },
+  {
+   "id": "SG-071",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 3,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الكهف: 110",
+    "to": "بَشَرٌ مِثْلُكُمْ يُوحَىٰ إِلَيَّ"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-072",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 4,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "البقرة: 176",
+    "to": "نزل الكتاب بالحق"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-073",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 4,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "العنكبوت: 61",
+    "to": "خَلَقَ السَّمَاوَاتِ وَالْأَرْضَ وَسَخَّرَ"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-074",
+   "category": "ambiguous_opening",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 4,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الذاريات: 24",
+    "to": "ضيف إبراهيم المكرمين"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-075",
+   "category": "repeated_verses",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 4,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الشعراء: 9",
+    "to": "الْعَزِيزُ الرَّحِيمُ"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-076",
+   "category": "repeated_verses",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 4,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "القمر: 17",
+    "to": "للذكر فهل من مدكر"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-077",
+   "category": "repeated_verses",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 4,
+   "ambiguous": true,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الأعراف: 59",
+    "to": "غَيْرُهُ إِنِّي أَخَافُ عَلَيْكُمْ"
+   },
+   "verdict": "ok_choices"
+  },
+  {
+   "id": "SG-078",
+   "category": "repeated_verses",
+   "expect": "suggest",
+   "status": "none",
+   "reason": "too_common",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok_none"
+  },
+  {
+   "id": "SG-079",
+   "category": "complete_verse",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-080",
+   "category": "complete_verse",
+   "expect": "none",
+   "status": "none",
+   "reason": "complete",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-081",
+   "category": "complete_verse",
+   "expect": "none",
+   "status": "none",
+   "reason": "complete",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-082",
+   "category": "complete_verse",
+   "expect": "none",
+   "status": "none",
+   "reason": "complete",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-083",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-084",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-085",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-086",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-087",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-088",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-089",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-090",
+   "category": "cue_non_quran_hadith_dua_proverb",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-091",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-092",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-093",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-094",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-095",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-096",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-097",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-098",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-099",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-100",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-101",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-102",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-103",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-104",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-105",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-106",
+   "category": "everyday_no_cue",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-107",
+   "category": "distinct_long_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "النساء: 1",
+    "to": "من نفس واحدة وخلق"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-108",
+   "category": "distinct_long_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الأحزاب: 70",
+    "to": "قَوْلًا سَدِيدًا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-109",
+   "category": "distinct_long_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "آل عمران: 102",
+    "to": "تقاته ولا تموتن"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-110",
+   "category": "distinct_long_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "البقرة: 214",
+    "to": "الَّذِينَ خَلَوْا مِنْ قَبْلِكُمْ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-111",
+   "category": "distinct_long_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الحجرات: 11",
+    "to": "من قوم عسى"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-112",
+   "category": "distinct_long_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الطلاق: 2",
+    "to": "بِمَعْرُوفٍ وَأَشْهِدُوا ذَوَيْ عَدْلٍ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-113",
+   "category": "no_distinct_same_prefix",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-114",
+   "category": "no_distinct_same_prefix",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-115",
+   "category": "no_distinct_same_prefix",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-116",
+   "category": "after_closed_quotation",
+   "expect": "none",
+   "status": "none",
+   "reason": "non_quran_cue",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-117",
+   "category": "after_closed_quotation",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-118",
+   "category": "after_closed_quotation",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-119",
+   "category": "after_closed_quotation",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-120",
+   "category": "after_closed_quotation",
+   "expect": "none",
+   "status": "none",
+   "reason": "no_trigger",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-121",
+   "category": "explicit_short_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "آل عمران: 159",
+    "to": "من الله لنت لهم"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-122",
+   "category": "explicit_short_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "العلق: 1",
+    "to": "رَبِّكَ الَّذِي خَلَقَ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-123",
+   "category": "explicit_short_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الكهف: 46",
+    "to": "زينة الحياة الدنيا"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-124",
+   "category": "explicit_short_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "النجم: 39",
+    "to": "إلا ما سعى"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-125",
+   "category": "explicit_short_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الأعراف: 199",
+    "to": "وَأْمُرْ بِالْعُرْفِ وَأَعْرِضْ عَنِ الْجَاهِلِينَ"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-126",
+   "category": "explicit_short_prefix",
+   "expect": "suggest",
+   "status": "suggest",
+   "reason": null,
+   "n_choices": 1,
+   "ambiguous": false,
+   "best": {
+    "kind": "continue",
+    "certainty": "exact",
+    "label": "الإسراء: 36",
+    "to": "ما ليس لك به علم"
+   },
+   "verdict": "hit"
+  },
+  {
+   "id": "SG-127",
+   "category": "explicit_one_word",
+   "expect": "none",
+   "status": "hint",
+   "reason": "too_short",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-128",
+   "category": "explicit_one_word",
+   "expect": "none",
+   "status": "hint",
+   "reason": "too_short",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  },
+  {
+   "id": "SG-129",
+   "category": "explicit_one_word",
+   "expect": "none",
+   "status": "hint",
+   "reason": "too_short",
+   "n_choices": 0,
+   "ambiguous": false,
+   "best": null,
+   "verdict": "ok"
+  }
+ ]
+}

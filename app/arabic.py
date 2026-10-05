@@ -29,7 +29,10 @@ from dataclasses import dataclass
 # rub el hizb, sajdah, small waw/yeh etc. They are not part of the wording.
 _ANNOTATION = set(range(0x06D6, 0x06DD)) | {0x06DD, 0x06DE, 0x06E9} | set(range(0x06DF, 0x06E5)) | set(range(0x06E7, 0x06E9)) | set(range(0x06EA, 0x06EE))
 # Invisible / typographic characters.
-_INVISIBLE = {0xFEFF, 0x200B, 0x200C, 0x200D, 0x200E, 0x200F, 0x061C, 0x2066, 0x2067, 0x2068, 0x2069, 0x202A, 0x202B, 0x202C, 0x202D, 0x202E}
+# Also the soft hyphen (U+00AD, left in text pasted from web pages), the word joiner (U+2060) and the combining grapheme joiner (U+034F,
+# used in some Quran typesetting to order marks): a correct quotation containing one read as a «difference» until 5 Oct 2026.
+_INVISIBLE = {0xFEFF, 0x200B, 0x200C, 0x200D, 0x200E, 0x200F, 0x061C, 0x2066, 0x2067, 0x2068, 0x2069, 0x202A, 0x202B, 0x202C, 0x202D, 0x202E,
+              0x00AD, 0x2060, 0x034F}
 TATWEEL = 0x0640
 # Vowel/diacritic marks (harakat, tanween, shadda, sukun, maddah, hamza marks,
 # dagger alef, small high/low letters used as vowels).

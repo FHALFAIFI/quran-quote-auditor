@@ -28,3 +28,12 @@ def test_fold_with_map_maps_back():
     f, idx = arabic.fold_with_map(text)
     assert f == "سوره البقره 255"
     assert text[idx[0]] == "س" and text[idx[-1]] == "٥"
+
+
+def test_invisible_format_characters_do_not_change_a_word():
+    # a soft hyphen from a web page, a word joiner, a combining grapheme joiner from Quran typesetting, bidi marks from Word
+    plain = [t.fold for t in arabic.tokenize("إن الله مع الصابرين")]
+    for ch in ("­", "⁠", "͏", "‏", "‌", "⁨"):
+        text = "إن الله مع الصا" + ch + "برين"
+        assert [t.fold for t in arabic.tokenize(text)] == plain, repr(ch)
+        assert arabic.literal(text) == "إن الله مع الصابرين", repr(ch)
