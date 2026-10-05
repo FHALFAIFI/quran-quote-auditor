@@ -62,3 +62,11 @@ def test_a_pair_never_takes_the_reference_of_the_quotation_after_it(full_source)
     long_quote = next(f for f in res["findings"] if "وسارعوا" in art[f["start"]:f["end"]])
     pair = next(f for f in res["findings"] if "فاستبقوا" in art[f["start"]:f["end"]])
     assert long_quote["reference"]["status"] != "missing" and pair["reference"]["status"] == "missing"
+
+
+def test_a_pair_does_not_take_the_reference_of_a_selected_span(full_source):
+    # the writer selects the quotation after the pair and checks it by hand: the reference before it stays the selection's
+    art = "فاستبقوا الخيرات يا قوم. وفي سورة آل عمران: وسارعوا إلى مغفرة من ربكم وجنة عرضها السماوات والأرض."
+    s = art.index("وسارعوا")
+    res = audit.run_phrase(art, s, art.index(" والأرض") + len(" والأرض"))
+    assert res["finding"]["reference"]["status"] != "missing"

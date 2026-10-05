@@ -1265,3 +1265,9 @@ ui_suggest_e2e 202, ui_suggest_place_e2e 82, ui_uthmani_e2e 34, ui_workspace_e2e
 65 states at 1366, 390 and 320 px, looked at by eye (first screen, correction card, approved word in the box, long-article phrases,
 trust pages, `/roadmap`): no overlap or sideways scroll seen; one bidi glitch («بـgpt-oss-120b» on `/sources`) fixed after the gate.
 Not covered: real phones, Safari itself, screen readers, real writers.
+
+**PR #13 self-review** (after the gate): a manual check («افحص المحدَّد») rebuilt its neighbours from the phrase search without the pair
+marker, so an optional pair could reserve the reference written for the selected quotation. Pairs are now left out there too
+(`tests/test_pairs.py::test_a_pair_does_not_take_the_reference_of_a_selected_span`, which fails without the fix). Rerun: pytest **551**,
+ui_phrase_e2e 38, ui_pair_e2e 38, ui_boundary_e2e 48, ui_journey_e2e 169, 0 failures; both hard-quotation sets (whose scorer confirms
+through the same endpoint) identical to `pairs-eb00ae0`.

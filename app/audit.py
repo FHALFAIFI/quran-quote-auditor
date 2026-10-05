@@ -687,7 +687,8 @@ def _manual_reference(article: str, index: QuranIndex, cand: Candidate, others) 
     tokens = arabic.tokenize(article)
     neighbours = extract_marked(article, refs)
     for h in find_phrases(article, tokens, index).hits:
-        neighbours.append(_span_candidate(article, tokens, h.first, h.last, "phrase"))
+        if "pair" not in h.reasons:  # an optional two-word pair reserves no reference (as in attach_references)
+            neighbours.append(_span_candidate(article, tokens, h.first, h.last, "phrase"))
     for pair in others or ():
         try:
             s, e = int(pair[0]), int(pair[1])
