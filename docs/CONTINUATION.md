@@ -67,7 +67,7 @@ Routes that could be examined, in order of how little they need (feasibility on 
 3. **URL import** (give a link, the server fetches the post). Not planned: many posts sit behind a login or a platform's terms, a server that fetches arbitrary URLs needs protection against abuse (server-side request forgery), and it would send other people's content through the service. Pasted text avoids all of that.
 4. **A native iOS share extension / app.** Needs an Apple developer account, App Review, and a maintained second code base; justified only if a pilot shows steady phone use.
 
-Before any of these: always-on hosting, a model setting that does not retain content (see [PILOT.md](PILOT.md)), and evidence from the pilot that editors want it. The plan promises no date and no deliverable.
+Before any of these: always-on hosting, a model setting that does not retain content (see [PILOT_PROPOSAL.md](PILOT_PROPOSAL.md)), and evidence from the pilot that editors want it. The plan promises no date and no deliverable.
 
 ## E. Roadmap after the writing workspace (written 3 Oct 2026; priority order, none of it done)
 
