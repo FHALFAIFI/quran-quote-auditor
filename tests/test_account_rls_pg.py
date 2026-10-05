@@ -207,6 +207,11 @@ def test_b_cannot_read_change_or_delete_a(db):
                 "delete from public.preferences returning user_id;"):
         r = db.user(B, sql)
         assert r.ok and r.out == [], (sql, r)
+    # without WHERE or RETURNING Postgres applies only the UPDATE / DELETE policy (not the SELECT one): each must hold alone
+    for sql in ("update public.drafts set body = 'اختراق';", "delete from public.drafts;",
+                "update public.preferences set suggest_on = true;", "delete from public.preferences;"):
+        r = db.user(B, sql)
+        assert r.ok, (sql, r)
     r = db.user(A, "select body, version from public.drafts;")
     assert sorted(r.out) == sorted([f"{SECRET}|1", "ثانية|1"])
     assert db.user(A, "select suggest_on, distinct_on from public.preferences;").out == ["f|t"]
