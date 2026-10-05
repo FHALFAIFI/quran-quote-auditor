@@ -81,7 +81,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   // once approved, the card itself says which text is the writer's, which is copied, and how to take it back
   await openRow(page, 3);
   const approvedNote = norm(await page.textContent("#finding-3 .fix-note").catch(() => ""));
-  check(/اعتمدتَه للنسخة المنسوخة؛ نصّك الأصلي باقٍ\. اضغط الزر ثانية للتراجع/.test(approvedNote), `the approved card says what is copied, what stays, and how to undo («${approvedNote}»)`);
+  check(/اعتمدتَه: يُكتب «يوفى» في النسخة المنسوخة؛ نصّك الأصلي باقٍ\. اضغط الزر ثانية للتراجع/.test(approvedNote), `the approved card says what is copied, what stays, and how to undo («${approvedNote}»)`);
   await openRow(page, 4);
   check((await overflowX()) <= 1, "no sideways scroll");
 

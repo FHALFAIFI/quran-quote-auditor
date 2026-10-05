@@ -1254,7 +1254,8 @@ function decisionBlock(c, f, secondary) {
     // until the writer has approved one correction, say where it goes: the box keeps their text
     firstFix ? el("p", { class: "fix-note", id: `fx-${c.id}`, text: "نصّك في المربع كما هو؛ اعتماد التصحيح يغيّر النسخة المنسوخة فقط." }) : null,
     // once approved: which text is the writer's, which is copied, and how to take it back
-    decisions[c.id] === "approved" ? el("p", { class: "fix-note", text: "اعتمدتَه للنسخة المنسوخة؛ نصّك الأصلي باقٍ. اضغط الزر ثانية للتراجع." }) : null,
+    // (it names the change, so an approved removal reads «تُحذف «هو»», never an empty «»)
+    decisions[c.id] === "approved" ? el("p", { class: "fix-note", text: `اعتمدتَه: ${drops(c) ? `تُحذف «${d.before}» من` : `${adds(c) ? "يُضاف" : "يُكتب"} «${d.prefix}${d.after}» في`} النسخة المنسوخة؛ نصّك الأصلي باقٍ. اضغط الزر ثانية للتراجع.` }) : null,
     c.reason ? el("details", { class: "ch-more" }, el("summary", { text: "سبب الاقتراح" }), el("p", { text: c.reason })) : null,
     quoteLevel && (c.quote_before || c.quote_after) ? el("details", { class: "ch-more" }, el("summary", { text: "الاقتباس كاملًا قبل التصحيح وبعده" }),
       el("div", { class: "ch-diff" },
