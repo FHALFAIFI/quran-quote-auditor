@@ -276,7 +276,12 @@ class AdminClient:
     timeout: float = 8.0
 
     def delete_user(self, user_id: str, service_key: str) -> bool:
-        c = self.client or httpx.Client(timeout=self.timeout)
+        if self.client is not None:
+            return self._delete_user(self.client, user_id, service_key)
+        with httpx.Client(timeout=self.timeout) as c:   # a client of its own is closed after the two requests
+            return self._delete_user(c, user_id, service_key)
+
+    def _delete_user(self, c: httpx.Client, user_id: str, service_key: str) -> bool:
         h = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
         requested = _now()
         try:
