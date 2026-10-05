@@ -1,0 +1,86 @@
+name: Pilot report (بلاغ من تجربة الأداة)
+description: A missed verse, a false «مطابق», a wrong suggestion, a confusing decision, or a failure — shown with a short example you wrote yourself, never your article.
+title: "[pilot] "
+labels: ["pilot"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **لا تلصق مقالك هنا.** هذه الصفحة عامة يراها الجميع. اكتب مثالًا قصيرًا من عندك (جملة أو جملتين) يُظهر المشكلة نفسها، أو صِفها دون نص.
+        **Do not paste your article.** Issues are public. Write a short synthetic example (one or two sentences) that shows the same problem, or describe it without text.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: نوع المشكلة / Kind
+      options:
+        - آية فاتت الأداة (missed quotation)
+        - «مطابق» وهو ليس كذلك (false «matched»)
+        - تصحيح مقترح خاطئ (wrong suggested correction)
+        - عبارة عادية عُرضت اقتباسًا (false optional suggestion)
+        - اقتراح آية أثناء الكتابة غير مناسب (wrong verse suggestion while typing)
+        - قرار أو رسالة غير واضحة (confusing decision or message)
+        - النص المنسوخ غير صحيح (wrong copied text)
+        - ضاع نصي أو قراراتي (lost text or decisions)
+        - النموذج أو الخادم تعذّر (provider or server failure)
+        - أخرى (other)
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: مثال مصطنع يُظهر المشكلة / Synthetic reproduction
+      description: نص قصير كتبته أنت لهذا البلاغ، لا مقطع من مقال غير منشور. A short text you wrote for this report.
+      placeholder: "مثال: قال تعالى: ﴿...﴾ [السورة: الآية]"
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: الخطوات / Steps
+      placeholder: "1. ألصقت المثال  2. ضغطت «دقّق الاقتباسات»  3. فتحت الاقتباس ٢ ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: ما توقعته / Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: ما حدث / Actual result
+      description: انسخ نص الرسالة أو البطاقة إن أمكن (دون نص مقالك). Quote the message or card text if you can.
+    validations:
+      required: true
+  - type: dropdown
+    id: approved
+    attributes:
+      label: هل اعتمدتَ تصحيحًا في هذا الموضع؟ / Did you approve a correction here?
+      options:
+        - لا (no)
+        - نعم، ونُسخ في المقال (yes, and it was copied)
+        - نعم، ثم تراجعت عنه (yes, then undid it)
+        - لا أعرف (not sure)
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: المتصفح والجهاز / Browser and device
+      placeholder: "Safari على iPhone، Chrome على Windows ..."
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: رقم الإصدار (اختياري) / Build (optional)
+      description: من https://quran-quote-auditor.onrender.com/api/health حقل build. The "build" field of /api/health.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: الخصوصية / Privacy
+      options:
+        - label: لم ألصق نص مقال غير منشور ولا بيانات شخصية. I did not paste unpublished article text or personal data.
+          required: true
