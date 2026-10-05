@@ -56,7 +56,8 @@ def test_guest_page_has_no_account_code():
 
 
 def test_half_configured_flag_stays_off():
-    for env in ({"SUPABASE_URL": ""}, {"SUPABASE_ANON_KEY": ""}, {"SUPABASE_URL": "http://project.example.com"}, {"SUPABASE_URL": "ftp://x"}):
+    for env in ({"SUPABASE_URL": ""}, {"SUPABASE_ANON_KEY": ""}, {"SUPABASE_URL": "http://project.example.com"}, {"SUPABASE_URL": "ftp://x"},
+                {"SUPABASE_JWKS_URL": "http://keys.example.com/jwks.json"}, {"SUPABASE_JWKS_URL": "file:///tmp/jwks.json"}):
         saved = dict(os.environ)
         try:
             os.environ.update({"ACCOUNTS_ENABLED": "true", "SUPABASE_URL": SUPABASE_URL, "SUPABASE_ANON_KEY": "anon"})

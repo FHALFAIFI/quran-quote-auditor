@@ -74,12 +74,17 @@ class AccountConfig:
             # Fail closed: a half-configured server behaves exactly as if the flag were off.
             log.warning("ACCOUNTS_ENABLED is set but SUPABASE_URL (https) or SUPABASE_ANON_KEY is missing; accounts stay off")
             return cls(enabled=False)
+        jwks_url = os.environ.get("SUPABASE_JWKS_URL", "").strip() or f"{url}/auth/v1/.well-known/jwks.json"
+        if not _origin(jwks_url):
+            # The keys that decide who a writer is must not come over plain http (anyone on the path could swap them).
+            log.warning("SUPABASE_JWKS_URL is not an https URL; accounts stay off")
+            return cls(enabled=False)
         return cls(
             enabled=True,
             supabase_url=url,
             origin=origin,
             anon_key=anon,
-            jwks_url=os.environ.get("SUPABASE_JWKS_URL", "").strip() or f"{url}/auth/v1/.well-known/jwks.json",
+            jwks_url=jwks_url,
             issuer=os.environ.get("SUPABASE_JWT_ISSUER", "").strip() or f"{url}/auth/v1",
             audience=os.environ.get("SUPABASE_JWT_AUDIENCE", "").strip() or "authenticated",
             leeway=max(0.0, min(_float("ACCOUNT_TOKEN_LEEWAY_SECONDS", 30.0), 120.0)),
