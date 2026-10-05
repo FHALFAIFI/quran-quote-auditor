@@ -138,6 +138,8 @@ console.log("\n== local drafts");
   await page.evaluate(() => { document.getElementById("options").open = true; });
   await page.click("#draft-save");
   check(await page.evaluate(() => !!localStorage.getItem("qqa-draft-v1")) && norm(await page.textContent("#draft-note")).includes("في هذا المتصفح فقط"), "«احفظ المسودة» saves it, and says where");
+  // the next visit is a new tab session (a reload of this tab brings the text back by itself, from the tab's session)
+  await page.evaluate(() => sessionStorage.clear());
   await page.reload();
   check(await page.locator("#draft-banner").isVisible(), "a saved draft is offered on the next visit");
   await page.click("#draft-banner button:has-text('استعدها')");

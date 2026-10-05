@@ -263,8 +263,9 @@ function saveSession() {
 }
 function loadSession() {
   try {
+    // an entry without a result is a text the writer typed or pasted and has not audited yet: it is restored too
     const s = JSON.parse(sessionStorage.getItem(STORE_KEY) || "null");
-    if (s && s.result && typeof s.article === "string") return s;
+    if (s && typeof s.article === "string" && (s.result || s.article.trim())) return s;
   } catch { /* ignore */ }
   return null;
 }
@@ -547,7 +548,8 @@ function onEditorInput() {
   renderBackdrop();
   updateCount();
   if (lastResult && (touched || staleList().length !== prevStale)) { renderVerdict(lastResult); renderPanel(); }
-  refreshDerived();
+  // before any audit only the text is kept, so it is written at once: a reload right after typing must not lose it
+  if (lastResult) refreshDerived(); else saveSession();
   autosaveDraft();
 }
 
@@ -2020,7 +2022,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.fonts?.ready.then(() => { syncEditorHeight(); placeFixLabels(); });
 
   const saved = loadSession();
-  if (saved) {
+  if (saved && !saved.result) {
+    // typed or pasted in this tab and not audited yet: a reload must not lose it
+    setEditorText(saved.article);
+    saveSession();
+    setStatus("استُعيد نصك من هذه الجلسة. لم يُدقَّق بعد.");
+  } else if (saved) {
     ta.value = saved.article;
     setArticleText(saved.article); lastResult = saved.result; decisions = saved.decisions || {}; dismissed = saved.dismissed || {}; reviewed = saved.reviewed || {};
     current = saved.current ?? null; auditedAt = saved.auditedAt || null; isDemo = !!saved.isDemo;
