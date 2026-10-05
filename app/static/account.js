@@ -9,6 +9,11 @@
 //   documented in docs/PRODUCTION_ROADMAP.md, "Stage 2 status").
 // - The link usually opens in a new tab. That tab hands the session to the tab that asked for the link (and only to it: a
 //   random nonce travels in the link) over a BroadcastChannel — memory to memory, nothing stored.
+// - A page signs in from a link only if this browser asked for that link: the nonce of every pending request is kept in
+//   localStorage (the nonce, never a token) until it is used or an hour has passed. Otherwise anyone could send the writer
+//   a link carrying a token of the SENDER's account (login CSRF), and the writer's next «احفظ في حسابي» would land there.
+// - While a draft opened from the account is in the editor, the browser's own autosaved draft (localStorage) is not
+//   updated with it, so a cloud draft does not stay behind in this browser after sign-out.
 // - Nothing is uploaded by signing in. «احفظ في حسابي» is the only action that sends the article to the account.
 // - Drafts are read and written through this server's /api/account/*, which verifies the token itself.
 // All text is inserted with textContent.
@@ -20,6 +25,8 @@
   if (!H || $("account")) return;
 
   const SAVE_FAILED_AUTH = "لم يُحفظ: سجّل الدخول من جديد. نصّك باقٍ في المحرر.";
+  const PENDING_KEY = "qqa-account-pending-v1";   // { nonce: expiry in ms } of the links this browser asked for
+  const PENDING_MS = 60 * 60 * 1000;              // Supabase's default lifetime of an email link
   const toAr = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
   const arCount = (n) => toAr(Number(n).toLocaleString("en-US")).replace(/,/g, "٬");
   const cp = (t) => { let n = 0; for (const _ of t || "") n++; return n; };
@@ -132,6 +139,7 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) { setNote("اكتب بريدًا إلكترونيًا صحيحًا.", true); email.focus(); return; }
     if (!cfg) { setNote("تعذّر تحميل إعداد الحساب من الخادم.", true); return; }
     waitingNonce = randomNonce();
+    rememberPending(waitingNonce);
     const back = `${location.origin}/?acct=${waitingNonce}`;
     sendBtn.disabled = true;
     try {
@@ -141,11 +149,34 @@
       if (!res.ok) throw new Error(String(res.status));
       setNote("أرسلنا رابط دخول إلى بريدك. افتحه في هذا المتصفح، وتبقى هذه الصفحة ونصّك كما هما؛ تدخل هنا حين يُفتح الرابط.");
     } catch {
+      takePending(waitingNonce);
       waitingNonce = null;
       setNote("تعذّر إرسال رابط الدخول الآن. أعد المحاولة بعد قليل.", true);
     } finally {
       sendBtn.disabled = false;
     }
+  }
+
+  function readPending() {
+    try {
+      const all = JSON.parse(localStorage.getItem(PENDING_KEY) || "{}");
+      const now = Date.now();
+      return Object.fromEntries(Object.entries(all && typeof all === "object" ? all : {}).filter(([, until]) => Number(until) > now));
+    } catch { return {}; }
+  }
+  function writePending(all) {
+    try {
+      if (Object.keys(all).length) localStorage.setItem(PENDING_KEY, JSON.stringify(all)); else localStorage.removeItem(PENDING_KEY);
+    } catch { /* storage unavailable: only the asking page (which holds its nonce in memory) can sign in */ }
+  }
+  function rememberPending(nonce) { writePending({ ...readPending(), [nonce]: Date.now() + PENDING_MS }); }
+  // true once for a nonce this browser asked for (and not yet used or expired); it is then forgotten
+  function takePending(nonce) {
+    const all = readPending();
+    const ok = typeof nonce === "string" && /^[0-9a-f]{32}$/.test(nonce) && nonce in all;
+    if (nonce in all) delete all[nonce];
+    writePending(all);
+    return ok;
   }
 
   function claimsOf(token) {
@@ -366,6 +397,7 @@
 
   // ---------------------------------------------------------------- render
   function renderOpened() {
+    H.holdLocalDraft?.(!!opened);
     openedLine.hidden = !opened;
     if (opened) openedLine.textContent = `المسودة المفتوحة من حسابك: «${opened.title}». «احفظ في حسابي» يحدّثها.`;
   }
@@ -446,7 +478,12 @@
     render();
     if (back && back.error) { setNote("لم يُقبل رابط الدخول (ربما انتهت صلاحيته أو استُعمل). اطلب رابطًا جديدًا.", true); return; }
     if (back && back.token) {
+      // the asking page checks the nonce against its own before it takes the session
       if (channel && back.nonce) channel.postMessage({ type: "session", nonce: back.nonce, token: back.token, expiresAt: back.expiresAt });
+      if (!takePending(back.nonce)) {
+        setNote("لم يُقبل رابط الدخول في هذه الصفحة لأنه لم يُطلب من هذا المتصفح (أو انتهت مدته). إن طلبتَه من صفحة مفتوحة في هذا المتصفح فقد دخلتَ فيها؛ وإلا فاطلب رابطًا جديدًا من هنا.", true);
+        return;
+      }
       startSession(back.token, back.expiresAt);
       setNote("دخلتَ إلى حسابك. لم يُرفع شيء من مقالك؛ اضغط «احفظ في حسابي» متى أردت. إن طلبتَ الرابط من صفحة أخرى مفتوحة فقد دخلتَ فيها أيضًا.");
       const opts = $("options"); if (opts) opts.open = true;

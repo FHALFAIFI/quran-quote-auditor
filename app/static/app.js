@@ -1903,8 +1903,9 @@ function writeDraft(auto) {
 }
 let autosaveTimer = null;
 let draftAuto = false;   // mirrors the saved draft's "auto" flag, so typing does not parse localStorage
+let localDraftHeld = false;   // set only by the optional accounts script: a draft opened from the account is in the editor
 function autosaveDraft() {
-  if (!draftAuto) return;
+  if (!draftAuto || localDraftHeld) return;   // a cloud draft is never copied into this browser's own draft
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(() => writeDraft(true), 800);
 }
@@ -1948,6 +1949,7 @@ function loadAccounts() {
     open: (text) => { window.QQASuggest?.hide(); setEditorText(text); },
     clear: resetAll,
     download,
+    holdLocalDraft: (on) => { localDraftHeld = !!on; if (on) clearTimeout(autosaveTimer); },
   };
   const s = document.createElement("script");
   s.src = "/static/account.js";

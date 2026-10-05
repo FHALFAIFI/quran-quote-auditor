@@ -253,7 +253,79 @@ await signedIn(C);
 await C.click("#account-save");
 await C.waitForFunction(() => /حُفظت في حسابك/.test(document.getElementById("account-note").textContent));
 check(await C.inputValue("#article") === MID && (await listTitles(C)).length === 1, "after signing in again from the same page, the same text is saved");
+// a save that fails while the writer edits (the server unreachable, then answering 503): the text stays, the failure is said
+const EDITED = MID + " وزيادة بعد الحفظ.";
+await C.fill("#article", EDITED);
+await C.route("**/api/account/drafts/**", (r) => r.abort("connectionfailed"));
+await C.click("#account-save");
+await C.waitForFunction(() => /تعذّر الاتصال بالخادم؛ لم يُحفظ شيء/.test(document.getElementById("account-note").textContent));
+check(await C.inputValue("#article") === EDITED && await C.isVisible("#account-in"), "save while the server is unreachable: «لم يُحفظ شيء» shown, text kept, still signed in");
+await C.unroute("**/api/account/drafts/**");
+await C.route("**/api/account/drafts/**", (r) => r.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "تعذّر الوصول إلى خدمة الحسابات الآن؛ لم يُحفظ شيء. نصّك باقٍ في المحرر.", code: "unavailable" }) }));
+await C.click("#account-save");
+await C.waitForFunction(() => /لم يُحفظ: تعذّر الوصول إلى خدمة الحسابات/.test(document.getElementById("account-note").textContent));
+check(await C.inputValue("#article") === EDITED, "save answered 503: the failure is shown and the text kept");
+await C.unroute("**/api/account/drafts/**");
 await C2.close(); await C3.close();
+
+// ------------------------------------------------------------------------------------------------ 5b. a link this browser did not ask for
+console.log("\n== a sign-in link sent by someone else (login CSRF)");
+{
+  // The attacker asks the (fake) provider for a link to THEIR OWN account, with their own nonce, and sends the resulting URL.
+  const attackerNonce = "0123456789abcdef0123456789abcdef";
+  await fetch(`${fake.base}/auth/v1/otp?redirect_to=${encodeURIComponent(`${base}/?acct=${attackerNonce}`)}`, {
+    method: "POST", headers: { apikey: ANON, "Content-Type": "application/json" }, body: JSON.stringify({ email: "attacker@example.test", create_user: true }) });
+  const verify = await fetch(await linkFor("attacker@example.test"), { redirect: "manual" });
+  const forged = verify.headers.get("location");
+  check(/#access_token=eyJ/.test(forged || ""), "(setup) the attacker holds a sign-in URL with a valid token of their own account");
+  const ctxV = await browser.newContext({ viewport: { width: 1366, height: 900 }, locale: "ar" });
+  const waiting = await ctxV.newPage();       // the victim has the site open and even asked for a link of their own
+  await waiting.goto(base);
+  await requestLink(waiting, "victim@example.test");
+  const V = await ctxV.newPage();
+  const reqV = [];
+  V.on("request", (r) => reqV.push(r.url()));
+  await V.goto(forged);
+  await V.waitForFunction(() => /لم يُقبل رابط الدخول في هذه الصفحة/.test(document.getElementById("account-note")?.textContent || ""));
+  await sleep(500);
+  const state = (p) => p.evaluate(() => [!document.getElementById("account-in").hidden, !document.getElementById("account-out").hidden].join());
+  check(await state(V) === "false,true", "a link this browser did not ask for does not sign the page in (the sign-in form stays)");
+  check(await state(waiting) === "false,true", "nor the page that is waiting for its own link (the nonce differs)");
+  check(!reqV.some((u) => /\/api\/account\/(drafts|preferences|export)/.test(u)), "no account call is made with the forged token");
+  check(!(await V.evaluate(() => location.href)).includes("access_token"), "the forged token is cleared from the address bar all the same");
+  await ctxV.close();
+}
+
+// ------------------------------------------------------------------------------------------------ 5c. the browser's own autosaved draft
+console.log("\n== the browser's autosaved draft and an account draft");
+{
+  const ctxG = await browser.newContext({ viewport: { width: 1366, height: 900 }, locale: "ar" });
+  const G = await ctxG.newPage();
+  await G.goto(base);
+  await G.waitForSelector("#account", { state: "attached" });
+  const OWN = "مسودة هذا المتصفح تُحفظ تلقائيًا";
+  await G.fill("#article", OWN);
+  await openOptions(G);
+  await G.click("#draft-save");
+  await G.check("#draft-auto");
+  const own = () => G.evaluate(() => JSON.parse(localStorage.getItem("qqa-draft-v1") || "{}").text);
+  const tabG = await followLink(ctxG, await requestLink(G, "writer-g@example.test"));
+  await signedIn(G);
+  await G.click("#account-save");
+  await G.waitForFunction(() => /حُفظت في حسابك/.test(document.getElementById("account-note").textContent));
+  await G.fill("#article", "نص الحساب الخاص — CLOUDONLY");
+  await G.type("#article", " يكتب الكاتب");
+  await sleep(1500);   // longer than the autosave delay (800 ms)
+  check(await own() === OWN, "while an account draft is open, typing does not copy it into this browser's autosaved draft");
+  await G.click("#account-signout");
+  await G.click("#account-signout-yes");
+  await G.waitForSelector("#account-form");
+  check(await own() === OWN && !(await G.evaluate(() => JSON.stringify({ ...localStorage }).includes("CLOUDONLY"))), "after sign-out the browser keeps its own draft and nothing of the account draft");
+  await G.fill("#article", OWN + " مع إضافة الضيف");
+  await sleep(1500);
+  check(await own() === OWN + " مع إضافة الضيف", "signed out, the autosave works again as before");
+  await tabG.close(); await ctxG.close();
+}
 
 // ------------------------------------------------------------------------------------------------ 6. sign-out, deletion
 console.log("\n== sign-out and account deletion");
