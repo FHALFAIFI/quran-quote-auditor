@@ -1338,3 +1338,17 @@ already requires 3.12+.) **Secrets:** gitleaks over 176 commits and the working 
 **Rights.** Quranpedia's data licence (version 2026-10-03) and dump `mushafs-1` (version 2026-10-05) were read and downloaded; the 36
 fixture verses and the whole validator copy are identical to that dump; the six Quranpedia validators print «labels OK». SOURCES.md §1c.
 Nobody was contacted.
+
+**Release (PR #14).** `main` fast-forwarded `26e32bf..94e02a0` at 22:17:23 Riyadh (no merge commit; tag `pre-challenge-baseline`
+unchanged). Render served build `94e02a0daa645ae7e88d97bd9354a9b3ec9e3b85` at 22:18:07; 17 served files (12 static files and `/`,
+`/sources`, `/privacy`, `/limitations`, `/roadmap`) byte-identical to the commit; CSP, HSTS, X-Frame-Options, Referrer-Policy,
+Permissions-Policy and nosniff present; `/api/health?deep=1`: `source_ok` true, 6,236 verses fetched from Quranpedia, not stale. Every
+internal link on the five pages answers 200. **Live journey** `scripts/live_pilot.mjs` at 22:18:52: **one** audit at 1366 px = **one Groq
+call: `ai.outcome` ok, HTTP 200, 366 ms, proposed 0, located 0, added_only 0** (the model added nothing; all six findings came from the
+source search). `/api/health` agrees (`ai_recent` 1 call, 1 ok). 88 checks, 0 failures: a typed text survived a reload; a verse suggestion
+named الزمر; the TXT import was exact; the correct verse «مطابق للمصحف» with its Quranpedia link; «غيّر إلى «تنازعوا»», «أضف «جميعا»» and
+the الإخلاص ١ reference approved; the editor text unchanged; the copy exactly the three source corrections; an edit after the audit
+survived a reload with the corrections kept; «في كل عام» optional only; trust pages with the report link. The 390 and 320 px runs
+**replayed** that audit answer (no audit request reached the server). No recheck was made live (it would be a second model call).
+The issue form could not be opened from here (GitHub asks for a signed-in browser); its YAML was checked by hand against the issue-forms
+schema.
