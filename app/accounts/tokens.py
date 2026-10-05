@@ -7,7 +7,8 @@ checked itself.
 - The key is chosen by the token's ``kid`` from the provider's JWKS. The key's type must match the algorithm, and a JWK that
   names its own ``alg`` must name the token's.
 - The JWKS is cached for ``jwks_ttl`` seconds. An unknown ``kid`` triggers a refetch, at most once per ``jwks_min_refetch``
-  seconds, so a stream of made-up kids cannot turn the server into a request amplifier against the provider.
+  seconds, so a stream of made-up kids cannot turn the server into a request amplifier against the provider. The same
+  bound holds when the cache is stale and the provider is down: no request waits on a fetch more than once per interval.
 - ``exp``, ``iat``, ``sub``, ``aud`` and ``iss`` are required; ``nbf`` is honoured when present; a small leeway allows clock skew.
 - ``sub`` must be a UUID, and a ``role`` claim, when present, must be ``authenticated`` (the anon and service-role JWTs of a
   legacy project carry no user and are refused).
@@ -87,10 +88,13 @@ class JWKSCache:
         with self._lock:
             now = self._clock()
             fresh = self._fetched_at is not None and now - self._fetched_at < self.ttl
-            if not fresh:
+            may_fetch = self._last_attempt is None or now - self._last_attempt >= self.min_refetch
+            # Every fetch is throttled, also when the cache is stale: while the provider is down, a request must not wait
+            # for a fetch (under this lock, up to the timeout) each time. Until the next attempt the last keys fetched stay
+            # in use; with none, the token is refused.
+            # An unknown kid in a fresh cache means a key rotation: the provider published a new key since the last fetch.
+            if may_fetch and (not fresh or kid not in self._keys):
                 self._fetch()
-            elif kid not in self._keys and (self._last_attempt is None or now - self._last_attempt >= self.min_refetch):
-                self._fetch()   # a key rotation: the provider published a new key since the last fetch
             return self._keys.get(kid)
 
 

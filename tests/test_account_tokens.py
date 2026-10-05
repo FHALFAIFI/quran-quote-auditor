@@ -8,7 +8,7 @@ import pytest
 
 from app.accounts.tokens import Denylist, JWKSCache, TokenError, TokenVerifier
 from tests.accounts_helpers import (
-    ISSUER, JWKS_URL, USER_A, FakeJWKSServer, Keys, hs256_token, tamper, token, unsigned_token,
+    ISSUER, JWKS_URL, USER_A, USER_B, FakeJWKSServer, Keys, b64, hs256_token, tamper, token, unsigned_token,
 )
 
 
@@ -156,3 +156,58 @@ def test_denylist(keys):
     d2 = Denylist()
     d2.revoke_user(q.user_id, time.time() + 60)
     assert d2.refused(q) and d2.refused(p)
+
+
+# ------------------------------------------------------------------------------------- review of 5 Oct: negative cases
+def test_signed_by_an_unpublished_key_under_a_published_kid(keys):
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    v, _ = make(keys)
+    refused(v, token(keys, kid="ec-1", key=keys.other_ec))
+    stranger_rsa = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    refused(v, token(keys, alg="RS256", kid="rsa-1", key=stranger_rsa))
+
+
+def test_tampered_signature_refused(keys):
+    v, _ = make(keys)
+    for alg in ("ES256", "RS256"):
+        h, p, s = token(keys, alg=alg).split(".")
+        flipped = "A" if s[5] != "A" else "B"
+        refused(v, f"{h}.{p}.{s[:5]}{flipped}{s[6:]}")
+        refused(v, f"{h}.{p}.")                                              # signature stripped, header still ES256/RS256
+        refused(v, f"{h}.{p}.{token(keys, alg=alg, sub=USER_B).split('.')[2]}")   # another token's valid signature
+
+
+def test_symmetric_key_in_the_jwks_is_never_used(keys):
+    """A JWKS that (wrongly) also publishes an HMAC secret: an HS256 token signed with it, and an ES256 header pointing at it,
+    are both refused. Only EC/RSA keys verify, whatever the provider publishes."""
+    secret = b"published-hmac-secret-0123456789abcdef"
+    fake = FakeJWKSServer({"keys": keys.jwks()["keys"] + [{"kty": "oct", "kid": "hs-1", "k": b64(secret), "alg": "HS256"}]})
+    v, _ = make(keys, fake=fake)
+    refused(v, hs256_token(secret, kid="hs-1"))
+    refused(v, token(keys, kid="hs-1"))
+    assert v.verify(token(keys)).user_id == USER_A
+
+
+def test_stale_jwks_with_provider_down_is_fetched_at_most_once_per_interval(keys):
+    """Found in the 5 Oct review: once the cache was older than its TTL, EVERY verification fetched the JWKS again (under the
+    cache's lock, up to the timeout each) while the provider was down. Now a stale cache is refetched at most once per
+    ``min_refetch`` seconds, and the last keys fetched stay in use meanwhile."""
+    t = [1000.0]
+    v, fake = make(keys, clock=lambda: t[0])
+    assert v.verify(token(keys)).user_id == USER_A and fake.requests == 1
+    fake.fail = True
+    t[0] += 601                                          # past the TTL: stale
+    for _ in range(25):
+        assert v.verify(token(keys)).user_id == USER_A   # the last keys fetched
+    assert fake.requests == 2                            # one attempt, not 25
+    t[0] += 31
+    v.verify(token(keys))
+    assert fake.requests == 3
+    fake.fail = False
+    t[0] += 31
+    v.verify(token(keys))
+    assert fake.requests == 4
+    for _ in range(5):
+        v.verify(token(keys))
+    assert fake.requests == 4                            # fresh again: no fetch per request
