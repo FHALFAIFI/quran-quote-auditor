@@ -1,0 +1,47 @@
+{
+ "tag": "dev-frozen",
+ "params": {
+  "PAIR_RARE_ZIPF": 3.2,
+  "PAIR_OTHER_ZIPF": 6.0,
+  "PAIR_MAX_AYAHS": 4
+ },
+ "set": "hard_quotes_dev_20261004",
+ "articles": 71,
+ "chars": 20438,
+ "two_word_quotes": 5,
+ "found_by_any_finding": 3,
+ "found_by_pair": 3,
+ "pairs_on_quotes": 3,
+ "pairs_on_allusions": 0,
+ "pairs_false": 0,
+ "false_per_10k": 0.0,
+ "missed": [
+  [
+   "HD-057-famous",
+   "خلق عظيم"
+  ],
+  [
+   "HD-058-famous",
+   "كن فيكون"
+  ]
+ ],
+ "false_items": [],
+ "allusion_items": [],
+ "true_items": [
+  {
+   "case": "HD-053-famous",
+   "text": "أحسن الخالقين",
+   "context": "ونقوش دقيقة لا يصنعها فنان بشري. إنها لمسة من صنع أحسن الخالقين في أصغر مخلوقاته."
+  },
+  {
+   "case": "HD-054-famous",
+   "text": "والعاقبة للمتقين",
+   "context": "ّره عن الآخرين. لكن التجربة الطويلة تقول غير ذلك، والعاقبة للمتقين، ولو بعد حين. وكما يقول المثل"
+  },
+  {
+   "case": "HD-055-famous",
+   "text": "أضغاث أحلام",
+   "context": "د، فلما انتهت الانتخابات تبيّن أن تلك الوعود كانت أضغاث أحلام، وعاد الناس إلى طرقهم المزدحم"
+  }
+ ]
+}

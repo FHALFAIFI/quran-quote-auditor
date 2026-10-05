@@ -1,0 +1,28 @@
+{
+ "tag": "dev-frozen",
+ "params": {
+  "PAIR_RARE_ZIPF": 3.2,
+  "PAIR_OTHER_ZIPF": 6.0,
+  "PAIR_MAX_AYAHS": 4
+ },
+ "set": "articles_frozen",
+ "articles": 5,
+ "chars": 12959,
+ "two_word_quotes": 1,
+ "found_by_any_finding": 1,
+ "found_by_pair": 1,
+ "pairs_on_quotes": 1,
+ "pairs_on_allusions": 0,
+ "pairs_false": 0,
+ "false_per_10k": 0.0,
+ "missed": [],
+ "false_items": [],
+ "allusion_items": [],
+ "true_items": [
+  {
+   "case": "L2-orphans-incomplete-and-wrong",
+   "text": "وبالوالدين إحسانا",
+   "context": "طيعون احتضانهم.  وحين نعلّم أبناءنا البر نقول لهم وبالوالدين إحسانا، ثم نريهم بالقدوة كيف يكون ال"
+  }
+ ]
+}

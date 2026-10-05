@@ -1,0 +1,82 @@
+{
+ "tag": "dev-frozen",
+ "params": {
+  "PAIR_RARE_ZIPF": 3.2,
+  "PAIR_OTHER_ZIPF": 6.0,
+  "PAIR_MAX_AYAHS": 4
+ },
+ "set": "articles_long_20261003",
+ "articles": 10,
+ "chars": 102356,
+ "two_word_quotes": 3,
+ "found_by_any_finding": 3,
+ "found_by_pair": 2,
+ "pairs_on_quotes": 2,
+ "pairs_on_allusions": 0,
+ "pairs_false": 8,
+ "false_per_10k": 0.78,
+ "missed": [],
+ "false_items": [
+  {
+   "case": "LA02-trade-ethics-column",
+   "text": "الكيل والميزان",
+   "context": "يدخل في معنى الآية وإن لم يُسمَّ سارقًا.  ثانيًا: الكيل والميزان  لا نكاد نجد قضية أخلاقية تكر",
+   "labelled_ordinary": false
+  },
+  {
+   "case": "LA02-trade-ethics-column",
+   "text": "الكيل والميزان",
+   "context": "د نجد قضية أخلاقية تكررت في القرآن كما تكررت قضية الكيل والميزان. فقد جاءت في قصص الأنبياء وفي",
+   "labelled_ordinary": false
+  },
+  {
+   "case": "LA03-technology-and-the-heart",
+   "text": "والأبصار والأفئدة",
+   "context": "ل لكم السمع والأبصار والقلوب» (النحل: 78). فالسمع والأبصار والأفئدة هي أدوات الانتباه، وقد وهبها ",
+   "labelled_ordinary": false
+  },
+  {
+   "case": "LA07-time-sermon",
+   "text": "يعجب الزرّاع",
+   "context": "مظاهر الدنيا التي ننشغل بها، ثم نكتشف أنها كالمطر يعجب الزرّاع نباته، ثم يذبل فيصفرّ ويتحطم.",
+   "labelled_ordinary": false
+  },
+  {
+   "case": "LA09-neighbours-letters",
+   "text": "والجار الجنب",
+   "context": "ق الله. والجار ذو القربى هو القريب مسكنًا ونسبًا، والجار الجنب هو الأجنبي، والصاحب بالجنب قد",
+   "labelled_ordinary": false
+  },
+  {
+   "case": "LA09-neighbours-letters",
+   "text": "والصاحب بالجنب",
+   "context": "هو القريب مسكنًا ونسبًا، والجار الجنب هو الأجنبي، والصاحب بالجنب قد يكون الزميل أو الرفيق في ا",
+   "labelled_ordinary": false
+  },
+  {
+   "case": "LA10-youth-graduation-speech",
+   "text": "وإذا قلتم",
+   "context": "اجعته. فإذا وعدتم بتسليم مشروع في موعد فأوفوا به، وإذا قلتم لأحد إنكم ستساعدونه فساعدوه. ",
+   "labelled_ordinary": false
+  },
+  {
+   "case": "LA10-youth-graduation-speech",
+   "text": "يحب التوابين",
+   "context": "ه. ولا تيأسوا إذا زللتم، فباب التوبة مفتوح، والله يحب التوابين.  سابعًا: كلمة في الوظيفة الأ",
+   "labelled_ordinary": false
+  }
+ ],
+ "allusion_items": [],
+ "true_items": [
+  {
+   "case": "LA05-family-essay",
+   "text": "وعاشروهن بالمعروف",
+   "context": "رة السليمة. وقد أوجبه الله في معاملة الزوجة فقال: وعاشروهن بالمعروف. ويدخل في المعاشرة بالمعروف ا"
+  },
+  {
+   "case": "LA07-time-sermon",
+   "text": "فَاسْتَبِقُوا الْخَيْرَاتِ",
+   "context": "ود، وقد وجّهنا الله إلى المسابقة في الخيرات فقال: فَاسْتَبِقُوا الْخَيْرَاتِ[1]. وبيّن في سورة آل عمران أن"
+  }
+ ]
+}

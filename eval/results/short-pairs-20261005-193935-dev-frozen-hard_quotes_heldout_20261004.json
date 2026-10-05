@@ -1,0 +1,22 @@
+{
+ "tag": "dev-frozen",
+ "params": {
+  "PAIR_RARE_ZIPF": 3.2,
+  "PAIR_OTHER_ZIPF": 6.0,
+  "PAIR_MAX_AYAHS": 4
+ },
+ "set": "hard_quotes_heldout_20261004",
+ "articles": 48,
+ "chars": 13678,
+ "two_word_quotes": 0,
+ "found_by_any_finding": 0,
+ "found_by_pair": 0,
+ "pairs_on_quotes": 0,
+ "pairs_on_allusions": 0,
+ "pairs_false": 0,
+ "false_per_10k": 0.0,
+ "missed": [],
+ "false_items": [],
+ "allusion_items": [],
+ "true_items": []
+}

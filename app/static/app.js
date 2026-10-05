@@ -210,7 +210,8 @@ const pendingList = () => activeFindings().filter((f) => pendingKind(f));
 // An exact match of a short or common phrase («في كل عام») that nothing marks as a quotation: the phrase search's own code «common», without
 // a near-miss («approximate»). In the two labelled article sets about two in five of these were real quotations (4 Oct, docs/EVALUATION.md),
 // so they stay listed, marked and reachable; they only wait behind the concrete decisions instead of leading the queue. No detection rule is changed.
-const isWeak = (f) => { const c = f.detection?.codes || []; return !!f.detection?.unconfirmed && c.includes("common") && !c.includes("approximate"); };
+// An unmarked two-word pair («pair», 5 Oct) is treated the same way: an optional confirmation.
+const isWeak = (f) => { const c = f.detection?.codes || []; return !!f.detection?.unconfirmed && (c.includes("common") || c.includes("pair")) && !c.includes("approximate"); };
 const weakPending = (f) => pendingKind(f) === "verse" && isWeak(f);
 const itemName = (f) => (weakPending(f) ? "العبارة" : "الاقتباس");   // «العبارة ٣» until the writer confirms it is a quotation
 const mainPendingList = () => pendingList().filter((f) => !weakPending(f));
@@ -1269,7 +1270,7 @@ function verseBlock(f) {
   const cs = f.choices || [];
   const det = f.detection || {};
   const box = el("div", { class: "ask" });
-  if (isWeak(f)) box.append(el("p", { class: "weak-note", text: "عبارة شائعة توافق لفظ آية، وقد تكون كلامًا عاديًا. أكّدها إن قصدتَ الآية؛ وإن تركتها نُسخت كما كتبتَها." }));
+  if (isWeak(f)) box.append(el("p", { class: "weak-note", text: `${(det.codes || []).includes("pair") ? "كلمتان توافقان لفظ آية" : "عبارة شائعة توافق لفظ آية"}، وقد تكون كلامًا عاديًا. أكّدها إن قصدتَ الآية؛ وإن تركتها نُسخت كما كتبتَها.` }));
   if (cs.length === 1) {
     box.append(el("p", { class: "q-title", text: "هل قصدتَ اقتباس هذه الآية؟" }), choiceView(cs[0], f, false),
       el("div", { class: "actions-row" },

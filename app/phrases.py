@@ -18,6 +18,9 @@ tier
                Quran cue, a phrase after a hadith/du'a/proverb cue, or an approximate match (one or two
                words differ).
 
+    possible   (code ``pair``) an exact two-word Quran pair, one of whose words is rare in ordinary Arabic (5 Oct 2026; see
+               ``find_pairs`` and docs/SHORT_PHRASE_PROTOCOL_20261005.md). Offered only as an optional confirmation.
+
 Phrases too short or too common to be told apart from ordinary Arabic, and bare everyday formulae, are not
 reported; they are counted (``PhraseScan.suppressed``) so the interface can say so and offer manual selection.
 
@@ -30,6 +33,7 @@ How the parameters below were chosen, and what was and was not held out, is writ
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from functools import lru_cache
@@ -51,6 +55,14 @@ ANCHOR_IDF = 5.0           # a lone exact word beyond an edit counts as support 
 MAX_EDITS = 2              # whole-word substitutions / insertions / omissions inside one approximate phrase
 MAX_SEED_STEPS = 160_000   # work budget per article (seed occurrences visited); dense real articles need about 4 steps per character (≈78,000 at 20,000 characters), repeated frequent words would need far more
 MAX_SPANS = 60             # Quran places kept for one phrase
+
+# Unmarked two-word pairs (docs/SHORT_PHRASE_PROTOCOL_20261005.md). Rarity in the Quran cannot tell «فاستبقوا الخيرات» from «حياة طيبة»;
+# rarity in ordinary Arabic can. PROSE_ZIPF holds, per folded Quran word, its frequency in ordinary Arabic (wordfreq, Zipf scale: 3 = once
+# per million words). Tuned on development data only, then frozen before the held-out run.
+PAIR_RARE_ZIPF = 3.2       # one word of the pair is at most this frequent in ordinary Arabic
+PAIR_OTHER_ZIPF = 6.0      # ... and the other is not an everyday function word
+PAIR_MAX_AYAHS = 4         # the pair occurs in at most this many ayahs
+_PROSE_ZIPF_FILE = Path(__file__).parent / "data" / "prose_zipf.tsv"
 
 # Phrases used as everyday formulae (folded words). They ARE Quran text, but a writer who uses one is rarely
 # quoting a verse: they are hidden, unless a Quran cue ("قال تعالى") precedes them, and then never "candidate".
@@ -391,6 +403,48 @@ def ends_with_quran_cue(before: str) -> bool:
     return any(len(c) <= len(words) and words[len(words) - len(c):] == c for c in _QURAN)
 
 
+@lru_cache(maxsize=1)
+def prose_zipf() -> dict[str, float]:
+    """Folded Quran word -> frequency in ordinary Arabic (Zipf). Words missing from the file count as unseen (0)."""
+    out: dict[str, float] = {}
+    for line in _PROSE_ZIPF_FILE.read_text(encoding="utf-8").splitlines():
+        if line and not line.startswith("#"):
+            w, z = line.split("\t")
+            out[w] = float(z)
+    return out
+
+
+def find_pairs(article: str, tokens: list[arabic.Token], index: QuranIndex, taken: list[tuple[int, int]]) -> list[PhraseHit]:
+    """Exact two-word Quran pairs that a writer is probably quoting: one word is rare in ordinary Arabic, the other is not a function
+    word, the pair is in few ayahs, is no formula, follows no hadith/du'a/proverb cue and overlaps nothing in ``taken`` (token ranges
+    the search already reported or suppressed). Each is «possible» with code ``pair``: an optional confirmation, never a replacement."""
+    zipf = prose_zipf()
+    out: list[PhraseHit] = []
+    total = max(1, index.ayah_count)
+    for lo, hi in _segments(article, tokens):
+        i = lo
+        while i < hi - 1:
+            w1, w2 = tokens[i].fold, tokens[i + 1].fold
+            z1, z2 = zipf.get(w1, 0.0), zipf.get(w2, 0.0)
+            if (min(z1, z2) > PAIR_RARE_ZIPF or max(z1, z2) > PAIR_OTHER_ZIPF
+                    or any(a < i + 2 and i < b for a, b in taken) or any(_contains(f, (w1, w2)) or _contains((w1, w2), f) for f in _FORMULA_SET)):
+                i += 1
+                continue
+            spans, ayahs = [], set()
+            for s, p in index.positions.get(w1, ()):
+                st = index.streams[s]
+                if p + 1 < len(st) and st[p + 1][0] == w2:
+                    spans.append(Span(s, p, p + 2))
+                    ayahs.add((s, st[p][1]))
+            if not spans or len(ayahs) > PAIR_MAX_AYAHS or quran_cue(article, tokens[i].start) == "non_quran":
+                i += 1
+                continue
+            mass = sum(math.log(total / index.doc_freq[w]) for w in (w1, w2))
+            out.append(PhraseHit(i, i + 2, True, spans[:MAX_SPANS], mass, 2, tier="possible", reasons=["pair"]))
+            i += 2
+    return out
+
+
 def find_phrases(article: str, tokens: list[arabic.Token], index: QuranIndex) -> PhraseScan:
     """Reportable Quran phrases in ``article`` (see the module docstring for the tiers)."""
     s = _Searcher(article, tokens, index)
@@ -399,4 +453,6 @@ def find_phrases(article: str, tokens: list[arabic.Token], index: QuranIndex) ->
     suppressed: list[PhraseHit] = []
     for h in hits:
         (kept if s.classify(h) else suppressed).append(h)
+    if not truncated:
+        kept = sorted(kept + find_pairs(article, tokens, index, [(h.first, h.last) for h in hits]), key=lambda h: h.first)
     return PhraseScan(kept, suppressed, s.steps, truncated)

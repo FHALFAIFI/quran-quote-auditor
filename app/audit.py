@@ -36,6 +36,7 @@ TIER_LABEL = {
 TIER_REASON = {
     "candidate": "مطابقة حرفية لعبارة مميزة من المصحف دون علامات اقتباس؛ تأكد أنها مقصودة اقتباسًا.",
     "common": "عبارة قصيرة أو شائعة قد ترد في الكلام العادي.",
+    "pair": "كلمتان فقط تطابقان المصحف، وإحداهما نادرة في الكلام العادي؛ أكّدها إن قصدتَ الاقتباس، وإلا فتجاهلها.",
     "approximate": "مطابقة تقريبية: بعض كلمات العبارة تختلف عن المصحف، وليست تحققًا.",
     "formula": "عبارة شائعة الاستعمال (بسملة أو حمدلة أو ذكر…) وقد لا يُقصد بها اقتباس آية.",
     "non_quran_cue": "سبقتها إشارة إلى حديث أو دعاء أو مثل، فقد تكون من غير القرآن.",
@@ -161,44 +162,62 @@ def _words_between(article: str, a: int, b: int) -> int:
     return len(arabic.tokenize(article[a:b])) if b > a else 0
 
 
+def _optional_pair(c: Candidate) -> bool:
+    """A span only the two-word pair search found (an optional confirmation, ``phrases.find_pairs``)."""
+    return c.sources == {"phrase"} and c.phrase is not None and "pair" in getattr(c.phrase, "reasons", ())
+
+
 def attach_references(article: str, cands: list[Candidate], refs: list[Reference]) -> list[Reference | None]:
-    """Associate each candidate with at most one nearby reference."""
+    """Associate each candidate with at most one nearby reference.
+
+    Optional two-word pairs are served last: a reference another quotation can take is never given to a pair (5 Oct 2026: a pair
+    took «في سورة آل عمران» from the quotation written right after it). Without pairs the order is exactly as before.
+    """
     used: set[int] = set()
     out: list[Reference | None] = [None] * len(cands)
     free = [r for r in refs if not any(c.start <= r.start and r.end <= c.end for c in cands)]
-    # 1) references right after the quotation
-    for ci, c in enumerate(cands):
-        limit = cands[ci + 1].start if ci + 1 < len(cands) else len(article)
-        for ri, r in enumerate(free):
-            if ri in used or r.start < c.end or r.start >= limit:
-                continue
-            if r.start - c.end <= REF_AFTER_CHARS and _words_between(article, c.end, r.start) <= REF_AFTER_WORDS:
-                out[ci] = r
-                used.add(ri)
-            break
-    # 2) reference text proposed by the AI, if it is really in the article near the quote
-    for ci, c in enumerate(cands):
-        if out[ci] is not None or not c.reference_hint:
-            continue
-        hint = arabic.folded(c.reference_hint)
-        for ri, r in enumerate(free):
-            if ri not in used and abs(r.start - c.end) <= 150 and hint and (hint in arabic.folded(r.text) or arabic.folded(r.text) in hint):
-                out[ci] = r
-                used.add(ri)
+    weak = {ci for ci, c in enumerate(cands) if _optional_pair(c)}
+    strong = [ci for ci in range(len(cands)) if ci not in weak]
+    for group, seen in ((strong, strong), (sorted(weak), list(range(len(cands))))):
+        # neighbours bound how far a quotation reaches for its reference; the strong pass does not see the pairs at all
+        nxt = {a: b for a, b in zip(seen, seen[1:])}
+        prv = {b: a for a, b in zip(seen, seen[1:])}
+        # 1) references right after the quotation
+        for ci in group:
+            c = cands[ci]
+            limit = cands[nxt[ci]].start if ci in nxt else len(article)
+            for ri, r in enumerate(free):
+                if ri in used or r.start < c.end or r.start >= limit:
+                    continue
+                if r.start - c.end <= REF_AFTER_CHARS and _words_between(article, c.end, r.start) <= REF_AFTER_WORDS:
+                    out[ci] = r
+                    used.add(ri)
                 break
-    # 3) references just before the quotation ("في سورة البقرة: ...")
-    for ci, c in enumerate(cands):
-        if out[ci] is not None:
-            continue
-        floor = cands[ci - 1].end if ci > 0 else 0
-        for ri in range(len(free) - 1, -1, -1):
-            r = free[ri]
-            if ri in used or r.end > c.start or r.end < floor:
+        # 2) reference text proposed by the AI, if it is really in the article near the quote
+        for ci in group:
+            c = cands[ci]
+            if out[ci] is not None or not c.reference_hint:
                 continue
-            if c.start - r.end <= REF_BEFORE_CHARS and _words_between(article, r.end, c.start) <= REF_BEFORE_WORDS:
-                out[ci] = r
-                used.add(ri)
-            break
+            hint = arabic.folded(c.reference_hint)
+            for ri, r in enumerate(free):
+                if ri not in used and abs(r.start - c.end) <= 150 and hint and (hint in arabic.folded(r.text) or arabic.folded(r.text) in hint):
+                    out[ci] = r
+                    used.add(ri)
+                    break
+        # 3) references just before the quotation ("في سورة البقرة: ...")
+        for ci in group:
+            c = cands[ci]
+            if out[ci] is not None:
+                continue
+            floor = cands[prv[ci]].end if ci in prv else 0
+            for ri in range(len(free) - 1, -1, -1):
+                r = free[ri]
+                if ri in used or r.end > c.start or r.end < floor:
+                    continue
+                if c.start - r.end <= REF_BEFORE_CHARS and _words_between(article, r.end, c.start) <= REF_BEFORE_WORDS:
+                    out[ci] = r
+                    used.add(ri)
+                break
     return out
 
 
@@ -307,7 +326,7 @@ def _detection(article: str, index: QuranIndex | None, c: Candidate, result: dic
         #    named the verse; a lead-in alone says "a verse" but not which, so the choice stays the writer's).
         # Never after a hadith/du'a cue.
         basis = _corroboration(article, c, result, ref)
-        exact_common = set(codes) <= {"common", "formula", "candidate"} and bool(result["occurrences"])
+        exact_common = set(codes) <= {"common", "pair", "formula", "candidate"} and bool(result["occurrences"])
         if basis and (exact_common or (basis == "reference" and set(codes) <= {"approximate", "cue"})):
             return {"kind": kind, "tier": "stated", "label": None, "codes": [], "reasons": [], "unconfirmed": False, "ai_role": ai_role,
                     "basis": basis, **info, **spans}
