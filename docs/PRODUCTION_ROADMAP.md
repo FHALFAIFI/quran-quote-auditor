@@ -34,6 +34,7 @@ Every evaluation set so far was written by the same AI-assisted workflow as the 
 Known gaps (`docs/EVALUATION.md`):
 
 - short repeated phrases are missed («وبالوالدين إحسانا», «فاستبقوا الخيرات»);
+- on 5 Oct a bounded quotation with the correct ayah reference, one wrong word and one missing word gained a source-backed, reviewable correction (see `tests/test_corrections.py`); the nine saved evaluation sets had identical rows to the prior release;
 - an unmarked near-miss gets no replacement until its boundary is settled;
 - ordinary prose that matches a verse exactly is shown as «possible» about once per 6,800 characters. On 4 Oct, «في كل عام» (the first open item of `LA01`) was diagnosed: tier «possible», code `common`. On the two labelled article sets (`articles_frozen`, `articles_long_20261003`) an exact-but-common «possible» item is a real quotation 11 times in 26 (`eval/possible_tier_composition.py`). Draft PR #2 changed only where these appear (after the concrete decisions, as «عبارات للتأكيد») and how they are counted; **it did not change detection and does not reduce this noise**.
 
@@ -78,7 +79,7 @@ Work and tests:
 
 - **Status (4 Oct, challenge period):** measured on 76 short labelled articles (21,423 characters) with a paired replay: **1 true additional quotation, 0 false additions, 0 changed findings — about 0.5 per 10,000 characters, below the rule below.** The switch-off the rule calls for was **not** made: the owner decides (`docs/EVALUATION.md`, «The model's measured contribution»). A narrower role (triage of «possible» phrases from the surrounding sentence) passed its pre-registered rule on two small runs but is not built (same section). Second sample the same night, the two hard-quotation sets (111 answered calls, 32,633 characters): **0** additions, 0 false, 0 changed. Both together: 1 true addition in 54,056 characters (≈ 0.2 per 10,000); 9 of 195 calls failed (4.6%).
 
-In every audit so far the model proposed nothing that the deterministic path had not already found (`ai.added_only = 0`). Since `47f224e` the model is attempted on every short audit, so it is sent text on every audit. That has to be justified.
+In the live demonstration audits the model usually proposed passages already found by the source search (`ai.added_only = 0`); in the paired labelled replay it added one true quotation in 54,056 characters. Since `47f224e` the model is attempted on each short audit, so sending the article to Groq still needs a clearer measured benefit.
 
 - **Work:** run set C and the long sets twice, once with the model off and once on (same code, one run each, results kept). For every finding, record `ai_role`: only, also or overlap. Count true quotations found **only** by the model, and false «possible» items added **only** by the model.
 - **Decision rule (agreed before the run):** keep the model on by default only if it adds at least 2 true quotations per 10,000 characters with no more than 1 extra false item per 10,000 characters. Otherwise, switch it off on the server (`AI_PROVIDER=none`) and update `/privacy`.

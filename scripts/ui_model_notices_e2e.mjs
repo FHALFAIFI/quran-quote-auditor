@@ -67,7 +67,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
 
   console.log(`\n== ${name}: SIMULATED configured model, article over its limit`);
   ({ page, errors, audit, shot } = await open(vp, mobile, "over"));
-  check(/عند التدقيق يُرسَل المقال إلى Groq إن كان النموذج متاحًا والمقال لا يتجاوز ٦٬٠٠٠ حرف/.test(norm(await page.textContent("#send-note"))), "SIMULATED: before sending, the page names Groq and the 6,000-character limit");
+  check(/عند التدقيق يُرسل المقال إلى Groq إن كان متاحًا ولا يتجاوز ٦٬٠٠٠ حرف/.test(norm(await page.textContent("#send-note"))), "SIMULATED: before sending, the page names Groq and the 6,000-character limit");
   await page.fill("#article", long);
   await page.waitForTimeout(200);
   const pre = norm(await page.textContent("#ai-limit-note"));
@@ -90,7 +90,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   m = await meta(page);
   check(m && m.lineVisible && /^تعذّر اقتراح الذكاء الاصطناعي هذه المرة\. فُحص المقال بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها، أو أعد التدقيق لاحقًا\.$/.test(m.line), `SIMULATED: one calm line: the source-based result stands, try again later («${m?.line.slice(0, 40)}…»)`);
   check(m && !m.detailsOpen && /سبب التعذّر: HTTP 429/.test(m.detailsText) && !/HTTP 429/.test(m.visible), "SIMULATED: the HTTP status is behind «تفاصيل هذا التدقيق», not on the page");
-  check(m && m.errors === 0 && (await page.locator("#notices .notice").count()) === 0, "SIMULATED: no red error and the server's warning is not repeated as a second banner");
+  check(m && m.errors === 0 && !(await page.locator("#notices .notice").allTextContents()).some((t) => /تعذّر الاستخراج بالذكاء الاصطناعي/.test(t)), "SIMULATED: no red error and the server's AI warning is not repeated as a second banner");
   check(m && !/استجاب|اقترح نموذج/.test(m.visible + m.detailsText), "SIMULATED: nowhere does it say the model answered");
   check((await page.locator("#queue li").count()) === 4 && (await page.locator("#current article").count()) === 1, "SIMULATED: the source-based review is complete and usable");
   check(/لا — كان .* مُعَدًّا لكنه لم يستجب في هذا التدقيق \(HTTP 429\)/.test(await record(page)), "SIMULATED: the record says «no», with the reason");
@@ -116,11 +116,12 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   check(m && /limited/.test(m.cls) && m.lineVisible && m.line === "لم يُسأل النموذج اللغوي هذه المرة لأنه تعذّر قبل قليل. فُحص المقال بالعلامات وبالبحث في المصحف، وقد تفوت عبارة قصيرة بلا علامات؛ حدّدها في المقال لتفحصها.", `SIMULATED: one calm line says the model was not asked, and why («${m?.line.slice(0, 45)}…»)`);
   check(m && !/^تعذّر اقتراح/.test(m.line) && !/سبب التعذّر|HTTP|429/.test(m.detailsText + m.visible), "SIMULATED: it does not claim this audit failed, and shows no status code of the earlier call");
   check(m && !m.detailsOpen && /يُسأل النموذج من جديد بعد نحو ١١٧ ث/.test(m.detailsText) && (m.detailsText.match(/لم يُسأل الذكاء الاصطناعي/g) || []).length === 0, "SIMULATED: the wait is behind the details, and the server's notice is not repeated there");
-  check(m && m.errors === 0 && (await page.locator("#notices .notice").count()) === 0 && !/استجاب|اقترح نموذج/.test(m.visible + m.detailsText), "SIMULATED: no red error, no second banner, nothing says a model answered");
+  check(m && m.errors === 0 && !(await page.locator("#notices .notice").allTextContents()).some((t) => /لم يُسأل الذكاء الاصطناعي/.test(t)) && !/استجاب|اقترح نموذج/.test(m.visible + m.detailsText), "SIMULATED: no red error, no repeated AI banner, nothing says a model answered");
   check((await page.locator("#queue li").count()) === 4 && (await page.locator("#current article").count()) === 1, "SIMULATED: the source-based review is complete and usable");
   check(/لا — لم يُسأل groq في هذا التدقيق لأن استدعاءً سابقًا له تعذّر قبل قليل/.test(await record(page)), "SIMULATED: the printed record says the model was not asked, and why");
   const visibleLen = norm(await page.evaluate(() => document.getElementById("notices").innerText)).length;   // what is rendered, as live_smoke.mjs counts it
-  check(visibleLen <= 200, `SIMULATED: the notice region stays bounded like the failure line (${visibleLen} characters)`);
+  const staleSource = (await page.locator("#notices .notice").allTextContents()).some((t) => /نسخة مخبأة/.test(t));
+  check(visibleLen <= (staleSource ? 300 : 200), `SIMULATED: the notice region stays bounded, accounting for a real source-cache warning (${visibleLen} characters)`);
   check(errors.length === 0, `no console errors ${errors.join(" | ")}`);
   await shot("cooldown");
   await page.context().close();

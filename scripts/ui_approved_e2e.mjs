@@ -40,7 +40,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   // before: nothing drawn, and the card says what the button will do
   check((await fixes(page)).length === 0, "before approval no correction is drawn in the box");
   const note = norm(await page.textContent("#finding-3 .fix-note").catch(() => ""));
-  check(/عند الاعتماد يبقى نصّك في المربع ويظهر «يوفى» فوقه، ويُكتب مكانه في النسخة التي تنسخها/.test(note), `the card says where «يوفى» will appear («${note}»)`);
+  check(/نصّك في المربع كما هو؛ اعتماد التصحيح يغيّر النسخة المنسوخة فقط/.test(note), `the card distinguishes the original from the copy («${note}»)`);
   const lh0 = await lineHeight(page);
   check(await page.evaluate(() => { const b = document.querySelector('#finding-3 [data-act="approved"]'); const id = b.getAttribute("aria-describedby"); return !!id && !!document.getElementById(id); }), "the approve button is described by that note (screen readers hear it)");
   check(/يجزى/.test(await revised(page)), "the copy still says «يجزى»");
@@ -81,7 +81,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   // once approved, the card itself says which text is the writer's, which is copied, and how to take it back
   await openRow(page, 3);
   const approvedNote = norm(await page.textContent("#finding-3 .fix-note").catch(() => ""));
-  check(/اعتمدتَه: يُكتب «يوفى» في النسخة المنسوخة، ونصّك في المربع باقٍ تحته مشطوبًا\. للتراجع اضغط زر الاعتماد أعلاه مرة أخرى/.test(approvedNote), `the approved card says what is copied, what stays, and how to undo («${approvedNote}»)`);
+  check(/اعتمدتَه للنسخة المنسوخة؛ نصّك الأصلي باقٍ\. اضغط الزر ثانية للتراجع/.test(approvedNote), `the approved card says what is copied, what stays, and how to undo («${approvedNote}»)`);
   await openRow(page, 4);
   check((await overflowX()) <= 1, "no sideways scroll");
 
@@ -135,7 +135,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   const kind = await page.evaluate(() => { const c = requiredOf(findingById(current))[0]; return c && { len: c.end - c.start, rep: c.replacement }; });
   check(kind && kind.len === 0 && /رب/.test(kind.rep), `the missing «رب» is an insertion (${JSON.stringify(kind)})`);
   // an addition replaces nothing: «فوق موضعه، ويُضاف» (until 5 Oct the note said «فوقه، ويُكتب مكانه», as for a replaced word)
-  check(/عند الاعتماد يبقى نصّك في المربع ويظهر «رب» فوق موضعه، ويُضاف في النسخة التي تنسخها/.test(norm(await page.textContent("#current .fix-note").catch(() => ""))), "the card says where «رب» will appear, and that it is added");
+  check(/أضف «رب»/.test(await page.textContent('#current [data-act="approved"]')) && /نصّك في المربع كما هو؛ اعتماد التصحيح يغيّر النسخة المنسوخة فقط/.test(norm(await page.textContent("#current .fix-note").catch(() => ""))), "the button offers to add «رب», while the note says the original stays");
   await tap('#current [data-act="approved"]');
   await page.waitForTimeout(700);
   fx = await fixes(page);

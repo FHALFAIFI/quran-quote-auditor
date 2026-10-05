@@ -51,7 +51,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   await page.evaluate(() => { document.getElementById("options").open = true; });
   check((await page.locator("#opt-ai").count()) === 0, "there is no per-audit model switch");
   check(norm(await page.textContent("#limit-note")) === arN(health.max_chars), `the page states the limit (${await page.textContent("#limit-note")})`);
-  for (const [href, h1] of [["/sources", "المصادر وطريقة التحقق"], ["/privacy", "الخصوصية"], ["/limitations", "الحدود"]]) {
+  for (const [href, h1] of [["/sources", "المصادر وطريقة التحقق"], ["/privacy", "الخصوصية"], ["/limitations", "الحدود"], ["/roadmap", "ما نعمل عليه"]]) {
     check((await page.locator(`.site-footer a[href="${href}"]`).count()) === 1 && (await page.locator(`.site-nav a[href="${href}"]`).count()) === 1, `${href} is linked from the header and the footer`);
   }
   check((await page.locator('#editor-hint a[href="/privacy"]').count()) === 1, "the paste box links to the privacy page");

@@ -125,7 +125,7 @@ const KIND = {
   reference: "تصحيح الإحالة",
   reference_add: "إضافة الإحالة بجوار الاقتباس",
 };
-const DECISION_TITLE = { wording: "هل تصحّح الكلمة؟", diacritics: "هل تصحّح التشكيل؟", reference: "هل تصحّح الإحالة؟" };
+const DECISION_TITLE = { wording: "تصحيح الاقتباس", diacritics: "هل تصحّح التشكيل؟", reference: "هل تصحّح الإحالة؟" };
 
 const setArticleText = (t) => { lastArticle = t; ART = Array.from(t); parasCache = null; };
 const cpSlice = (a, b) => ART.slice(a, b).join("");
@@ -289,14 +289,12 @@ async function loadHealth() {
       // "Configured" is not "working": state what is known about the last real call.
       const last = h.ai_last_call || {};
       banner.className = "banner";
-      banner.append(el("strong", { text: "الذكاء الاصطناعي مُعَدّ" }), " — ", el("bdi", { dir: "ltr", text: h.provider }), ". ");
-      if (last.outcome === "ok") banner.append("آخر استدعاء له على هذا الخادم نجح. ");
-      else if (last.outcome === "failed") banner.append(el("b", { text: "آخر استدعاء له على هذا الخادم فشل" }), last.cooldown_seconds > 0 ? ` ويُتخطّى مؤقتًا (${toArabicDigits(last.cooldown_seconds)} ث). ` : ". ");
-      else banner.append("لم يُستدعَ بعدُ على هذا الخادم. ");
-      banner.append(`نتيجة كل تدقيق تبيّن هل استجاب النموذج فعلًا. دوره اقتراح مواضع الاقتباس فقط، ويُتحقق من كل مقترح بنص المقال ثم بنص المصحف، ولا يُستعمل في مقال أطول من ${arabicCount(AI_MAX_CHARS)} حرف. اقتراحات الآيات أثناء الكتابة لا يشارك فيها النموذج أبدًا.`);
+      banner.append(el("strong", { text: "النموذج مُهيّأ" }), " · ", el("bdi", { dir: "ltr", text: h.provider }), ". ");
+      if (last.outcome === "failed") banner.append(el("b", { text: "آخر محاولة فشلت؛ قد يُتخطّى مؤقتًا. " }));
+      banner.append("يقترح المواضع؛ نتحقق من الآيات في المصحف. ", el("a", { href: "/sources", text: "كيف يعمل؟" }));
     } else {
       banner.className = "banner reduced";
-      banner.append(el("strong", { text: "الذكاء الاصطناعي غير مفعّل على هذا الخادم." }), " تُفحص الاقتباسات المعلَّمة والعبارات التي تطابق المصحف دون علامات؛ وقد تفوت بعض الاقتباسات القصيرة، ويمكنك تحديدها بنفسك. الكتابة والاقتراح والتدقيق تعمل كلها بدونه.");
+      banner.append(el("strong", { text: "النموذج غير متاح." }), " نفحص المقال على نص المصحف، وقد تفوت عبارة قصيرة بلا علامات.");
     }
   } catch {
     banner.hidden = true;
@@ -743,7 +741,7 @@ function renderVerdict(data) {
   box.replaceChildren(...[
     el("h2", { id: "verdict-title", tabindex: "-1", text: v.headline }),
     v.maybe ? el("p", { class: "verdict-maybe", text: v.maybe }) : null,
-    el("p", { class: "verdict-sub", text: "فحص للاقتباسات المرصودة، وليس حكمًا على المقال كله." + (edited() ? " النص تغيّر بعد هذا التدقيق." : "") }),
+    el("p", { class: "verdict-sub", text: "فحصنا الاقتباسات المرصودة فقط." + (edited() ? " النص تغيّر بعد التدقيق." : "") }),
     !v.total && !v.maybe ? el("p", { class: "verdict-sub", text: "إن كان في مقالك آية لم نرصدها، حدّدها في المقال ثم اضغط «افحص المحدَّد»." }) : null,
     isDemo ? el("p", { class: "verdict-demo", text: DEMO_NOTE }) : null,
   ].filter(Boolean));
@@ -1239,7 +1237,7 @@ function decisionBlock(c, f, secondary) {
   // One concise warning stays beside the decision. The complete list remains
   // in the expanded evidence section below the card.
   const warns = (f.review_reasons || []).filter((x) => x !== c.reason).slice(0, 1);
-  const lead = c.kind === "reference" || !warns.length ? [c.reason] : warns;
+  const lead = warns;
   const side = (cap, cls, text) => el("div", { class: "d-side" }, el("span", { class: "d-cap", text: cap }),
     el("span", { class: cls }, d.prefix ? el("span", { class: "d-pre", text: d.prefix }) : null, text));
   const node = el("div", { class: `decide ${secondary ? "secondary" : ""}`, "data-change": c.id },
@@ -1248,20 +1246,16 @@ function decisionBlock(c, f, secondary) {
       side("في مقالك", "d-before", d.before),
       el("span", { class: "d-arrow", "aria-hidden": "true", text: "←" }),
       side("في المصحف", "d-after", d.after)),
-    ...lead.filter(Boolean).map((x) => el("p", { class: "ch-lead", text: x })),
+    ...lead.map((x) => el("p", { class: "ch-lead", text: x })),
     c.kind === "diacritics" ? el("p", { class: "muted small", text: "تختلف طبعات المصاحف في بعض علامات الضبط (كشدّة الإدغام)؛ تأكد قبل الاعتماد." }) : null,
     el("div", { class: "actions-row" },
       el("button", { type: "button", class: "btn approve", "data-act": "approved", "aria-pressed": String(decisions[c.id] === "approved"), "aria-describedby": firstFix ? `fx-${c.id}` : null, onclick: () => setDecision(c.id, "approved"), text: yes }),
       el("button", { type: "button", class: "btn reject", "data-act": "rejected", "aria-pressed": String(decisions[c.id] === "rejected"), onclick: () => setDecision(c.id, "rejected"), text: no })),
     // until the writer has approved one correction, say where it goes: the box keeps their text
-    firstFix ? (drops(c) ? el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يبقى نصّك في المربع وتُشطب فيه ", el("b", { text: `«${d.before}»` }), "، وتُحذف من النسخة التي تنسخها.")
-      : el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يبقى نصّك في المربع ويظهر ", el("b", { text: `«${d.prefix}${d.after}»` }),
-        adds(c) ? " فوق موضعه، ويُضاف في النسخة التي تنسخها." : " فوقه، ويُكتب مكانه في النسخة التي تنسخها.")) : null,
+    firstFix ? el("p", { class: "fix-note", id: `fx-${c.id}`, text: "نصّك في المربع كما هو؛ اعتماد التصحيح يغيّر النسخة المنسوخة فقط." }) : null,
     // once approved: which text is the writer's, which is copied, and how to take it back
-    decisions[c.id] === "approved" ? (drops(c) ? el("p", { class: "fix-note" }, "اعتمدتَه: تُحذف ", el("b", { text: `«${d.before}»` }),
-      " من النسخة المنسوخة، ونصّك في المربع باقٍ مشطوبًا.", " للتراجع اضغط زر الاعتماد أعلاه مرة أخرى.")
-      : el("p", { class: "fix-note" }, "اعتمدتَه: يُكتب ", el("b", { text: `«${d.prefix}${d.after}»` }),
-        c.start === c.end ? " في النسخة المنسوخة، ونصّك في المربع كما هو." : " في النسخة المنسوخة، ونصّك في المربع باقٍ تحته مشطوبًا.", " للتراجع اضغط زر الاعتماد أعلاه مرة أخرى.")) : null,
+    decisions[c.id] === "approved" ? el("p", { class: "fix-note", text: "اعتمدتَه للنسخة المنسوخة؛ نصّك الأصلي باقٍ. اضغط الزر ثانية للتراجع." }) : null,
+    c.reason ? el("details", { class: "ch-more" }, el("summary", { text: "سبب الاقتراح" }), el("p", { text: c.reason })) : null,
     quoteLevel && (c.quote_before || c.quote_after) ? el("details", { class: "ch-more" }, el("summary", { text: "الاقتباس كاملًا قبل التصحيح وبعده" }),
       el("div", { class: "ch-diff" },
         el("div", {}, el("span", { class: "row-label", text: "قبل" }), el("div", { class: "ch-before", dir: "rtl", text: c.quote_before })),
@@ -1295,8 +1289,7 @@ function verseBlock(f) {
         el("button", { type: "button", class: "btn approve", "data-act": "other-verse", "aria-expanded": "false", onclick: (e) => toggleVerseForm(e.currentTarget), text: "اختر الآية" }),
         notQuoteButton(f)));
   }
-  box.append(el("p", { class: "muted small ask-note", text: "لن يتغيّر شيء في مقالك قبل قرارك. بعد أن تؤكد الآية نعرض الفرق ونقترح التصحيح لتعتمده أو ترفضه." }));
-  if (det.reasons?.length) box.append(el("p", { class: "muted small", text: det.reasons.join(" ") }));
+  if (det.reasons?.length) box.append(el("details", { class: "ch-more" }, el("summary", { text: "لماذا ظهرت؟" }), el("p", { text: det.reasons.join(" ") })));
   return box;
 }
 
@@ -1366,7 +1359,7 @@ function boundsBlock(f) {
   const lead = f.lead_in, cont = f.continuation;
   const title = lead && cont ? "أين يبدأ الاقتباس وأين ينتهي؟" : lead ? "أين يبدأ الاقتباس؟" : "أين ينتهي الاقتباس؟";
   const box = el("div", { class: "ask bounds" }, el("p", { class: "q-title", text: title }),
-    el("p", { text: "ما بين الحدّين مطابق للآية، لكننا لا نعرف هل الكلمة المجاورة من كلامك أم من الاقتباس." }));
+    el("p", { text: "هل الكلمة المجاورة من اقتباسك؟" }));
   const side = (info, dir) => {
     const tok = neighbour(f, dir);
     const where = dir > 0 ? "بعد المقطع" : "قبل المقطع";
@@ -1424,12 +1417,12 @@ function reviewBlock(f) {
   const w = f.wording;
   const box = el("div", { class: "ask review" }, el("p", { class: "q-title", text: "راجع هذا الموضع بنفسك" }));
   const reasons = (f.review_reasons || []).slice(0, 2);
-  reasons.forEach((x) => box.append(el("p", { class: "ch-lead", text: x })));
+  if (reasons.length) box.append(el("p", { class: "ch-lead", text: reasons[0] }));
   if (f.reference?.status === "incorrect" && f.reference.message) box.append(el("p", { class: "ch-lead", text: f.reference.message }));
   const nonEqual = (w.diff || []).filter((d) => d.op !== "equal");
   if (f.source && nonEqual.length) box.append(el("div", {}, el("div", { class: "row-label", text: "الفرق بالكلمات" }), diffView(w.diff),
     el("div", { class: "diff-legend", text: "الأحمر المشطوب: في مقالك لا في المصحف · الأخضر: في المصحف لا في مقالك" })));
-  box.append(el("p", { class: "muted small", text: "لا نقترح تصحيحًا آليًا هنا. إن وجدتَ خطأً فصحّحه في نص مقالك ثم أعد التدقيق." }),
+  box.append(el("p", { class: "muted small", text: "الفرق غير محسوم. صحّح النص ثم أعد التدقيق، أو سجّل مراجعتك." }),
     el("div", { class: "actions-row" },
       el("button", { type: "button", class: "btn approve", "data-act": "reviewed", onclick: () => markReviewed(f, true), text: "راجعتُه بنفسي" }),
       notQuoteButton(f)));

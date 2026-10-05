@@ -56,6 +56,6 @@ for (const [name, vp, mobile] of [["320", { width: 320, height: 640 }, true], ["
   await page.evaluate(() => { const ta = document.getElementById("article"); const f = lastResult.findings[3]; const u = W.cpToUnit(ta.value, f.start + 3); ta.focus(); ta.setSelectionRange(u, u); });
   await page.keyboard.type("ز", { delay: 3 }); await page.waitForTimeout(500); await run(page, `${name}px stale quotation after an edit`);
   // the three trust pages
-  for (const pg of ["/sources", "/privacy", "/limitations"]) { await page.goto(server.base + pg); await run(page, `${name}px ${pg}`); }
+  for (const pg of ["/sources", "/privacy", "/limitations", "/roadmap"]) { await page.goto(server.base + pg); await run(page, `${name}px ${pg}`); }
 }
 finish(server, browser);

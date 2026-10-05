@@ -107,7 +107,7 @@ def main(base: str) -> int:
         r = c.post(f"{base}/api/suggest", json={"before": "ا" * 5000})
         failures += r.status_code != 422
         print(f"  /api/suggest with 5000 characters: HTTP {r.status_code} (expected 422)")
-        for path in ["/sources", "/privacy", "/limitations"]:
+        for path in ["/sources", "/privacy", "/limitations", "/roadmap"]:
             r = c.get(base + path)
             ok = r.status_code == 200 and "<h1>" in r.text and "قيد الإعداد" not in r.text
             failures += not ok

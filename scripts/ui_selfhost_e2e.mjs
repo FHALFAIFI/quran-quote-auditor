@@ -40,7 +40,8 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   const fonts = await page.evaluate((fams) => fams.map((f) => ({
     family: f,
     loaded: [...document.fonts].filter((x) => x.family.replace(/"/g, "") === f && x.status === "loaded").length,
-    check: document.fonts.check(`20px "${f}"`, "قال تعالى"),
+    // A space requests the Latin subset too; the Arabic face alone is enough to render a Quran word.
+    check: document.fonts.check(`20px "${f}"`, "قال"),
   })), FAMILIES);
   for (const f of fonts) check(f.loaded >= 1 && f.check, `${f.family}: loaded from this server (${f.loaded} face(s) loaded, fonts.check=${f.check})`);
   const used = await page.evaluate(() => ({ body: getComputedStyle(document.body).fontFamily, article: getComputedStyle(document.getElementById("article")).fontFamily }));
@@ -61,7 +62,7 @@ for (const [name, vp, mobile] of [["desktop", { width: 1366, height: 900 }, fals
   await shot("2-copied");
 
   // the trust pages
-  for (const pg of ["/sources", "/privacy", "/limitations"]) {
+  for (const pg of ["/sources", "/privacy", "/limitations", "/roadmap"]) {
     const r = await page.goto(server.base + pg, { waitUntil: "load" });
     await page.evaluate(() => document.fonts.ready);
     check(r.headers()["content-security-policy"] === csp, `${pg}: same strict policy`);

@@ -12,8 +12,8 @@ from app.main import CSP, MAX_BODY_BYTES, SECURITY_HEADERS, app
 from app.suggest import MAX_AFTER, MAX_BEFORE
 
 STATIC = Path(main.__file__).parent / "static"
-PAGES = ["/", "/sources", "/privacy", "/limitations"]
-HTML_FILES = ["index.html", "sources.html", "privacy.html", "limitations.html"]
+PAGES = ["/", "/sources", "/privacy", "/limitations", "/roadmap"]
+HTML_FILES = ["index.html", "sources.html", "privacy.html", "limitations.html", "roadmap.html"]
 FONT_DIRS = ["amiri-quran", "noto-naskh-arabic", "readex-pro"]
 
 EXPECTED_CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; "
@@ -156,7 +156,7 @@ def test_phrase_others_and_fields_are_bounded(client):
     b'{"article": "x", "start": -1e308, "end": 1e308}',
     b'{"article": "\\ud800", "start": 0, "end": 1}',                   # a lone surrogate
     b"\xff\xfe not json",
-])
+], ids=["deep-array", "deep-object", "huge-integer", "positive-infinity", "signed-infinity", "lone-surrogate", "invalid-utf8"])
 def test_malformed_json_is_refused_without_500(client, payload):
     for path in ("/api/phrase", "/api/audit", "/api/suggest"):
         res = client.post(path, content=payload, headers={"content-type": "application/json"})

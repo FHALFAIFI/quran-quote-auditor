@@ -156,7 +156,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await page.waitForSelector("#results:not([hidden])");
   check(norm(await page.textContent("#verdict-title")) === "لم نجد اقتباسات قرآنية في النص", "no findings: the verdict says so");
   const vt = norm(await page.textContent("#verdict"));
-  check(!vt.includes("null") && vt.includes("ليس حكمًا على المقال كله") && vt.includes("افحص المحدَّد"), "no findings: it says it is not a judgement of the article and how to check a missed phrase");
+  check(!vt.includes("null") && vt.includes("فحصنا الاقتباسات المرصودة فقط") && vt.includes("افحص المحدَّد"), "no findings: it limits the claim and explains how to check a missed phrase");
   check(!/\bnull\b|undefined|\[object/.test(await page.evaluate(() => document.body.innerText)), "no findings: no stray «null» text");
   check(await page.locator("#panel").isHidden() && (await page.locator("#review-dock").isHidden()) && await page.locator("#article-view").isVisible(), "no findings: no empty decision panel or bar; the article is shown for selecting");
   check(norm(await page.textContent("#final")) === "" || await page.locator("#final").isHidden(), "no findings: no final check to fill in");

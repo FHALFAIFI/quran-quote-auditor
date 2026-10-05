@@ -100,6 +100,25 @@ def test_fuzzy_with_pinpointing_reference_is_corrected_minimally(use_source):
     assert apply(article, [ch]) == article.replace("الصابرون", "الصابرين")
 
 
+def test_referenced_quote_with_wrong_and_missing_word_offers_reviewable_fix(use_source):
+    article = "وقال جل شأنه: ﴿إنما يجزى الصابرون بغير حساب﴾ [الزمر: 10]"
+    res = run_audit(article)
+    f = res["findings"][0]
+    assert f["wording"]["status"] == "difference"
+    assert f["source"]["surah"] == 39 and f["source"]["ayah_start"] == 10
+    (ch,) = changes_of(res, {"wording"})
+    assert apply(article, [ch]) == article.replace(
+        "إنما يجزى الصابرون بغير حساب", "إنما يوفى الصابرون أجرهم بغير حساب"
+    )
+
+
+def test_two_edit_quote_without_matching_reference_stays_review_only(use_source):
+    article = "وقال جل شأنه: ﴿إنما يجزى الصابرون بغير حساب﴾ [الإخلاص: 2]"
+    res = run_audit(article)
+    f = res["findings"][0]
+    assert f["changes"] == [] and f["correction"]["status"] == "review_only"
+
+
 def test_reference_pointing_elsewhere_blocks_fuzzy_fix(use_source):
     res = run_audit("﴿إن الله مع الصابرون﴾ [الإخلاص: 2]")
     f = res["findings"][0]

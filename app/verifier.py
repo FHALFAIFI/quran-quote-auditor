@@ -587,6 +587,20 @@ def _one_word_swapped(best: Alignment) -> bool:
     return equal >= 2 and len(others) == 1 and others[0][0] == "replace" and others[0][2] - others[0][1] == 1 and others[0][4] - others[0][3] == 1
 
 
+def _one_word_swapped_and_one_missing(best: Alignment) -> bool:
+    """A pinned, bounded quotation may have one wrong word and one omitted word.
+
+    Keep the waiver narrow: three words must still match in order, the replacement is
+    one-for-one, and exactly one source word is missing. A verse number and the
+    separate rival check are required by ``propose_wording`` before this is used.
+    """
+    others = [op for op in best.ops if op[0] != "equal"]
+    equal = sum(i2 - i1 for tag, i1, i2, _, _ in best.ops if tag == "equal")
+    return (equal >= 3 and len(others) == 2
+            and any(t == "replace" and i2 - i1 == j2 - j1 == 1 for t, i1, i2, j1, j2 in others)
+            and any(t == "insert" and i1 == i2 and j2 - j1 == 1 for t, i1, i2, j1, j2 in others))
+
+
 def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, chosen: Span | None,
                     best: Alignment | None, good: list[Alignment], ref_ok: Reference | None, bounded: bool = False) -> dict:
     """Decide whether a source-backed wording correction can be offered.
@@ -645,7 +659,8 @@ def propose_wording(index: QuranIndex, quote_words: list[str], wording: dict, ch
         # A three-word quotation with one word changed scores 0.667, under the floor, whatever else is settled. When the
         # writer's marker or selection states its boundaries, an ayah-level reference (or chosen verse) points at the
         # closest passage (checked above), no close rival exists and nothing but that one word differs, the floor is waived.
-        waived = bounded and ref_ok.ayah_start is not None and _one_word_swapped(best)
+        waived = bounded and ref_ok.ayah_start is not None and (
+            _one_word_swapped(best) or _one_word_swapped_and_one_missing(best))
         if best.similarity < FUZZY_PROPOSE_WITH_REF and not waived:
             out["reason"] = "الفرق كبير بين الاقتباس وأقرب موضع؛ يلزم تحقق بشري."
             return out

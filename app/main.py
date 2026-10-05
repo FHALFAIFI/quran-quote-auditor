@@ -296,7 +296,7 @@ def suggest(body: SuggestRequest, request: Request):
 
 
 # The trust pages are separate documents: what the sources are, what happens to a draft, what the tool cannot do.
-PAGES = {"sources": "sources.html", "privacy": "privacy.html", "limitations": "limitations.html"}
+PAGES = {"sources": "sources.html", "privacy": "privacy.html", "limitations": "limitations.html", "roadmap": "roadmap.html"}
 
 
 def _page(name: str):
@@ -316,6 +316,11 @@ def privacy_page():
 @app.get("/limitations")
 def limitations_page():
     return _page("limitations")
+
+
+@app.get("/roadmap")
+def roadmap_page():
+    return _page("roadmap")
 
 
 @app.get("/")

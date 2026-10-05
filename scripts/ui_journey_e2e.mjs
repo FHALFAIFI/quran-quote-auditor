@@ -39,7 +39,7 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check((await page.inputValue("#article")).replace(/\r\n?/g, "\n") === demo, "one click loaded the demonstration article");
   check(norm(await page.textContent("#verdict-title")) === "وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك", "the verdict: «وجدنا ٤ اقتباسات؛ يحتاج اثنان إلى قرارك»");
   check((await page.textContent("#verdict")).includes("مقال تجريبي كُتب لهذا العرض"), "the verdict says the two mistakes are deliberate (a demo article)");
-  check((await page.textContent("#verdict")).includes("ليس حكمًا على المقال كله"), "the verdict says it covers the quotations found, not the whole article");
+  check((await page.textContent("#verdict")).includes("فحصنا الاقتباسات المرصودة فقط"), "the verdict limits its claim to quotations found");
   check(!(await page.textContent("#verdict")).includes("null"), "no stray «null» in the verdict");
   check(await page.evaluate(() => document.activeElement?.id === "finding-3"), "focus is on the first quotation that needs a decision (#3)");
   check(norm(await page.textContent("#panel-progress")).startsWith("اقتباسان ينتظران قرارك"), `the panel says what is pending («${norm(await page.textContent("#panel-progress"))}»)`);
@@ -73,7 +73,8 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   check(!(await page.locator("#finding-3 .source-box").isVisible()), "the full verse is not on the card until asked for");
   check(!(await page.locator("#finding-3 .statuses").isVisible()), "the similarity percentage is folded");
   const notices = await page.evaluate(() => { const n = document.getElementById("notices"); return { open: [...n.querySelectorAll("details")].filter((d) => d.open).length, text: n.innerText.replace(/\s+/g, " ").trim() }; });
-  check(notices.open === 0 && notices.text.length <= 140, `the audit-method notice is one folded short line («${notices.text}»)`);
+  const sourceStale = notices.text.includes("استُخدمت نسخة مخبأة");
+  check(notices.open === 0 && notices.text.length <= (sourceStale ? 200 : 140), `the audit-method notice stays compact, including a source-cache warning when needed («${notices.text}»)`);
   await page.locator("#finding-3 details.f-all > summary").click();
   check(await page.locator("#finding-3 .source-box").isVisible() && /نسبة التشابه: ٨٣٪/.test(await page.locator("#finding-3 .statuses").innerText()), "opened: the full verse and the similarity (٨٣٪) appear");
   check(await page.locator('#finding-3 .source-box a[href*="/v1/mushafs/"]').first().isVisible(), "opened: the API record link appears");
