@@ -1,8 +1,9 @@
 -- Quran Quote Auditor — optional accounts (roadmap Stage 2): private drafts and preferences.
 --
--- STATUS: written and reviewed on 4 Oct 2026 (challenge period), NOT EXECUTED against any database. No Supabase project
--- exists for this application. Row-Level Security below is therefore reviewed, not tested. Run it in the owner's project
--- (SQL editor, or `psql "$DATABASE_URL" -f 001_drafts.sql`) and then run the live acceptance checks in README.md.
+-- STATUS: written and reviewed on 4 Oct 2026 (challenge period). On 5 Oct it was executed in a LOCAL POSTGRES EMULATION
+-- OF SUPABASE AUTH (Postgres 16, tests/supabase_auth_shim.sql, tests/test_account_rls_pg.py) — NOT on Supabase. No
+-- Supabase project exists for this application. Run it in the owner's project (SQL editor, or
+-- `psql "$DATABASE_URL" -f 001_drafts.sql`) and then work through INTEGRATION_CHECKLIST.md and the checks in README.md.
 --
 -- Design:
 --   * Two guards. The FastAPI server verifies the JWT and filters every query by the verified user id; independently,
@@ -78,7 +79,9 @@ create policy drafts_insert on public.drafts for insert to authenticated with ch
 create policy drafts_update on public.drafts for update to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 create policy drafts_delete on public.drafts for delete to authenticated using (user_id = (select auth.uid()));
 
-revoke all on public.drafts from anon, public;
+-- Supabase grants ALL on every new public table to anon and authenticated by default: take everything back first, so
+-- authenticated keeps exactly the four commands RLS filters (TRUNCATE is not filtered by RLS; REFERENCES and TRIGGER unused).
+revoke all on public.drafts from anon, authenticated, public;
 grant select, insert, update, delete on public.drafts to authenticated;
 
 -- -------------------------------------------------------------------------------------------------------- preferences
@@ -114,7 +117,7 @@ create policy preferences_insert on public.preferences for insert to authenticat
 create policy preferences_update on public.preferences for update to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 create policy preferences_delete on public.preferences for delete to authenticated using (user_id = (select auth.uid()));
 
-revoke all on public.preferences from anon, public;
+revoke all on public.preferences from anon, authenticated, public;
 grant select, insert, update, delete on public.preferences to authenticated;
 
 -- ------------------------------------------------------------------------------------------------------- deletion_log
@@ -130,10 +133,11 @@ create table if not exists public.deletion_log (
 
 alter table public.deletion_log enable row level security;
 revoke all on public.deletion_log from anon, authenticated, public;
+revoke all on sequence public.deletion_log_id_seq from anon, authenticated, public;
 
 commit;
 
--- Review notes (not executed):
+-- Review notes:
 --   * `(select auth.uid())` instead of `auth.uid()` lets Postgres evaluate it once per statement (Supabase's RLS advice).
 --   * `force row level security` makes the policies apply to the table owner too; the service role still bypasses RLS.
 --   * The count trigger runs as the invoker; under RLS it counts only the caller's rows, which is exactly the set limited.
