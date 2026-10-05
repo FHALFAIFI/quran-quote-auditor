@@ -1271,3 +1271,11 @@ marker, so an optional pair could reserve the reference written for the selected
 (`tests/test_pairs.py::test_a_pair_does_not_take_the_reference_of_a_selected_span`, which fails without the fix). Rerun: pytest **551**,
 ui_phrase_e2e 38, ui_pair_e2e 38, ui_boundary_e2e 48, ui_journey_e2e 169, 0 failures; both hard-quotation sets (whose scorer confirms
 through the same endpoint) identical to `pairs-eb00ae0`.
+
+**Release (PR #13).** `main` fast-forwarded `ee3f7a2..1825065` at 20:17:17 Riyadh (the PR #1–#12 method; no merge commit). Render served
+build `1825065c68bb…` at 20:18:17; 17 served files (12 static files and the pages `/`, `/sources`, `/privacy`, `/limitations`, `/roadmap`)
+byte-identical to the commit. **Live journey** `scripts/live_feedback.mjs` (new) at 20:19:43: **one** audit at 1366 px = **one Groq call:
+`ai.outcome` ok, HTTP 200, proposed 1, located 1, added_only 0, 737 ms** (`/api/health` `ai_last_call` agrees). The screenshot case offered
+«غيّر إلى «يوفى الصابرون أجرهم»» with الزمر ١٠; approving left the draft as written; the copy held exactly the source correction; «فاستبقوا
+الخيرات» was an optional pair; «حياة طيبة» was not listed; `/roadmap` and `/sources` served the new copy. The 390 and 320 px runs **replayed**
+that answer (no request reached the server). No other live audit was made.
