@@ -1027,8 +1027,9 @@ function setDecision(id, value) {
   const undo = () => { if (before) decisions[id] = before; else delete decisions[id]; saveSession(); renderAll(); goTo(f.id, { scroll: "panel" }); };
   if (c.optional) { saveSession(); renderAll(); return; }
   const d = deltaParts(c);
-  const msg = decisions[id] === "approved" ? `اعتمدتَ «${d.prefix}${d.after}» مكان «${d.prefix}${d.before}» (الاقتباس ${toArabicDigits(f.id)}) في النسخة التي تنسخها؛ نصّك في المربع لم يُمحَ.`
-    : decisions[id] === "rejected" ? `أبقيتَ «${d.prefix}${d.before}» كما كتبتَه (الاقتباس ${toArabicDigits(f.id)}).`
+  const n = toArabicDigits(f.id);
+  const msg = decisions[id] === "approved" ? `${adds(c) ? `اعتمدتَ إضافة «${d.prefix}${d.after}»` : drops(c) ? `اعتمدتَ حذف «${d.before}»` : `اعتمدتَ «${d.prefix}${d.after}» مكان «${d.prefix}${d.before}»`} (الاقتباس ${n}) في النسخة التي تنسخها؛ نصّك في المربع لم يُمحَ.`
+    : decisions[id] === "rejected" ? (adds(c) ? `لن تُضاف «${d.prefix}${d.after}» (الاقتباس ${n})؛ يبقى النص كما كتبتَه.` : `أبقيتَ «${d.prefix}${d.before}» كما كتبتَه (الاقتباس ${n}).`)
     : `ألغيتَ قرارك في الاقتباس ${toArabicDigits(f.id)}.`;
   afterDecision(f, msg, undo);
 }
@@ -1214,8 +1215,12 @@ function deltaParts(c) {
     if (a && b && a[1] === b[1]) return { prefix: toArabicDigits(a[1]), before: toArabicDigits(a[2]), after: toArabicDigits(b[2]) };
     return { prefix: "", before: toArabicDigits(c.original || "—"), after: toArabicDigits((c.replacement || "").trim()) };
   }
-  return { prefix: "", before: c.original || "—", after: (c.replacement || "").trim() };
+  return { prefix: "", before: (c.original || "").trim() || "—", after: (c.replacement || "").trim() };
 }
+// A word the source has and the writer left out is added; a word the writer added is removed: the choices say so («أضف …», «احذف …»),
+// never «أبقِ «—»».
+const adds = (c) => c.start === c.end || !c.original;
+const drops = (c) => !adds(c) && !(c.replacement || "").trim();
 
 // Required corrections, each with the exact change first and the two choices after it.
 function fixBlocks(f, secondary) {
@@ -1226,7 +1231,8 @@ function decisionBlock(c, f, secondary) {
   const quoteLevel = c.kind !== "reference" && c.kind !== "reference_add";
   const short = Array.from(d.before + d.after + d.prefix).length <= 34;
   const firstFix = !decisions[c.id] && !approvedFixes().length;
-  const [yes, no] = short ? [`غيّر إلى «${d.prefix}${d.after}»`, `أبقِ «${d.prefix}${d.before}»`] : ["اعتمد هذا التغيير", "أبقِ ما كتبتُه"];
+  const [yes, no] = adds(c) ? [`أضف «${d.prefix}${d.after}»`, "لا تُضِف شيئًا"] : drops(c) ? [`احذف «${d.before}»`, `أبقِ «${d.before}»`]
+    : short ? [`غيّر إلى «${d.prefix}${d.after}»`, `أبقِ «${d.prefix}${d.before}»`] : ["اعتمد هذا التغيير", "أبقِ ما كتبتُه"];
   // One concise warning stays beside the decision. The complete list remains
   // in the expanded evidence section below the card.
   const warns = (f.review_reasons || []).filter((x) => x !== c.reason).slice(0, 1);
@@ -1245,7 +1251,9 @@ function decisionBlock(c, f, secondary) {
       el("button", { type: "button", class: "btn approve", "data-act": "approved", "aria-pressed": String(decisions[c.id] === "approved"), "aria-describedby": firstFix ? `fx-${c.id}` : null, onclick: () => setDecision(c.id, "approved"), text: yes }),
       el("button", { type: "button", class: "btn reject", "data-act": "rejected", "aria-pressed": String(decisions[c.id] === "rejected"), onclick: () => setDecision(c.id, "rejected"), text: no })),
     // until the writer has approved one correction, say where it goes: the box keeps their text
-    firstFix ? el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يبقى نصّك في المربع ويظهر ", el("b", { text: `«${d.prefix}${d.after}»` }), " فوقه، ويُكتب مكانه في النسخة التي تنسخها.") : null,
+    firstFix ? (drops(c) ? el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يبقى نصّك في المربع وتُشطب فيه ", el("b", { text: `«${d.before}»` }), "، وتُحذف من النسخة التي تنسخها.")
+      : el("p", { class: "fix-note", id: `fx-${c.id}` }, "عند الاعتماد يبقى نصّك في المربع ويظهر ", el("b", { text: `«${d.prefix}${d.after}»` }),
+        adds(c) ? " فوق موضعه، ويُضاف في النسخة التي تنسخها." : " فوقه، ويُكتب مكانه في النسخة التي تنسخها.")) : null,
     // once approved: which text is the writer's, which is copied, and how to take it back
     decisions[c.id] === "approved" ? el("p", { class: "fix-note" }, "اعتمدتَه: يُكتب ", el("b", { text: `«${d.prefix}${d.after}»` }),
       c.start === c.end ? " في النسخة المنسوخة، ونصّك في المربع كما هو." : " في النسخة المنسوخة، ونصّك في المربع باقٍ تحته مشطوبًا.", " للتراجع اضغط زر الاعتماد أعلاه مرة أخرى.") : null,

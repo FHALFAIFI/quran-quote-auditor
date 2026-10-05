@@ -134,7 +134,8 @@ for (const [name, vp, mobile] of VIEWPORTS) {
   await audit(ADD);
   const kind = await page.evaluate(() => { const c = requiredOf(findingById(current))[0]; return c && { len: c.end - c.start, rep: c.replacement }; });
   check(kind && kind.len === 0 && /رب/.test(kind.rep), `the missing «رب» is an insertion (${JSON.stringify(kind)})`);
-  check(/عند الاعتماد يبقى نصّك في المربع ويظهر «رب» فوقه/.test(norm(await page.textContent("#current .fix-note").catch(() => ""))), "the card says where «رب» will appear");
+  // an addition replaces nothing: «فوق موضعه، ويُضاف» (until 5 Oct the note said «فوقه، ويُكتب مكانه», as for a replaced word)
+  check(/عند الاعتماد يبقى نصّك في المربع ويظهر «رب» فوق موضعه، ويُضاف في النسخة التي تنسخها/.test(norm(await page.textContent("#current .fix-note").catch(() => ""))), "the card says where «رب» will appear, and that it is added");
   await tap('#current [data-act="approved"]');
   await page.waitForTimeout(700);
   fx = await fixes(page);
